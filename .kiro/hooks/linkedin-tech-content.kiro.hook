@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "LinkedIn Technical Content Generator",
+  "description": "Automatically creates technical LinkedIn posts highlighting development concepts, architecture decisions, and implementation details from recent work",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Create a technical LinkedIn post based on recent development work. Focus on:\n\n1. **Technical concepts and patterns used** (e.g., real-time systems, microservices, database design)\n2. **Architecture decisions and why they matter** (e.g., choosing WebSockets over polling, RLS policies for security)\n3. **Implementation challenges solved** (e.g., handling race conditions, optimizing queries)\n4. **Technologies and tools leveraged** (e.g., Supabase, React Native, TypeScript, Drizzle ORM)\n\nWrite in first person as a developer who knows their craft. Include:\n- Brief context of what was built\n- 2-3 key technical concepts/patterns used\n- Why these choices were made (performance, scalability, maintainability)\n- A subtle mention of the impact or result\n- Relevant hashtags for visibility\n\nKeep it professional but engaging, showing technical depth without being overly complex. Aim for 150-200 words."
+  }
+}
