@@ -1,0 +1,106 @@
+{
+  "expo": {
+    "name": "BarterDash",
+    "slug": "barterdash-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "barterdash",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#0f0f0f",
+      "imageWidth": 1024
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.barterdash.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0B0B0B"
+      },
+      "package": "com.barterdash.mobile",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "ndk": {
+        "enabled": false
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "proxy": {
+        "/api": {
+          "target": "http://localhost:3000",
+          "changeOrigin": true
+        }
+      }
+    },
+    "build": {
+      "development": {
+        "developmentClient": true,
+        "distribution": "internal",
+        "ios": {
+          "resourceClass": "m-medium"
+        },
+        "android": {
+          "resourceClass": "medium"
+        }
+      },
+      "preview": {
+        "distribution": "internal",
+        "ios": {
+          "resourceClass": "m-medium"
+        },
+        "android": {
+          "resourceClass": "medium"
+        }
+      },
+      "production": {
+        "ios": {
+          "resourceClass": "m-medium"
+        },
+        "android": {
+          "resourceClass": "medium"
+        }
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "@react-native-google-signin/google-signin",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera for live streaming.",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone for live streaming."
+        }
+      ],
+      "@react-native-community/datetimepicker",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "packagingOptions": {
+              "pickFirst": [
+                "lib/arm64-v8a/libaosl.so",
+                "lib/armeabi-v7a/libaosl.so",
+                "lib/x86/libaosl.so",
+                "lib/x86_64/libaosl.so"
+              ]
+            }
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1b23c933-44a4-472e-a968-9e3b1d96ef7c"
+      }
+    }
+  }
+}

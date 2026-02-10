@@ -1,0 +1,26 @@
+import apiClient from "../client";
+import { User, UpdateProfilePayload, ApiResponse } from "../../../types";
+
+export const usersService = {
+  syncProfile: async (data: User): Promise<void> => {
+    await apiClient.post("/auth/sync", data);
+  },
+
+  getMe: async (): Promise<User> => {
+    const response = await apiClient.get<ApiResponse<User>>("/auth/me");
+    return response.data.data;
+  },
+
+  getProfile: async (id: string): Promise<User> => {
+    const response = await apiClient.get<ApiResponse<User>>(`/users/${id}`);
+    return response.data.data;
+  },
+
+  updateProfile: async (payload: UpdateProfilePayload): Promise<User> => {
+    const response = await apiClient.put<ApiResponse<User>>(
+      "/users/profile",
+      payload,
+    );
+    return response.data.data;
+  },
+};
