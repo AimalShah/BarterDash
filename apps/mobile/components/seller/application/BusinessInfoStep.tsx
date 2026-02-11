@@ -14,8 +14,8 @@ import {
   Heading,
 } from "@gluestack-ui/themed";
 import { Store } from "lucide-react-native";
-import { COLORS } from "../../constants/colors";
-import { BusinessType } from "../../hooks/useSellerApplication";
+import { COLORS } from "../../../constants/colors";
+import { BusinessType } from "../../../hooks/useSellerApplication";
 
 interface BusinessInfoStepProps {
   businessName: string;

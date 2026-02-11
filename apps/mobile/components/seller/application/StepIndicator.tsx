@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Text, VStack, HStack, Center } from "@gluestack-ui/themed";
 import { Check } from "lucide-react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS } from "../../../constants/colors";
 
 const STEPS = ["Business Info", "KYC Documents", "Review"];
 

@@ -9,7 +9,7 @@ import {
   Center,
 } from "@gluestack-ui/themed";
 import { Star, CheckCircle } from "lucide-react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS } from "../../../constants/colors";
 
 interface SellerProfileHeaderProps {
   seller: any;

@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { Plus, Video, Gavel } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { COLORS } from "../../constants/colors";
+import { COLORS } from "../../../constants/colors";
 
 const QuickActionButton = ({ icon, label, onPress, highlight = false }: any) => (
   <TouchableOpacity

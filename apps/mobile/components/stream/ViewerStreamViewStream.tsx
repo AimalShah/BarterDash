@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -18,7 +18,6 @@ import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { supabase } from "../../lib/supabase";
 import { streamsService } from "../../lib/api/services/streams";
-import { auctionsService } from "../../lib/api/services/auctions";
 import { useAuthStore } from "../../store/authStore";
 import { useBidding } from "../../hooks/useBidding";
 import { useStreamAuctions } from "../../hooks/useStreamAuctions";
