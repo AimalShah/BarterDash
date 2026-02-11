@@ -7,7 +7,13 @@ import {
   ValidationError,
   ForbiddenError,
 } from '../utils/result';
-import { Auction, products, streams, streamProducts, orders } from '../db/schema';
+import {
+  Auction,
+  products,
+  streams,
+  streamProducts,
+  orders,
+} from '../db/schema';
 import { OrdersService } from './orders.service';
 import { EmailService } from './email.service';
 import { NotificationsService } from './notifications.service';

@@ -135,7 +135,7 @@ export default function ViewerStreamViewStream({
         user?.email?.split("@")[0] ||
         "Viewer";
 
-      const user = {
+      const user: { id: string; name: string } = {
         id: userId,
         name: fallbackName,
       };

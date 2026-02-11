@@ -1,9 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-} from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import SellerStreamControls from "./SellerStreamControls";
 import AuctionOverlay from "./AuctionOverlay";
@@ -17,7 +13,11 @@ import { devService } from "../../lib/api/services/dev";
 import { useAuthStore } from "../../store/authStore";
 import { useStreamAuctions } from "../../hooks/useStreamAuctions";
 import { useLiveStream } from "../../hooks/useLiveStream";
-import { useStreamMedia, useStreamConnection, useStreamTimer } from "../../hooks/useStreamMedia";
+import {
+  useStreamMedia,
+  useStreamConnection,
+  useStreamTimer,
+} from "../../hooks/useStreamMedia";
 import { supabase } from "../../lib/supabase";
 import { COLORS } from "../../constants/colors";
 import { Video as VideoIcon } from "lucide-react-native";
@@ -45,27 +45,20 @@ const styles = StyleSheet.create({
   },
 });
 
-// Mock viewers data
-const MOCK_VIEWERS = [
-  { id: "1", username: "buyer123", joinedAt: new Date() },
-  { id: "2", username: "collector_jane", joinedAt: new Date() },
-];
-
 export default function SellerStreamViewStream({
   streamId,
   onEndStream,
 }: SellerStreamViewStreamProps) {
   const router = useRouter();
   const { profile } = useAuthStore();
-  const showDevTools = __DEV__;
-  
+
   // Core stream state
   const [isLive, setIsLive] = useState(false);
   const [showControls, setShowControls] = useState(false);
   const [isScreenFocused, setIsScreenFocused] = useState(true);
   const [isPreparingLive, setIsPreparingLive] = useState(false);
   const [initializing, setInitializing] = useState(true);
-  
+
   // Stream data
   const [streamProducts, setStreamProducts] = useState<any[]>([]);
   const [streamInfo, setStreamInfo] = useState<any>(null);
@@ -85,15 +78,10 @@ export default function SellerStreamViewStream({
     setCallVideoEnabled,
   } = useStreamMedia();
 
-  const {
-    streamClient,
-    streamCall,
-    joinStream,
-    leaveStream,
-  } = useStreamConnection(streamId);
+  const { streamClient, streamCall, joinStream, leaveStream } =
+    useStreamConnection(streamId);
 
   const { duration, startTimer, stopTimer, resetTimer } = useStreamTimer();
-
   const { viewerCount } = useLiveStream(streamId, { autoJoin: false });
 
   const {
@@ -101,9 +89,6 @@ export default function SellerStreamViewStream({
     refetch: refetchAuction,
     refreshAuction,
   } = useStreamAuctions(streamId);
-
-  const devBuyerId = process.env.EXPO_PUBLIC_DEV_BUYER_ID || "878cdb21-ac5c-463f-8fbf-1bf152bd7a47";
-  const devSellerId = process.env.EXPO_PUBLIC_DEV_SELLER_ID || "47d220db-95c8-4365-9ec9-530431bab107";
 
   // Derived auction data
   const activeAuction = useMemo(() => {
@@ -219,10 +204,9 @@ export default function SellerStreamViewStream({
 
     try {
       setIsPreparingLive(true);
-      
+
       const callInstance = await joinStream();
-      
-      // Apply current mute/camera settings
+
       if (isMuted) {
         await setCallAudioEnabled(callInstance, false);
       }
@@ -255,22 +239,25 @@ export default function SellerStreamViewStream({
       if (!isLive) {
         return;
       }
-      
+
       const product = streamProducts.find((p) => p.product.id === productId);
       if (!product) {
         return;
       }
 
-      const durationMinutes = Math.max(1, Math.ceil((config.durationSeconds || 60) / 60));
-      
-      const auction = await auctionsService.startStreamAuction({
+      const durationMinutes = Math.max(
+        1,
+        Math.ceil((config.durationSeconds || 60) / 60),
+      );
+
+      const auction = (await auctionsService.startStreamAuction({
         stream_id: streamId,
         product_id: productId,
         starting_bid: config.startingBid,
         reserve_price: config.reservePrice,
         minimum_bid_increment: config.minimumBidIncrement || 1,
         duration_minutes: durationMinutes,
-      }) as any;
+      })) as any;
 
       await refreshAuction(auction.id);
       await fetchStreamProducts();
@@ -284,20 +271,10 @@ export default function SellerStreamViewStream({
     router.push(`/seller/stream/add-product/${streamId}`);
   };
 
-  const handleMockAuctionWin = async () => {
-    try {
-      const result = await devService.createMockAuctionWin({
-        buyerId: devBuyerId,
-        sellerId: profile?.id || devSellerId,
-        bidAmount: 25,
-      });
-    } catch (error: any) {
-      console.error("Error creating mock auction:", error);
-    }
-  };
-
   const handlePinProduct = async (productId: string) => {
-    const streamProduct = streamProducts.find((p) => p.product.id === productId);
+    const streamProduct = streamProducts.find(
+      (p) => p.product.id === productId,
+    );
     if (streamProduct) {
       await streamsService.markProductActive(streamId, streamProduct.id);
       fetchStreamProducts();
@@ -305,7 +282,9 @@ export default function SellerStreamViewStream({
   };
 
   const handleMarkAsSold = async (productId: string, auctionId?: string) => {
-    const streamProduct = streamProducts.find((p) => p.product.id === productId);
+    const streamProduct = streamProducts.find(
+      (p) => p.product.id === productId,
+    );
     if (streamProduct) {
       await streamsService.markProductSold(streamId, streamProduct.id);
       await fetchStreamProducts();
@@ -316,9 +295,13 @@ export default function SellerStreamViewStream({
   };
 
   const handleMarkAsPassed = async (productId: string) => {
-    const streamProduct = streamProducts.find((p) => p.product.id === productId);
+    const streamProduct = streamProducts.find(
+      (p) => p.product.id === productId,
+    );
     if (!streamProduct) return;
-    await streamsService.updateProduct(streamId, streamProduct.id, { status: "passed" });
+    await streamsService.updateProduct(streamId, streamProduct.id, {
+      status: "passed",
+    });
     await fetchStreamProducts();
   };
 
@@ -349,7 +332,6 @@ export default function SellerStreamViewStream({
 
   return (
     <View style={styles.container}>
-      {/* Video Layer */}
       <StreamVideoLayer
         streamClient={streamClient}
         streamCall={streamCall}
@@ -362,7 +344,6 @@ export default function SellerStreamViewStream({
         onEndStream={handleEndStream}
       />
 
-      {/* Auction Display */}
       {activeAuction && (
         <AuctionOverlay
           currentBid={activeAuction.currentBid}
@@ -373,7 +354,6 @@ export default function SellerStreamViewStream({
         />
       )}
 
-      {/* Top Bar */}
       <StreamTopBar
         isLive={isLive}
         duration={duration}
@@ -381,7 +361,6 @@ export default function SellerStreamViewStream({
         onEndStream={handleEndStream}
       />
 
-      {/* Side Controls */}
       {!showControls && (
         <StreamSideControls
           isMuted={isMuted}
@@ -392,12 +371,11 @@ export default function SellerStreamViewStream({
         />
       )}
 
-      {/* Bottom Bar */}
       <StreamBottomBar
         streamId={streamId}
         isLive={isLive}
         isJoining={isPreparingLive}
-        viewers={MOCK_VIEWERS}
+        viewers={[]} // TODO : Fetch real viewers profiles
         onShowControls={() => setShowControls(true)}
         onStartStream={handleStartStream}
         onEndStream={handleEndStream}
@@ -414,7 +392,9 @@ export default function SellerStreamViewStream({
             status: sp.status,
           }))}
           activeAuction={activeAuction}
-          pinnedProduct={streamProducts.find((p) => p.status === "active")?.product || null}
+          pinnedProduct={
+            streamProducts.find((p) => p.status === "active")?.product || null
+          }
           onStartAuction={handleStartAuction}
           onPinProduct={handlePinProduct}
           onMarkAsSold={handleMarkAsSold}
