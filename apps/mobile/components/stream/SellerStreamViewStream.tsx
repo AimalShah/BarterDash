@@ -1,48 +1,26 @@
-import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
-  Alert,
-  StatusBar,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter, useFocusEffect } from "expo-router";
-import {
-  CameraView,
-  useCameraPermissions,
-  useMicrophonePermissions,
-} from "expo-camera";
 import SellerStreamControls from "./SellerStreamControls";
 import AuctionOverlay from "./AuctionOverlay";
+import StreamTopBar from "./StreamTopBar";
+import StreamVideoLayer from "./StreamVideoLayer";
+import StreamSideControls from "./StreamSideControls";
+import StreamBottomBar from "./StreamBottomBar";
 import { streamsService } from "../../lib/api/services/streams";
 import { auctionsService } from "../../lib/api/services/auctions";
 import { devService } from "../../lib/api/services/dev";
-import InstagramLiveChat from "./InstagramLiveChat";
 import { useAuthStore } from "../../store/authStore";
-import { useLiveStream } from "../../hooks/useLiveStream";
 import { useStreamAuctions } from "../../hooks/useStreamAuctions";
+import { useLiveStream } from "../../hooks/useLiveStream";
+import { useStreamMedia, useStreamConnection, useStreamTimer } from "../../hooks/useStreamMedia";
 import { supabase } from "../../lib/supabase";
-import {
-  StreamVideo,
-  StreamVideoClient,
-  StreamCall,
-  HostLivestream,
-} from "@stream-io/video-react-native-sdk";
 import { COLORS } from "../../constants/colors";
-import {
-  X,
-  Eye,
-  Mic,
-  MicOff,
-  Video as VideoIcon,
-  VideoOff,
-  RefreshCw,
-  Sliders,
-  ShoppingBag,
-  Gift,
-} from "lucide-react-native";
+import { Video as VideoIcon } from "lucide-react-native";
 
 interface SellerStreamViewStreamProps {
   streamId: string;
@@ -65,233 +43,69 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     marginTop: 16,
   },
-  videoContainer: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  video: {
-    flex: 1,
-  },
-  cameraOff: {
-    backgroundColor: COLORS.luxuryBlackLight,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  cameraOffText: {
-    color: COLORS.textMuted,
-    fontSize: 12,
-    fontWeight: "900",
-    letterSpacing: 1,
-    marginTop: 12,
-  },
-  topBar: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    zIndex: 10,
-  },
-  topLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  endButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: COLORS.overlayStrong,
-    borderWidth: 1,
-    borderColor: COLORS.darkBorder,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  liveInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.overlayStrong,
-    paddingRight: 10,
-    paddingLeft: 4,
-    paddingVertical: 4,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.darkBorder,
-  },
-  liveBadge: {
-    backgroundColor: COLORS.liveIndicator,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-    marginRight: 6,
-  },
-  liveText: {
-    color: COLORS.textPrimary,
-    fontSize: 10,
-    fontWeight: "900",
-  },
-  duration: {
-    color: COLORS.textPrimary,
-    fontSize: 12,
-    fontWeight: "700",
-    minWidth: 40,
-  },
-  previewBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  previewText: {
-    color: COLORS.textPrimary,
-    fontSize: 11,
-    fontWeight: "900",
-    letterSpacing: 0.5,
-  },
-  rightHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  viewerCount: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.overlayStrong,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.darkBorder,
-  },
-  viewerText: {
-    color: COLORS.textPrimary,
-    fontSize: 12,
-    fontWeight: "700",
-    marginLeft: 6,
-  },
-  rightControls: {
-    position: "absolute",
-    right: 12,
-    alignItems: "center",
-    zIndex: 10,
-  },
-  controlButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.overlayStrong,
-    borderWidth: 1,
-    borderColor: COLORS.darkBorder,
-    justifyContent: "center",
-    alignItems: "center",
-    marginVertical: 4,
-  },
-  controlButtonActive: {
-    borderColor: COLORS.liveIndicator,
-    backgroundColor: "rgba(220, 38, 36, 0.4)",
-  },
-  bottomSection: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 5,
-  },
-  chatContainer: {
-    height: 140,
-  },
-  actionsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 24,
-    paddingTop: 12,
-  },
-  actionBtn: {
-    alignItems: "center",
-    minWidth: 60,
-  },
-  iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.overlayStrong,
-    borderWidth: 1,
-    borderColor: COLORS.darkBorder,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  actionBtnText: {
-    color: COLORS.textSecondary,
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 0.5,
-  },
-  goLiveButton: {
-    backgroundColor: COLORS.liveIndicator,
-    paddingHorizontal: 36,
-    paddingVertical: 12,
-    borderRadius: 24,
-    ...COLORS.shadowMedium,
-  },
-  goLiveText: {
-    color: COLORS.textPrimary,
-    fontSize: 15,
-    fontWeight: "900",
-    letterSpacing: 1,
-  },
 });
+
+// Mock viewers data
+const MOCK_VIEWERS = [
+  { id: "1", username: "buyer123", joinedAt: new Date() },
+  { id: "2", username: "collector_jane", joinedAt: new Date() },
+];
 
 export default function SellerStreamViewStream({
   streamId,
   onEndStream,
 }: SellerStreamViewStreamProps) {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
-
+  const showDevTools = __DEV__;
+  
+  // Core stream state
   const [isLive, setIsLive] = useState(false);
-  const [duration, setDuration] = useState(0);
   const [showControls, setShowControls] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isCameraOff, setIsCameraOff] = useState(false);
+  const [isScreenFocused, setIsScreenFocused] = useState(true);
+  const [isPreparingLive, setIsPreparingLive] = useState(false);
   const [initializing, setInitializing] = useState(true);
-  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
-  const [microphonePermission, requestMicrophonePermission] = useMicrophonePermissions();
+  
+  // Stream data
   const [streamProducts, setStreamProducts] = useState<any[]>([]);
   const [streamInfo, setStreamInfo] = useState<any>(null);
-  const [isScreenFocused, setIsScreenFocused] = useState(true);
-  const [isJoining, setIsJoining] = useState(false);
-  const [cameraFacing, setCameraFacing] = useState<"front" | "back">("front");
-  const [isPreparingLive, setIsPreparingLive] = useState(false);
-  const [streamClient, setStreamClient] = useState<StreamVideoClient | null>(null);
-  const [streamCall, setStreamCall] = useState<any>(null);
-  const streamClientRef = useRef<StreamVideoClient | null>(null);
-  const streamCallRef = useRef<any>(null);
-  const hasLeftCallRef = useRef(false);
-  const hasDisconnectedRef = useRef(false);
-  
-  // Mock data for new features
-  const [viewers] = useState<any[]>([
-    { id: "1", username: "buyer123", joinedAt: new Date() },
-    { id: "2", username: "collector_jane", joinedAt: new Date() },
-  ]);
+
+  // Hooks
+  const {
+    isMuted,
+    isCameraOff,
+    cameraFacing,
+    cameraPermission,
+    microphonePermission,
+    toggleMute,
+    toggleCamera,
+    switchCamera,
+    ensurePermissions,
+    setCallAudioEnabled,
+    setCallVideoEnabled,
+  } = useStreamMedia();
+
+  const {
+    streamClient,
+    streamCall,
+    joinStream,
+    leaveStream,
+  } = useStreamConnection(streamId);
+
+  const { duration, startTimer, stopTimer, resetTimer } = useStreamTimer();
+
+  const { viewerCount } = useLiveStream(streamId, { autoJoin: false });
+
   const {
     activeAuction: liveAuction,
     refetch: refetchAuction,
     refreshAuction,
   } = useStreamAuctions(streamId);
 
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const showDevTools = __DEV__;
   const devBuyerId = process.env.EXPO_PUBLIC_DEV_BUYER_ID || "878cdb21-ac5c-463f-8fbf-1bf152bd7a47";
   const devSellerId = process.env.EXPO_PUBLIC_DEV_SELLER_ID || "47d220db-95c8-4365-9ec9-530431bab107";
 
-
-  const {
-    viewerCount,
-    streamStatus,
-  } = useLiveStream(streamId, { autoJoin: false });
-
+  // Derived auction data
   const activeAuction = useMemo(() => {
     if (!liveAuction) return null;
     const fallbackProduct = streamProducts.find(
@@ -302,8 +116,7 @@ export default function SellerStreamViewStream({
     const topBidder =
       liveAuction.currentBidder?.username ||
       liveAuction.currentBidder?.full_name ||
-      liveAuction.currentBidder?.fullName ||
-      undefined;
+      liveAuction.currentBidder?.fullName;
 
     return {
       id: liveAuction.id,
@@ -316,102 +129,14 @@ export default function SellerStreamViewStream({
     };
   }, [liveAuction, streamProducts]);
 
-  useFocusEffect(
-    useCallback(() => {
-      setIsScreenFocused(true);
-      fetchStreamProducts();
-      return () => {
-        setIsScreenFocused(false);
-      };
-    }, []),
-  );
-
+  // Initialize camera
   useEffect(() => {
-    streamClientRef.current = streamClient;
-  }, [streamClient]);
-
-  useEffect(() => {
-    streamCallRef.current = streamCall;
-  }, [streamCall]);
-
-  useEffect(() => {
-    fetchStreamDetails();
     prepareCameraPreview();
+    fetchStreamDetails();
     fetchStreamProducts();
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      const activeCall = streamCallRef.current;
-      if (activeCall && !hasLeftCallRef.current) {
-        hasLeftCallRef.current = true;
-        activeCall.leave?.().catch?.((error: any) => {
-          console.warn("Failed to leave call during cleanup:", error);
-        });
-      }
-      const activeClient = streamClientRef.current;
-      if (activeClient && !hasDisconnectedRef.current) {
-        hasDisconnectedRef.current = true;
-        activeClient.disconnectUser?.().catch?.((error: any) => {
-          console.warn("Failed to disconnect Stream client during cleanup:", error);
-        });
-      }
-    };
   }, [streamId]);
 
-  useEffect(() => {
-    if (!profile?.id) return;
-    const apiKey = process.env.EXPO_PUBLIC_STREAM_API_KEY;
-    if (!apiKey) {
-      console.error('Missing Stream API key');
-      return;
-    }
-
-    const user = {
-      id: profile.id,
-      name: profile.username || profile.full_name || profile.fullName || 'Host',
-    };
-
-    const tokenProvider = async () => {
-      const { token } = await streamsService.getHostToken(streamId);
-      return token;
-    };
-
-    const client = StreamVideoClient.getOrCreateInstance({
-      apiKey,
-      user,
-      tokenProvider,
-    });
-
-    setStreamClient(client);
-  }, [profile?.id, profile?.username, profile?.full_name, profile?.fullName, streamId]);
-
-  const fetchStreamDetails = async () => {
-    try {
-      const data = await streamsService.findById(streamId);
-      setStreamInfo(data);
-      if (data.status === "live") {
-        setIsLive(true);
-        if (data.startedAt) {
-          const start = new Date(data.startedAt).getTime();
-          const now = new Date().getTime();
-          setDuration(Math.floor((now - start) / 1000));
-        }
-        startTimer();
-      }
-    } catch (e) {
-      console.error("Failed to fetch stream details", e);
-    }
-  };
-
-  const fetchStreamProducts = useCallback(async () => {
-    try {
-      const data = await streamsService.getProducts(streamId);
-      setStreamProducts(data);
-    } catch (e) {
-      console.error("Failed to fetch stream products", e);
-    }
-  }, [streamId]);
-
+  // Subscribe to product updates
   useEffect(() => {
     if (!streamId) return;
     const channel = supabase
@@ -433,129 +158,70 @@ export default function SellerStreamViewStream({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [streamId, fetchStreamProducts]);
+  }, [streamId]);
+
+  // Screen focus handling
+  useFocusEffect(
+    useCallback(() => {
+      setIsScreenFocused(true);
+      fetchStreamProducts();
+      return () => {
+        setIsScreenFocused(false);
+      };
+    }, []),
+  );
 
   const prepareCameraPreview = useCallback(async () => {
     try {
       setInitializing(true);
       if (!cameraPermission?.granted) {
-        const permission = await requestCameraPermission();
-        if (!permission.granted) {
-          Alert.alert("Camera Required", "Camera permission is needed to stream.");
-          return;
-        }
+        await ensurePermissions();
       }
     } catch (error) {
       console.error("Error preparing camera preview:", error);
     } finally {
       setInitializing(false);
     }
-  }, [cameraPermission?.granted, requestCameraPermission]);
+  }, [cameraPermission?.granted, ensurePermissions]);
 
-  const ensureLivePermissions = useCallback(async () => {
-    let cameraGranted = !!cameraPermission?.granted;
-    if (!cameraGranted) {
-      const permission = await requestCameraPermission();
-      cameraGranted = permission.granted;
-    }
-
-    let micGranted = !!microphonePermission?.granted;
-    if (!micGranted) {
-      const permission = await requestMicrophonePermission();
-      micGranted = permission.granted;
-    }
-
-    if (!cameraGranted || !micGranted) {
-      Alert.alert("Permissions Required", "Camera and microphone permissions are needed to stream.");
-    }
-
-    return cameraGranted && micGranted;
-  }, [cameraPermission?.granted, microphonePermission?.granted, requestCameraPermission, requestMicrophonePermission]);
-
-  const startTimer = () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => {
-      setDuration((prev) => prev + 1);
-    }, 1000);
-  };
-
-  const setCallAudioEnabled = async (callInstance: any, enabled: boolean) => {
-    if (!callInstance) return;
+  const fetchStreamDetails = async () => {
     try {
-      if (callInstance.microphone?.enable && callInstance.microphone?.disable) {
-        if (enabled) {
-          await callInstance.microphone.enable();
-        } else {
-          await callInstance.microphone.disable();
+      const data = await streamsService.findById(streamId);
+      setStreamInfo(data);
+      if (data.status === "live") {
+        setIsLive(true);
+        if (data.startedAt) {
+          const start = new Date(data.startedAt).getTime();
+          const now = new Date().getTime();
+          resetTimer();
         }
-        return;
+        startTimer();
       }
-      if (typeof callInstance.setLocalAudioEnabled === "function") {
-        await callInstance.setLocalAudioEnabled(enabled);
-      }
-    } catch (error) {
-      console.warn("Failed to toggle microphone:", error);
+    } catch (e) {
+      console.error("Failed to fetch stream details", e);
     }
   };
 
-  const setCallVideoEnabled = async (callInstance: any, enabled: boolean) => {
-    if (!callInstance) return;
+  const fetchStreamProducts = useCallback(async () => {
     try {
-      if (callInstance.camera?.enable && callInstance.camera?.disable) {
-        if (enabled) {
-          await callInstance.camera.enable();
-        } else {
-          await callInstance.camera.disable();
-        }
-        return;
-      }
-      if (typeof callInstance.setLocalVideoEnabled === "function") {
-        await callInstance.setLocalVideoEnabled(enabled);
-      }
-    } catch (error) {
-      console.warn("Failed to toggle camera:", error);
+      const data = await streamsService.getProducts(streamId);
+      setStreamProducts(data);
+    } catch (e) {
+      console.error("Failed to fetch stream products", e);
     }
-  };
+  }, [streamId]);
 
-  const enableCallMedia = async (callInstance: any) => {
-    await setCallAudioEnabled(callInstance, true);
-    await setCallVideoEnabled(callInstance, true);
-  };
+  const handleStartStream = async () => {
+    if (isLive || isPreparingLive) return;
 
-  const formatDuration = (seconds: number) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    return `${h > 0 ? h + ":" : ""}${m < 10 && h > 0 ? "0" : ""}${m}:${s < 10 ? "0" : ""}${s}`;
-  };
-
-  const startStream = async () => {
-    if (isLive || isJoining) return;
-
-    const permissionsOk = await ensureLivePermissions();
+    const permissionsOk = await ensurePermissions();
     if (!permissionsOk) return;
 
     try {
       setIsPreparingLive(true);
-      setIsJoining(true);
-      hasLeftCallRef.current = false;
-      hasDisconnectedRef.current = false;
-
-      console.log('[STREAM] start: streamId=', streamId);
-
-      if (!streamClient) {
-        throw new Error('Streaming client not ready');
-      }
-
-      const callInstance = streamClient.call('livestream', streamId);
-      await callInstance.join({ create: true });
-      await enableCallMedia(callInstance);
-      setStreamCall(callInstance);
-
-      if (typeof callInstance.goLive === 'function') {
-        await callInstance.goLive();
-      }
-
+      
+      const callInstance = await joinStream();
+      
       // Apply current mute/camera settings
       if (isMuted) {
         await setCallAudioEnabled(callInstance, false);
@@ -564,102 +230,34 @@ export default function SellerStreamViewStream({
         await setCallVideoEnabled(callInstance, false);
       }
 
-      // Start stream via API
-      console.log('[STREAM] calling streamsService.start', {
-        streamId,
-        apiBase: process.env.EXPO_PUBLIC_API_URL,
-      });
       await streamsService.start(streamId);
 
       setIsLive(true);
       startTimer();
-      console.log('✅ Stream started successfully with Stream');
     } catch (error: any) {
       console.error("Error going live:", error);
-      if (streamCall) {
-        await streamCall.leave();
-        setStreamCall(null);
-      }
-      Alert.alert("Error", error?.message || "Failed to start streaming.");
+      leaveStream();
     } finally {
       setIsPreparingLive(false);
-      setIsJoining(false);
     }
   };
 
-  const handleEndStream = () => {
-    Alert.alert("End Stream", "Are you sure you want to end?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "End",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            if (timerRef.current) clearInterval(timerRef.current);
-            await streamsService.end(streamId);
-            const callToEnd = streamCallRef.current || streamCall;
-            streamCallRef.current = null;
-            setStreamCall(null);
-            if (callToEnd && !hasLeftCallRef.current) {
-              hasLeftCallRef.current = true;
-              const hasConnectedUser = !!(streamClient as any)?.user?.id;
-              if (hasConnectedUser && typeof callToEnd.endCall === "function") {
-                await callToEnd.endCall();
-              } else if (!hasConnectedUser) {
-                console.warn("Skipping endCall: Stream client not connected");
-              }
-              await callToEnd.leave?.();
-            }
-            if (streamClient && !hasDisconnectedRef.current) {
-              hasDisconnectedRef.current = true;
-              await streamClient.disconnectUser?.();
-            }
-            setIsLive(false);
-            onEndStream();
-          } catch (error) {
-            console.error("Error ending stream:", error);
-          }
-        },
-      },
-    ]);
-  };
-
-  const toggleMute = async () => {
-    const nextMuted = !isMuted;
-    setIsMuted(nextMuted);
-    await setCallAudioEnabled(streamCall, !nextMuted);
-  };
-
-  const toggleCamera = async () => {
-    const nextOff = !isCameraOff;
-    setIsCameraOff(nextOff);
-    await setCallVideoEnabled(streamCall, !nextOff);
-  };
-
-  const switchCamera = async () => {
-    try {
-      if (streamCall?.camera?.flip) {
-        await streamCall.camera.flip();
-      } else if (streamCall?.switchCamera) {
-        await streamCall.switchCamera();
-      }
-    } catch (error) {
-      console.warn("Failed to switch camera:", error);
-    } finally {
-      setCameraFacing((prev) => (prev === "front" ? "back" : "front"));
-    }
+  const handleEndStream = async () => {
+    stopTimer();
+    await streamsService.end(streamId);
+    await leaveStream();
+    setIsLive(false);
+    onEndStream();
   };
 
   const handleStartAuction = async (productId: string, config: any) => {
     try {
       if (!isLive) {
-        Alert.alert("Stream Not Live", "Start your stream before launching an auction.");
         return;
       }
       
       const product = streamProducts.find((p) => p.product.id === productId);
       if (!product) {
-        Alert.alert("Error", "Product not found in stream.");
         return;
       }
 
@@ -676,10 +274,8 @@ export default function SellerStreamViewStream({
 
       await refreshAuction(auction.id);
       await fetchStreamProducts();
-      Alert.alert("Success", "Auction started!");
     } catch (error: any) {
       console.error("Error starting auction:", error);
-      Alert.alert("Error", error?.response?.data?.error?.message || error?.message || "Failed to start auction.");
     }
   };
 
@@ -695,9 +291,8 @@ export default function SellerStreamViewStream({
         sellerId: profile?.id || devSellerId,
         bidAmount: 25,
       });
-      Alert.alert("Mock Auction Created", `Order ${result.orderNumber} created.`);
     } catch (error: any) {
-      Alert.alert("Error", error?.message || "Failed to create mock auction.");
+      console.error("Error creating mock auction:", error);
     }
   };
 
@@ -727,22 +322,11 @@ export default function SellerStreamViewStream({
     await fetchStreamProducts();
   };
 
-  const handleExtendAuction = async (auctionId: string, seconds: number) => {
-    Alert.alert(
-      "Not Supported Yet",
-      "Extending auctions isn't supported by the backend yet.",
-    );
-  };
-
   const handleEndAuctionEarly = async (auctionId: string) => {
     try {
       if (!liveAuction || liveAuction.id !== auctionId) return;
 
       if (liveAuction.bidCount > 0) {
-        Alert.alert(
-          "Cannot End Early",
-          "This auction already has bids and will end automatically.",
-        );
         return;
       }
 
@@ -751,7 +335,6 @@ export default function SellerStreamViewStream({
       await fetchStreamProducts();
     } catch (error: any) {
       console.error("Error ending auction early:", error);
-      Alert.alert("Error", error?.message || "Failed to end auction early.");
     }
   };
 
@@ -764,37 +347,22 @@ export default function SellerStreamViewStream({
     );
   }
 
-  // Determine if we should show preview or live video
-  const showExpoPreview = isScreenFocused && cameraPermission?.granted && !isCameraOff && !isLive && !isPreparingLive;
-
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      {/* Video Layer */}
+      <StreamVideoLayer
+        streamClient={streamClient}
+        streamCall={streamCall}
+        isLive={isLive}
+        isPreparingLive={isPreparingLive}
+        isCameraOff={isCameraOff}
+        cameraPermissionGranted={!!cameraPermission?.granted}
+        cameraFacing={cameraFacing}
+        onStartStream={handleStartStream}
+        onEndStream={handleEndStream}
+      />
 
-      {/* Camera / Video Layer */}
-      <View style={styles.videoContainer}>
-        {streamClient && streamCall ? (
-          <StreamVideo client={streamClient}>
-            <StreamCall call={streamCall}>
-              <HostLivestream
-                onStartStreamHandler={startStream}
-                onEndStreamHandler={handleEndStream}
-                HostLivestreamTopView={null}
-                HostLivestreamControls={null}
-              />
-            </StreamCall>
-          </StreamVideo>
-        ) : showExpoPreview ? (
-          <CameraView style={styles.video} facing={cameraFacing} />
-        ) : (
-          <View style={[styles.video, styles.cameraOff]}>
-            <VideoOff size={48} color={COLORS.textMuted} />
-            <Text style={styles.cameraOffText}>CAMERA OFF</Text>
-          </View>
-        )}
-      </View>
-
-      {/* Auction Display Overlay */}
+      {/* Auction Display */}
       {activeAuction && (
         <AuctionOverlay
           currentBid={activeAuction.currentBid}
@@ -805,130 +373,37 @@ export default function SellerStreamViewStream({
         />
       )}
 
-      {/* Top Bar Navigation */}
-      <View style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
-        <View style={styles.topLeft}>
-          <TouchableOpacity onPress={handleEndStream} style={styles.endButton}>
-            <X size={20} color={COLORS.textPrimary} />
-          </TouchableOpacity>
+      {/* Top Bar */}
+      <StreamTopBar
+        isLive={isLive}
+        duration={duration}
+        viewerCount={viewerCount}
+        onEndStream={handleEndStream}
+      />
 
-          <View style={styles.liveInfo}>
-            {isLive ? (
-              <>
-                <View style={styles.liveBadge}>
-                  <Text style={styles.liveText}>LIVE</Text>
-                </View>
-                <Text style={styles.duration}>{formatDuration(duration)}</Text>
-              </>
-            ) : (
-              <View style={styles.previewBadge}>
-                <Text style={styles.previewText}>PREVIEW</Text>
-              </View>
-            )}
-          </View>
-        </View>
-
-        <View style={styles.rightHeader}>
-          <View style={styles.viewerCount}>
-            <Eye size={14} color={COLORS.textPrimary} />
-            <Text style={styles.viewerText}>{viewerCount}</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Side Quick Controls */}
+      {/* Side Controls */}
       {!showControls && (
-        <View style={[styles.rightControls, { top: insets.top + 100 }]}>
-          <TouchableOpacity
-            style={[styles.controlButton, isMuted && styles.controlButtonActive]}
-            onPress={toggleMute}
-            testID="seller-mic-toggle"
-          >
-            {isMuted ? (
-              <MicOff size={20} color={COLORS.textPrimary} />
-            ) : (
-              <Mic size={20} color={COLORS.textPrimary} />
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.controlButton, isCameraOff && styles.controlButtonActive]}
-            onPress={toggleCamera}
-            testID="seller-camera-toggle"
-          >
-            {isCameraOff ? (
-              <VideoOff size={20} color={COLORS.textPrimary} />
-            ) : (
-              <VideoIcon size={20} color={COLORS.textPrimary} />
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.controlButton} onPress={switchCamera}>
-            <RefreshCw size={20} color={COLORS.textPrimary} />
-          </TouchableOpacity>
-        </View>
+        <StreamSideControls
+          isMuted={isMuted}
+          isCameraOff={isCameraOff}
+          onToggleMute={() => toggleMute(streamCall)}
+          onToggleCamera={() => toggleCamera(streamCall)}
+          onSwitchCamera={() => switchCamera(streamCall)}
+        />
       )}
 
-      {/* Interaction Layer */}
-      <View style={[styles.bottomSection, { paddingBottom: insets.bottom + 12 }]}>
-        {/* Chat Feed */}
-        <View style={styles.chatContainer}>
-          <InstagramLiveChat
-            streamId={streamId}
-            showInput={isLive}
-            viewers={viewers}
-          />
-        </View>
+      {/* Bottom Bar */}
+      <StreamBottomBar
+        streamId={streamId}
+        isLive={isLive}
+        isJoining={isPreparingLive}
+        viewers={MOCK_VIEWERS}
+        onShowControls={() => setShowControls(true)}
+        onStartStream={handleStartStream}
+        onEndStream={handleEndStream}
+      />
 
-        {/* Seller Toolbar */}
-        <View style={styles.actionsRow}>
-          <TouchableOpacity style={styles.actionBtn} onPress={() => setShowControls(true)}>
-            <View style={styles.iconCircle}>
-              <Sliders size={20} color={COLORS.textPrimary} />
-            </View>
-            <Text style={styles.actionBtnText}>MANAGE</Text>
-          </TouchableOpacity>
-
-          {!isLive ? (
-            <TouchableOpacity
-              style={[styles.goLiveButton, isJoining && { opacity: 0.6 }]}
-              onPress={startStream}
-              disabled={isJoining}
-              testID="seller-go-live-button"
-            >
-              <Text style={styles.goLiveText}>
-                {isJoining ? "CONNECTING..." : "START STREAM"}
-              </Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              style={[styles.goLiveButton, { backgroundColor: COLORS.overlayStrong }]}
-              onPress={handleEndStream}
-              testID="seller-stop-stream-button"
-            >
-              <Text style={styles.goLiveText}>STOP STREAM</Text>
-            </TouchableOpacity>
-          )}
-
-          {!isLive ? (
-            <TouchableOpacity style={styles.actionBtn}>
-              <View style={styles.iconCircle}>
-                <Gift size={20} color={COLORS.textPrimary} />
-              </View>
-              <Text style={styles.actionBtnText}>GIFT</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity style={styles.actionBtn} onPress={() => router.push("/seller/sales")}>
-              <View style={[styles.iconCircle, { backgroundColor: COLORS.primaryGold }]}>
-                <ShoppingBag size={20} color={COLORS.luxuryBlack} />
-              </View>
-              <Text style={[styles.actionBtnText, { color: COLORS.primaryGold }]}>SALES</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-
-      {/* Full Control Dashboard */}
+      {/* Full Controls Panel */}
       {showControls && (
         <SellerStreamControls
           streamId={streamId}
@@ -944,7 +419,7 @@ export default function SellerStreamViewStream({
           onPinProduct={handlePinProduct}
           onMarkAsSold={handleMarkAsSold}
           onMarkAsPassed={handleMarkAsPassed}
-          onExtendAuction={handleExtendAuction}
+          onExtendAuction={() => {}}
           onEndAuctionEarly={handleEndAuctionEarly}
           onAddProduct={handleAddProduct}
           onMockAuctionWin={handleMockAuctionWin}

@@ -1,36 +1,44 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { StatusBar, Alert, ScrollView, Platform, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import { StatusBar, ScrollView, Platform, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { supabase } from "../../lib/supabase";
-import { streamsService } from "../../lib/api/services/streams";
 import { categoriesService } from "../../lib/api/services/categories";
-import { productsService } from "../../lib/api/services/products";
-import { ChevronLeft, Check } from "lucide-react-native";
+import { ChevronLeft } from "lucide-react-native";
 import * as ImagePicker from "expo-image-picker";
 import { decode } from "base64-arraybuffer";
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { COLORS } from "../../constants/colors";
+import { useStreamForm } from "../../hooks/useStreamForm";
+import { useProductSelection } from "../../hooks/useProductSelection";
 
-// Extracted Components
 import { ThumbnailUpload } from "../../components/seller/ThumbnailUpload";
 import { CategoryPicker } from "../../components/seller/CategoryPicker";
 import { StreamForm } from "../../components/seller/StreamForm";
+import ProductSelector from "../../components/seller/ProductSelector";
 
 export default function CreateStreamScreen() {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
-  const [localImage, setLocalImage] = useState<string | null>(null);
+  const {
+    formData,
+    loading,
+    uploading,
+    localImage,
+    updateField,
+    setLocalImage,
+    setThumbnailUrl,
+    setUploading,
+    handleCreate,
+    validate,
+  } = useStreamForm();
+
+  const {
+    products,
+    selectedProductIds,
+    fetchingProducts,
+    toggleProduct,
+    refreshProducts,
+  } = useProductSelection();
+
   const [categories, setCategories] = useState<any[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [products, setProducts] = useState<any[]>([]);
-  const [fetchingProducts, setFetchingProducts] = useState(false);
-  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
-  const [scheduleStart, setScheduleStart] = useState(
-    new Date(Date.now() + 3600000),
-  );
   const [showPicker, setShowPicker] = useState<boolean>(false);
 
   useEffect(() => {
@@ -39,8 +47,8 @@ export default function CreateStreamScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchProducts();
-    }, []),
+      refreshProducts();
+    }, [refreshProducts]),
   );
 
   const fetchCategories = async () => {
@@ -52,38 +60,20 @@ export default function CreateStreamScreen() {
     }
   };
 
-  const fetchProducts = async () => {
-    try {
-      setFetchingProducts(true);
-      const data = await productsService.getMyProducts();
-      const productList = data || [];
-      setProducts(productList);
-      setSelectedProductIds((prev) =>
-        prev.filter((id) => productList.some((product: any) => product.id === id)),
-      );
-    } catch (error) {
-      console.error("Error fetching products:", error);
-    } finally {
-      setFetchingProducts(false);
-    }
-  };
-
   const handleCategoryCreated = (newCategory: { id: string; name: string }) => {
-    // Add new category to list and select it
     setCategories(prev => [...prev, newCategory]);
-    setSelectedCategory(newCategory.id);
+    updateField('categoryId', newCategory.id);
   };
 
   const onDateChange = (event: any, selectedDate?: Date) => {
     if (Platform.OS === "android") {
       if (event.type === "set" && selectedDate) {
-        setScheduleStart(selectedDate);
-        // After date is picked, open time picker
+        updateField('scheduledStart', selectedDate);
         DateTimePickerAndroid.open({
           value: selectedDate,
           onChange: (tEvent, tDate) => {
             if (tEvent.type === "set" && tDate) {
-              setScheduleStart(tDate);
+              updateField('scheduledStart', tDate);
             }
           },
           mode: "time",
@@ -92,7 +82,7 @@ export default function CreateStreamScreen() {
       }
     } else {
       if (selectedDate) {
-        setScheduleStart(selectedDate);
+        updateField('scheduledStart', selectedDate);
       }
     }
     setShowPicker(false);
@@ -101,7 +91,7 @@ export default function CreateStreamScreen() {
   const showDatePicker = () => {
     if (Platform.OS === "android") {
       DateTimePickerAndroid.open({
-        value: scheduleStart,
+        value: formData.scheduledStart,
         onChange: onDateChange,
         mode: "date",
         minimumDate: new Date(),
@@ -129,9 +119,7 @@ export default function CreateStreamScreen() {
   const uploadThumbnail = async (asset: ImagePicker.ImagePickerAsset) => {
     try {
       setUploading(true);
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       const fileExt = asset.uri.split(".").pop()?.toLowerCase() || "jpg";
@@ -148,91 +136,18 @@ export default function CreateStreamScreen() {
 
       if (uploadError) throw uploadError;
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("thumbnails").getPublicUrl(filePath);
-
+      const { data: { publicUrl } } = supabase.storage.from("thumbnails").getPublicUrl(filePath);
       setThumbnailUrl(publicUrl);
     } catch (error: any) {
       console.error("Thumbnail upload error:", error);
-      Alert.alert(
-        "Upload Error",
-        error.message || "Failed to upload thumbnail.",
-      );
     } finally {
       setUploading(false);
     }
   };
 
-  const setProductSelected = (productId: string) => {
-    setSelectedProductIds((prev) => {
-      if (prev.includes(productId)) {
-        return prev.filter((id) => id !== productId);
-      } else {
-        return [...prev, productId];
-      }
-    });
-  };
-
-
-  const handleCreate = async () => {
-    if (!title || !selectedCategory) {
-      Alert.alert("Missing Fields", "Please provide a title and category.");
-      return;
-    }
-
-    if (selectedProductIds.length === 0) {
-      Alert.alert(
-        "Products Required",
-        "Please select at least one product for this stream.",
-      );
-      return;
-    }
-
-    if (uploading) {
-      Alert.alert("Please Wait", "Image is still uploading.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const stream = await streamsService.create({
-        title,
-        description,
-        categoryId: selectedCategory,
-        scheduledStart: scheduleStart.toISOString(),
-        thumbnailUrl: thumbnailUrl || undefined,
-      });
-
-      const selectedProducts = products.filter((product: any) =>
-        selectedProductIds.includes(product.id),
-      );
-
-      try {
-        for (let i = 0; i < selectedProducts.length; i++) {
-          const product = selectedProducts[i];
-          await streamsService.addProduct(stream.id, {
-            productId: product.id,
-            displayOrder: i,
-          });
-        }
-      } catch (error: any) {
-        console.error("Error adding products to stream:", error);
-        Alert.alert(
-          "Stream Created",
-          "Stream created, but some products failed to add. You can add them from the stream dashboard.",
-        );
-      }
-
-      // Navigate to stream management page
-      router.replace({
-        pathname: `/seller/stream/${stream.id}`,
-      });
-    } catch (error: any) {
-      console.error(error);
-      Alert.alert("Error", error.message || "Failed to create stream");
-    } finally {
-      setLoading(false);
+  const onCreate = () => {
+    if (validate(selectedProductIds)) {
+      handleCreate(selectedProductIds, products);
     }
   };
 
@@ -240,12 +155,8 @@ export default function CreateStreamScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <ChevronLeft size={24} color={COLORS.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>NEW STREAM</Text>
@@ -260,11 +171,11 @@ export default function CreateStreamScreen() {
           />
 
           <StreamForm
-            title={title}
-            onTitleChange={setTitle}
-            description={description}
-            onDescriptionChange={setDescription}
-            scheduleStart={scheduleStart}
+            title={formData.title}
+            onTitleChange={(title) => updateField('title', title)}
+            description={formData.description}
+            onDescriptionChange={(desc) => updateField('description', desc)}
+            scheduleStart={formData.scheduledStart}
             onShowDatePicker={showDatePicker}
             showPicker={showPicker}
             onDateChange={onDateChange}
@@ -272,89 +183,23 @@ export default function CreateStreamScreen() {
 
           <CategoryPicker
             categories={categories}
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
+            selectedCategory={formData.categoryId}
+            onSelectCategory={(id) => updateField('categoryId', id)}
             onCategoryCreated={handleCategoryCreated}
           />
 
-          <View style={styles.productsSection}>
-            <View style={styles.productsHeader}>
-              <Text style={styles.sectionTitle}>
-                PRODUCTS (REQUIRED)
-              </Text>
-              <TouchableOpacity
-                style={styles.addButton}
-                onPress={() => router.push("/seller/add-product")}
-              >
-                <Text style={styles.addButtonText}>Add Product</Text>
-              </TouchableOpacity>
-            </View>
-
-            {fetchingProducts ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator color={COLORS.primaryGold} />
-              </View>
-            ) : products.length === 0 ? (
-              <View style={styles.emptyState}>
-                <Text style={styles.emptyText}>
-                  No products yet. Create one to add it to your stream.
-                </Text>
-              </View>
-            ) : (
-              <View style={styles.productsList}>
-                {products.map((product: any) => {
-                  const selected = selectedProductIds.includes(product.id);
-                  return (
-                    <TouchableOpacity
-                      key={product.id}
-                      onPress={() => setProductSelected(product.id)}
-                      activeOpacity={0.8}
-                      style={[
-                        styles.productCard,
-                        selected && styles.productCardSelected
-                      ]}
-                    >
-                      <View style={[
-                        styles.checkbox,
-                        selected && styles.checkboxSelected
-                      ]}>
-                        {selected && <Check size={12} color={COLORS.luxuryBlack} />}
-                      </View>
-
-                      {/* Placeholder for Product Image logic since native image handles uri slightly differently */}
-                      <View style={styles.productImagePlaceholder}>
-                        <Text style={styles.productImageText}>IMG</Text>
-                      </View>
-
-                      <View style={styles.productInfo}>
-                        <Text style={styles.productTitle} numberOfLines={1}>
-                          {product.title}
-                        </Text>
-                        <Text style={styles.productPrice}>
-                          ${product.buyNowPrice || product.startingBid || product.price || "0"}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            )}
-
-            {selectedProductIds.length > 0 && (
-              <Text style={styles.selectionCount}>
-                {selectedProductIds.length} product{selectedProductIds.length === 1 ? "" : "s"} selected
-              </Text>
-            )}
-          </View>
+          <ProductSelector
+            products={products}
+            selectedProductIds={selectedProductIds}
+            fetchingProducts={fetchingProducts}
+            onToggleProduct={toggleProduct}
+          />
 
           <View style={styles.footer}>
             <TouchableOpacity
-              onPress={handleCreate}
+              onPress={onCreate}
               disabled={loading || uploading}
-              style={[
-                styles.createButton,
-                (loading || uploading) && styles.createButtonDisabled
-              ]}
+              style={[styles.createButton, (loading || uploading) && styles.createButtonDisabled]}
             >
               {loading ? (
                 <ActivityIndicator color={COLORS.luxuryBlack} />
@@ -410,139 +255,21 @@ const styles = StyleSheet.create({
     padding: 24,
     gap: 24,
   },
-  productsSection: {
-    gap: 12,
-  },
-  productsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  sectionTitle: {
-    color: COLORS.textPrimary,
-    fontSize: 12,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-  },
-  addButton: {
-    backgroundColor: COLORS.primaryGold,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  addButtonText: {
-    color: COLORS.luxuryBlack,
-    fontSize: 11,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-  },
-  loadingContainer: {
-    backgroundColor: COLORS.luxuryBlackLight,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  emptyState: {
-    backgroundColor: COLORS.luxuryBlackLight,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.darkBorder,
-    alignItems: 'center',
-  },
-  emptyText: {
-    color: COLORS.textSecondary,
-    fontSize: 13,
-    textAlign: 'center',
-  },
-  productsList: {
-    gap: 8,
-  },
-  productCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.luxuryBlackLight,
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.darkBorder,
-    gap: 12,
-  },
-  productCardSelected: {
-    backgroundColor: 'rgba(255, 215, 0, 0.05)',
-    borderColor: COLORS.primaryGold,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: COLORS.textSecondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxSelected: {
-    backgroundColor: COLORS.primaryGold,
-    borderColor: COLORS.primaryGold,
-  },
-  productImagePlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    backgroundColor: COLORS.luxuryBlack,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  productImageText: {
-    color: COLORS.textMuted,
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  productInfo: {
-    flex: 1,
-  },
-  productTitle: {
-    color: COLORS.textPrimary,
-    fontSize: 13,
-    fontWeight: '700',
-    marginBottom: 2,
-  },
-  productPrice: {
-    color: COLORS.textSecondary,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  selectionCount: {
-    color: COLORS.textSecondary,
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 4,
-  },
   footer: {
-    marginTop: 24,
+    marginTop: 16,
   },
   createButton: {
-    height: 56,
     backgroundColor: COLORS.primaryGold,
+    padding: 16,
     borderRadius: 12,
     alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: COLORS.primaryGold,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
   },
   createButtonDisabled: {
-    opacity: 0.7,
+    opacity: 0.6,
   },
   createButtonText: {
     color: COLORS.luxuryBlack,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
   },
 });
