@@ -47,23 +47,27 @@ interface ShippingAddress {
 export default function CheckoutScreen() {
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
-  
+
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [order, setOrder] = useState<any>(null);
-  const [escrowData, setEscrowData] = useState<CreateEscrowResponse | null>(null);
+  const [escrowData, setEscrowData] = useState<CreateEscrowResponse | null>(
+    null,
+  );
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
-  const [step, setStep] = useState<'review' | 'shipping' | 'payment'>('review');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
+    string | null
+  >(null);
+  const [step, setStep] = useState<"review" | "shipping" | "payment">("review");
   const [error, setError] = useState<string | null>(null);
-  
+
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
-    fullName: '',
-    street: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    country: 'US',
+    fullName: "",
+    street: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    country: "US",
   });
 
   useEffect(() => {
@@ -79,20 +83,20 @@ export default function CheckoutScreen() {
         ordersService.getOrder(orderId!),
         paymentsService.getPaymentMethods(),
       ]);
-      
+
       setOrder(orderData);
       setPaymentMethods(methodsData);
-      
+
       // Select default payment method
-      const defaultMethod = methodsData.find(m => m.isDefault);
+      const defaultMethod = methodsData.find((m) => m.isDefault);
       if (defaultMethod) {
         setSelectedPaymentMethod(defaultMethod.id);
       } else if (methodsData.length > 0) {
         setSelectedPaymentMethod(methodsData[0].id);
       }
     } catch (err: any) {
-      console.error('Error loading checkout:', err);
-      setError('Failed to load checkout details');
+      console.error("Error loading checkout:", err);
+      setError("Failed to load checkout details");
     } finally {
       setLoading(false);
     }
@@ -101,18 +105,17 @@ export default function CheckoutScreen() {
   const handleAddPaymentMethod = async () => {
     try {
       setProcessing(true);
-      
       // Get setup intent from backend
-      const { setupIntent, ephemeralKey, customer } = await paymentsService.createSetupIntent();
-      
+      const { setupIntent, ephemeralKey, customer } =
+        await paymentsService.createSetupIntent();
       // Initialize Payment Sheet
       const { error: initError } = await initPaymentSheet({
         customerId: customer,
         customerEphemeralKeySecret: ephemeralKey,
         setupIntentClientSecret: setupIntent,
-        merchantDisplayName: 'BarterDash',
+        merchantDisplayName: "BarterDash",
         allowsDelayedPaymentMethods: true,
-        returnURL: 'barterdash://payment-return',
+        returnURL: "barterdash://payment-return",
       });
 
       if (initError) {
@@ -123,7 +126,7 @@ export default function CheckoutScreen() {
       const { error: presentError } = await presentPaymentSheet();
 
       if (presentError) {
-        if (presentError.code === 'Canceled') {
+        if (presentError.code === "Canceled") {
           return;
         }
         throw new Error(presentError.message);
@@ -132,17 +135,17 @@ export default function CheckoutScreen() {
       // Refresh payment methods
       const methods = await paymentsService.getPaymentMethods();
       setPaymentMethods(methods);
-      
+
       // Select the newly added method
       const newMethod = methods[methods.length - 1];
       if (newMethod) {
         setSelectedPaymentMethod(newMethod.id);
       }
-      
-      Alert.alert('Success', 'Payment method added successfully');
+
+      Alert.alert("Success", "Payment method added successfully");
     } catch (err: any) {
-      console.error('Error adding payment method:', err);
-      Alert.alert('Error', err.message || 'Failed to add payment method');
+      console.error("Error adding payment method:", err);
+      Alert.alert("Error", err.message || "Failed to add payment method");
     } finally {
       setProcessing(false);
     }
@@ -151,7 +154,7 @@ export default function CheckoutScreen() {
   const validateShipping = (): boolean => {
     const { fullName, street, city, state, zipCode } = shippingAddress;
     if (!fullName || !street || !city || !state || !zipCode) {
-      setError('Please fill in all shipping address fields');
+      setError("Please fill in all shipping address fields");
       return false;
     }
     return true;
@@ -159,12 +162,12 @@ export default function CheckoutScreen() {
 
   const handleProceedToPayment = () => {
     if (!validateShipping()) return;
-    setStep('payment');
+    setStep("payment");
   };
 
   const handleCompletePayment = async () => {
     if (!selectedPaymentMethod) {
-      Alert.alert('Error', 'Please select a payment method');
+      Alert.alert("Error", "Please select a payment method");
       return;
     }
 
@@ -185,9 +188,9 @@ export default function CheckoutScreen() {
         customerId: escrowResponse.customer,
         customerEphemeralKeySecret: escrowResponse.ephemeralKey,
         paymentIntentClientSecret: escrowResponse.clientSecret,
-        merchantDisplayName: 'BarterDash',
+        merchantDisplayName: "BarterDash",
         allowsDelayedPaymentMethods: false,
-        returnURL: 'barterdash://payment-return',
+        returnURL: "barterdash://payment-return",
         defaultBillingDetails: {
           name: shippingAddress.fullName,
           address: {
@@ -208,7 +211,7 @@ export default function CheckoutScreen() {
       const { error: presentError } = await presentPaymentSheet();
 
       if (presentError) {
-        if (presentError.code === 'Canceled') {
+        if (presentError.code === "Canceled") {
           setProcessing(false);
           return;
         }
@@ -217,18 +220,18 @@ export default function CheckoutScreen() {
 
       // 5. Payment successful!
       Alert.alert(
-        'Payment Successful!',
-        'Your payment is being held in escrow. The seller will ship your item soon.',
+        "Payment Successful!",
+        "Your payment is being held in escrow. The seller will ship your item soon.",
         [
           {
-            text: 'View Order',
+            text: "View Order",
             onPress: () => router.replace(`/orders/${orderId}`),
           },
-        ]
+        ],
       );
     } catch (err: any) {
-      console.error('Payment error:', err);
-      setError(err.message || 'Payment failed. Please try again.');
+      console.error("Payment error:", err);
+      setError(err.message || "Payment failed. Please try again.");
     } finally {
       setProcessing(false);
     }

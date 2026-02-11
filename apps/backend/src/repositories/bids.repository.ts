@@ -45,11 +45,13 @@ export class BidsRepository {
     try {
       console.log('[BidsRepository] Placing bid for auction:', data.auction_id, 'User:', userId);
       
-      // First check if auction exists without transaction
+      // First check if auction exists and is active
       const checkResult = await db.execute(sql`
         SELECT id, status, current_bid, starting_bid, ends_at, mode, timer_extensions, max_timer_extensions
         FROM auctions 
         WHERE id = ${data.auction_id}
+        AND status IN ('active', 'live')
+        AND (ends_at IS NULL OR ends_at > NOW())
       `);
       
       console.log('[BidsRepository] Auction check result:', JSON.stringify(checkResult));
@@ -78,11 +80,13 @@ export class BidsRepository {
       }
       
       const result = await db.transaction(async (tx) => {
-        // Lock and fetch auction
+        // Lock and fetch auction (only if active and not ended)
         const auctionResult = await tx.execute(sql`
           select id, current_bid, starting_bid, minimum_bid_increment, status, ends_at, bid_count, mode, timer_extensions, max_timer_extensions, original_ends_at
           from auctions
           where id = ${data.auction_id}
+          and status in ('active', 'live')
+          and (ends_at is null or ends_at > now())
           for update
         `);
 
