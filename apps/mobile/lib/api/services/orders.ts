@@ -25,5 +25,10 @@ export const ordersService = {
     generateLabel: async (id: string): Promise<any> => {
         const response = await apiClient.post<ApiResponse<any>>(`/orders/${id}/label`, {});
         return response.data.data;
-    }
+    },
+
+    updateOrder: async (id: string, data: Partial<Order>): Promise<Order> => {
+        const response = await apiClient.patch<ApiResponse<Order>>(`/orders/${id}`, data);
+        return response.data.data;
+    },
 };

@@ -11,7 +11,7 @@ import {
   ValidationError,
   NotFoundError,
 } from '../utils/result';
-import { db, orders, sellerDetails } from '../db';
+import { db, orders, sellerDetails, profiles } from '../db';
 import { eq } from 'drizzle-orm';
 
 // Platform fee percentage (8%)
@@ -99,10 +99,41 @@ export class EscrowService {
       );
       const sellerAmount = parseFloat((totalAmount - platformFee).toFixed(2));
 
-      // 7. Create Stripe Payment Intent with manual capture
+      // 7. Get or create Stripe customer for the buyer
+      // Get buyer's profile to check for existing Stripe customer
+      const buyerProfile = await db.query.profiles.findFirst({
+        where: eq(profiles.id, userId),
+      });
+      
+      let customerId = buyerProfile?.stripeCustomerId;
+      if (!customerId) {
+        // Create a new customer
+        const customer = await stripe.customers.create({
+          email: buyerProfile?.email,
+          name: buyerProfile?.fullName || buyerProfile?.username,
+          metadata: {
+            userId: userId,
+          },
+        });
+        customerId = customer.id;
+        
+        // Save the customer ID to the buyer's profile
+        await db.update(profiles)
+          .set({ stripeCustomerId: customerId })
+          .where(eq(profiles.id, userId));
+      }
+
+      // 8. Create ephemeral key for the customer
+      const ephemeralKey = await stripe.ephemeralKeys.create(
+        { customer: customerId },
+        { apiVersion: '2023-10-16' }
+      );
+
+      // 9. Create Stripe Payment Intent with manual capture
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(totalAmount * 100), // Convert to cents
         currency: 'usd',
+        customer: customerId,
         capture_method: 'manual', // Don't capture immediately - hold for escrow
         metadata: {
           orderId: orderId,
@@ -115,7 +146,7 @@ export class EscrowService {
         },
       });
 
-      // 8. Create escrow transaction record
+      // 10. Create escrow transaction record
       const escrow = await this.repository.create({
         orderId: orderId,
         buyerId: userId,
@@ -139,6 +170,8 @@ export class EscrowService {
         clientSecret: paymentIntent.client_secret,
         paymentIntentId: paymentIntent.id,
         escrowId: escrow.id,
+        customer: customerId,
+        ephemeralKey: ephemeralKey.secret,
       });
     } catch (error) {
       console.error('Escrow payment creation error:', error);

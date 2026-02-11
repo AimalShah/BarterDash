@@ -382,6 +382,7 @@ export default function SellerStreamViewStream({
       />
 
       {/* Full Controls Panel */}
+      {/* TODO : fix the add product page axios 400 error when creating or add product and fix the controls ui.*/}
       {showControls && (
         <SellerStreamControls
           streamId={streamId}

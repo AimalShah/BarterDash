@@ -40,6 +40,20 @@ router.get(
 );
 
 router.patch(
+  '/:id',
+  authenticate,
+  asyncHandler(async (req: AuthRequest, res: Response) => {
+    const result = await ordersService.updateOrder(
+      req.user!.id,
+      req.params.id as string,
+      req.body,
+    );
+    if (result.isErr()) throw result.error;
+    res.json({ success: true, data: result.value });
+  }),
+);
+
+router.patch(
   '/:id/status',
   authenticate,
   asyncHandler(async (req: AuthRequest, res: Response) => {
