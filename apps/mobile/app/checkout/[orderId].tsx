@@ -25,68 +25,210 @@ import {
   Package,
   DollarSign,
 } from "lucide-react-native";
+import { useStripe } from "@stripe/stripe-react-native";
 import {
   escrowService,
   CreateEscrowResponse,
 } from "../../lib/api/services/escrow";
 import { ordersService } from "../../lib/api/services/orders";
+import { paymentsService } from "../../lib/api/services/payments";
+import { PaymentMethod } from "../../types";
 import { COLORS } from "../../constants/colors";
+
+interface ShippingAddress {
+  fullName: string;
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+}
 
 export default function CheckoutScreen() {
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [order, setOrder] = useState<any>(null);
-  const [escrowData, setEscrowData] = useState<CreateEscrowResponse | null>(
-    null,
-  );
+  const [escrowData, setEscrowData] = useState<CreateEscrowResponse | null>(null);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
+  const [step, setStep] = useState<'review' | 'shipping' | 'payment'>('review');
   const [error, setError] = useState<string | null>(null);
+  
+  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
+    fullName: '',
+    street: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: 'US',
+  });
 
   useEffect(() => {
     if (orderId) {
-      fetchOrderDetails();
+      loadCheckoutData();
     }
   }, [orderId]);
 
-  const fetchOrderDetails = async () => {
+  const loadCheckoutData = async () => {
     try {
-      const orderData = await ordersService.getOrder(orderId!);
+      setLoading(true);
+      const [orderData, methodsData] = await Promise.all([
+        ordersService.getOrder(orderId!),
+        paymentsService.getPaymentMethods(),
+      ]);
+      
       setOrder(orderData);
+      setPaymentMethods(methodsData);
+      
+      // Select default payment method
+      const defaultMethod = methodsData.find(m => m.isDefault);
+      if (defaultMethod) {
+        setSelectedPaymentMethod(defaultMethod.id);
+      } else if (methodsData.length > 0) {
+        setSelectedPaymentMethod(methodsData[0].id);
+      }
     } catch (err: any) {
-      console.error("Error fetching order:", err);
-      setError("Failed to load order details");
+      console.error('Error loading checkout:', err);
+      setError('Failed to load checkout details');
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePayWithEscrow = async () => {
-    if (!orderId) return;
+  const handleAddPaymentMethod = async () => {
+    try {
+      setProcessing(true);
+      
+      // Get setup intent from backend
+      const { setupIntent, ephemeralKey, customer } = await paymentsService.createSetupIntent();
+      
+      // Initialize Payment Sheet
+      const { error: initError } = await initPaymentSheet({
+        customerId: customer,
+        customerEphemeralKeySecret: ephemeralKey,
+        setupIntentClientSecret: setupIntent,
+        merchantDisplayName: 'BarterDash',
+        allowsDelayedPaymentMethods: true,
+        returnURL: 'barterdash://payment-return',
+      });
+
+      if (initError) {
+        throw new Error(initError.message);
+      }
+
+      // Present Payment Sheet
+      const { error: presentError } = await presentPaymentSheet();
+
+      if (presentError) {
+        if (presentError.code === 'Canceled') {
+          return;
+        }
+        throw new Error(presentError.message);
+      }
+
+      // Refresh payment methods
+      const methods = await paymentsService.getPaymentMethods();
+      setPaymentMethods(methods);
+      
+      // Select the newly added method
+      const newMethod = methods[methods.length - 1];
+      if (newMethod) {
+        setSelectedPaymentMethod(newMethod.id);
+      }
+      
+      Alert.alert('Success', 'Payment method added successfully');
+    } catch (err: any) {
+      console.error('Error adding payment method:', err);
+      Alert.alert('Error', err.message || 'Failed to add payment method');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const validateShipping = (): boolean => {
+    const { fullName, street, city, state, zipCode } = shippingAddress;
+    if (!fullName || !street || !city || !state || !zipCode) {
+      setError('Please fill in all shipping address fields');
+      return false;
+    }
+    return true;
+  };
+
+  const handleProceedToPayment = () => {
+    if (!validateShipping()) return;
+    setStep('payment');
+  };
+
+  const handleCompletePayment = async () => {
+    if (!selectedPaymentMethod) {
+      Alert.alert('Error', 'Please select a payment method');
+      return;
+    }
 
     try {
       setProcessing(true);
       setError(null);
 
-      // Create escrow payment
-      const response = await escrowService.createEscrowPayment(orderId);
-      setEscrowData(response);
+      // 1. Update order with shipping address
+      await ordersService.updateOrder(orderId!, {
+        shippingAddress: JSON.stringify(shippingAddress),
+      });
 
-      // TODO: use stripe to confirm the payment
+      // 2. Create escrow payment
+      const escrowResponse = await escrowService.createEscrowPayment(orderId!);
+
+      // 3. Initialize Payment Sheet with escrow payment intent
+      const { error: initError } = await initPaymentSheet({
+        customerId: escrowResponse.customer,
+        customerEphemeralKeySecret: escrowResponse.ephemeralKey,
+        paymentIntentClientSecret: escrowResponse.clientSecret,
+        merchantDisplayName: 'BarterDash',
+        allowsDelayedPaymentMethods: false,
+        returnURL: 'barterdash://payment-return',
+        defaultBillingDetails: {
+          name: shippingAddress.fullName,
+          address: {
+            line1: shippingAddress.street,
+            city: shippingAddress.city,
+            state: shippingAddress.state,
+            postalCode: shippingAddress.zipCode,
+            country: shippingAddress.country,
+          },
+        },
+      });
+
+      if (initError) {
+        throw new Error(initError.message);
+      }
+
+      // 4. Present Payment Sheet
+      const { error: presentError } = await presentPaymentSheet();
+
+      if (presentError) {
+        if (presentError.code === 'Canceled') {
+          setProcessing(false);
+          return;
+        }
+        throw new Error(presentError.message);
+      }
+
+      // 5. Payment successful!
       Alert.alert(
-        "Payment Initiated",
-        "Your payment is being processed securely. Funds will be held in escrow until delivery is confirmed.",
+        'Payment Successful!',
+        'Your payment is being held in escrow. The seller will ship your item soon.',
         [
           {
-            text: "View Order",
+            text: 'View Order',
             onPress: () => router.replace(`/orders/${orderId}`),
           },
-        ],
+        ]
       );
     } catch (err: any) {
-      console.error("Escrow payment error:", err);
-      setError(
-        err.response?.data?.message || "Payment failed. Please try again.",
-      );
+      console.error('Payment error:', err);
+      setError(err.message || 'Payment failed. Please try again.');
     } finally {
       setProcessing(false);
     }

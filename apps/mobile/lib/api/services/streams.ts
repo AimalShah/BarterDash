@@ -282,4 +282,12 @@ export const streamsService = {
     const response = await apiClient.post<ApiResponse<{ viewerCount: number }>>(`/stream/${streamId}/leave`);
     return response.data.data;
   },
+
+  /**
+   * Get stream stats (viewer count, etc.)
+   */
+  getStreamStats: async (streamId: string): Promise<{ viewerCount: number; peakViewers: number; totalSales: string }> => {
+    const response = await apiClient.get<ApiResponse<{ viewerCount: number; peakViewers: number; totalSales: string }>>(`/stream/${streamId}/stats`);
+    return response.data.data;
+  },
 };

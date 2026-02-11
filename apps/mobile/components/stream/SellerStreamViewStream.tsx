@@ -13,6 +13,7 @@ import { devService } from "../../lib/api/services/dev";
 import { useAuthStore } from "../../store/authStore";
 import { useStreamAuctions } from "../../hooks/useStreamAuctions";
 import { useLiveStream } from "../../hooks/useLiveStream";
+import { useStreamViewers } from "../../hooks/useStreamViewers";
 import {
   useStreamMedia,
   useStreamConnection,
@@ -83,6 +84,7 @@ export default function SellerStreamViewStream({
 
   const { duration, startTimer, stopTimer, resetTimer } = useStreamTimer();
   const { viewerCount } = useLiveStream(streamId, { autoJoin: false });
+  const { viewers, isLoading: viewersLoading } = useStreamViewers(streamId);
 
   const {
     activeAuction: liveAuction,
@@ -321,6 +323,22 @@ export default function SellerStreamViewStream({
     }
   };
 
+  const showDevTools = __DEV__;
+  const devBuyerId = process.env.EXPO_PUBLIC_DEV_BUYER_ID || "878cdb21-ac5c-463f-8fbf-1bf152bd7a47";
+  const devSellerId = process.env.EXPO_PUBLIC_DEV_SELLER_ID || "47d220db-95c8-4365-9ec9-530431bab107";
+
+  const handleMockAuctionWin = async () => {
+    try {
+      const result = await devService.createMockAuctionWin({
+        buyerId: devBuyerId,
+        sellerId: profile?.id || devSellerId,
+        bidAmount: 25,
+      });
+    } catch (error: any) {
+      console.error("Error creating mock auction:", error);
+    }
+  };
+
   if (initializing) {
     return (
       <View style={[styles.container, styles.centerContent]}>
@@ -375,14 +393,13 @@ export default function SellerStreamViewStream({
         streamId={streamId}
         isLive={isLive}
         isJoining={isPreparingLive}
-        viewers={[]} // TODO : Fetch real viewers profiles
+        viewers={viewers}
         onShowControls={() => setShowControls(true)}
         onStartStream={handleStartStream}
         onEndStream={handleEndStream}
       />
 
       {/* Full Controls Panel */}
-      {/* TODO : fix the add product page axios 400 error when creating or add product and fix the controls ui.*/}
       {showControls && (
         <SellerStreamControls
           streamId={streamId}
