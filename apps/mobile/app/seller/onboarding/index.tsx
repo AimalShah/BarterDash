@@ -1,22 +1,58 @@
-import React, { useState } from 'react';
-import { View, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, ScrollView, Alert, ActivityIndicator, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Text } from '../../../components/ui/Text';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card';
 import { Check, Circle } from 'lucide-react-native';
+import { useAuthStore } from '@/store/authStore';
+import { COLORS } from '@/constants/colors';
 
 const STEPS = ['Business Info', 'Verification', 'Payouts', 'Review'];
 
 export default function SellerOnboardingScreen() {
     const [step, setStep] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const { profile, isOnboarded } = useAuthStore();
+
+    useEffect(() => {
+        const checkOnboarding = async () => {
+            if (!isOnboarded()) {
+                Alert.alert(
+                    'Complete Setup First',
+                    'Please finish setting up your profile before becoming a seller.',
+                    [
+                        { 
+                            text: 'Continue Setup', 
+                            onPress: () => router.replace('/(onboarding)/profile-setup') 
+                        },
+                        { 
+                            text: 'Go Home', 
+                            onPress: () => router.replace('/(tabs)'),
+                            style: 'cancel' 
+                        },
+                    ]
+                );
+            }
+            setLoading(false);
+        };
+
+        checkOnboarding();
+    }, [profile, isOnboarded]);
+
+    if (loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={COLORS.primaryGold} />
+            </View>
+        );
+    }
 
     const handleNext = () => {
         if (step < STEPS.length - 1) {
             setStep(step + 1);
         } else {
-            // Submit logic
             router.replace('/seller/dashboard');
         }
     };
@@ -93,3 +129,12 @@ export default function SellerOnboardingScreen() {
         </ScrollView>
     );
 }
+
+const styles = StyleSheet.create({
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: COLORS.luxuryBlack,
+    },
+});

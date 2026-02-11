@@ -193,6 +193,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         );
     },
 
+    isEmailVerified: () => {
+        const state = get();
+        return !!state.profile?.email_verified;
+    },
+
+    isAgeVerified: () => {
+        const state = get();
+        return !!state.profile?.age_verified;
+    },
+
+    canCompleteOnboarding: () => {
+        const state = get();
+        return !!(
+            state.profile?.email_verified === true &&
+            state.profile?.age_verified === true
+        );
+    },
+
     canAccessSellerFeatures: () => {
         const state = get();
         return !!(state.profile?.is_seller && state.profile?.onboarded);

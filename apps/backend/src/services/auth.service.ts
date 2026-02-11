@@ -117,7 +117,24 @@ export class AuthService {
       return failure(new ValidationError('Profile not found'));
     }
 
-    return success(result.value);
+    const profile = result.value;
+
+    if (!profile.emailVerified) {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.admin.getUserById(userId);
+        
+        if (user?.email_confirmed_at) {
+          await this.repository.update(userId, { emailVerified: true });
+          profile.emailVerified = true;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    return success(profile);
   }
 
   /**

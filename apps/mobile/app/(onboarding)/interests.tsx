@@ -23,7 +23,7 @@ import { OnboardingProgress } from "@/components/onboarding/OnboardingProgress";
 import { COLORS } from "@/constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const STEPS = ["Profile", "Interests", "Done"];
+const STEPS = ["Profile", "Interests", "Age", "Notifications", "Done"];
 
 // Fallback categories if API fails
 const FALLBACK_INTERESTS = [
@@ -90,25 +90,25 @@ export default function InterestsScreen() {
   const handleContinue = () => {
     const selectedInterests = selected.length > 0
       ? selected.map(id => {
-        const category = categories.find(c => c.id === id);
-        return category?.name || id;
-      })
+          const category = categories.find(c => c.id === id);
+          return category?.name || id;
+        })
       : [];
 
     updateProfile(
       {
         interests: selectedInterests,
-        onboarding_step: "notifications",
+        onboarding_step: "age_verification",
       },
       {
         onSuccess: async () => {
           await useAuthStore.getState().fetchProfile(true);
           await new Promise(resolve => setTimeout(resolve, 100));
-          router.push("/(onboarding)/notifications");
+          router.push("/(onboarding)/age-verification");
         },
         onError: (error: any) => {
           console.error("Interests save error:", error);
-          router.push("/(onboarding)/notifications");
+          router.push("/(onboarding)/age-verification");
         },
       },
     );
@@ -116,13 +116,13 @@ export default function InterestsScreen() {
 
   const handleSkip = () => {
     updateProfile(
-      { onboarding_step: "notifications" },
+      { onboarding_step: "age_verification" },
       {
         onSuccess: async () => {
           await useAuthStore.getState().fetchProfile(true);
-          router.push("/(onboarding)/notifications");
+          router.push("/(onboarding)/age-verification");
         },
-        onError: () => router.push("/(onboarding)/notifications")
+        onError: () => router.push("/(onboarding)/age-verification")
       }
     );
   };

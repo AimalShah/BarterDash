@@ -17,6 +17,7 @@ import {
   Bell,
   Clock,
   Gavel,
+  Mail,
   ChevronRight,
 } from "lucide-react-native";
 import { useAuthStore } from "@/store/authStore";
@@ -25,12 +26,13 @@ import { OnboardingProgress } from "@/components/onboarding/OnboardingProgress";
 import { COLORS } from "@/constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const STEPS = ["Profile", "Interests", "Done"];
+const STEPS = ["Profile", "Interests", "Age", "Notifications", "Done"];
 
 export default function NotificationsScreen() {
   const insets = useSafeAreaInsets();
   const [streamAlerts, setStreamAlerts] = useState(true);
   const [bidAlerts, setBidAlerts] = useState(true);
+  const [emailAlerts, setEmailAlerts] = useState(true);
   const { mutate: updateProfile, isPending: isUpdating } =
     useUpdateProfileMutation();
 
@@ -42,7 +44,7 @@ export default function NotificationsScreen() {
         notification_preferences: {
           streamAlerts,
           bidAlerts,
-          emailNotifications: true,
+          emailNotifications: emailAlerts,
         },
       },
       {
@@ -77,7 +79,7 @@ export default function NotificationsScreen() {
       <StatusBar barStyle="light-content" />
       <Box safeAreaTop />
 
-      <OnboardingProgress steps={STEPS} currentStepIndex={2} />
+      <OnboardingProgress steps={STEPS} currentStepIndex={3} />
 
       <Box flex={1} px="$8" justifyContent="space-between" pt="$8" pb={Math.max(insets.bottom, 16)}>
         <Box mt="$6">
@@ -174,6 +176,45 @@ export default function NotificationsScreen() {
               <Switch
                 value={bidAlerts}
                 onValueChange={setBidAlerts}
+                trackColor={{ false: COLORS.darkBorder, true: COLORS.primaryGold }}
+                thumbColor={COLORS.textPrimary}
+                disabled={isUpdating}
+              />
+            </Box>
+
+            <Box
+              bg={COLORS.luxuryBlackLight}
+              p="$5"
+              rounded={24}
+              borderWidth={1}
+              borderColor={COLORS.darkBorder}
+              flexDirection="row"
+              alignItems="center"
+              justifyContent="space-between"
+              sx={{
+                shadowColor: COLORS.luxuryBlack,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.02,
+                shadowRadius: 5,
+                elevation: 2
+              }}
+            >
+              <HStack space="md" alignItems="center" flex={1}>
+                <Center h={48} w={48} rounded={16} bg={COLORS.luxuryBlackLighter}>
+                  <Mail size={24} color={COLORS.primaryGold} />
+                </Center>
+                <VStack flex={1}>
+                  <Text color={COLORS.textPrimary} fontWeight="$bold" size="lg">
+                    Email Notifications
+                  </Text>
+                  <Text color={COLORS.textMuted} size="sm" mt="$0.5">
+                    Receive updates about your activity.
+                  </Text>
+                </VStack>
+              </HStack>
+              <Switch
+                value={emailAlerts}
+                onValueChange={setEmailAlerts}
                 trackColor={{ false: COLORS.darkBorder, true: COLORS.primaryGold }}
                 thumbColor={COLORS.textPrimary}
                 disabled={isUpdating}

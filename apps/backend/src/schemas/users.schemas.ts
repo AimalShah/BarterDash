@@ -13,13 +13,27 @@ export const updateProfileSchema = z.object({
     avatar_url: z.string().url().nullable().optional(),
     bio: z.string().max(500).optional(),
     onboarding_step: z
-      .enum(['profile', 'interests', 'notifications', 'completed'])
+      .enum(['profile', 'interests', 'age_verification', 'notifications', 'completed'])
       .optional(),
     onboardingStep: z
-      .enum(['profile', 'interests', 'notifications', 'completed'])
+      .enum(['profile', 'interests', 'age_verification', 'notifications', 'completed'])
       .optional(),
     onboarded: z.boolean().optional(),
     interests: z.array(z.string()).optional(),
+    notification_preferences: z
+      .object({
+        streamAlerts: z.boolean().optional(),
+        bidAlerts: z.boolean().optional(),
+        emailNotifications: z.boolean().optional(),
+      })
+      .optional(),
+  }),
+});
+
+export const ageVerificationSchema = z.object({
+  body: z.object({
+    dateOfBirth: z.string().datetime(),
+    guardianConsent: z.boolean().optional(),
   }),
 });
 

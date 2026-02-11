@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { validate, validateParams } from '../middleware/validate';
 import { asyncHandler } from '../middleware/error-handler';
-import { updateProfileSchema, idParamSchema } from '../schemas/users.schemas';
+import { updateProfileSchema, idParamSchema, ageVerificationSchema } from '../schemas/users.schemas';
 import { UsersService } from '../services/users.service';
 
 const router = Router();
@@ -74,6 +74,42 @@ router.put(
       success: true,
       data: result.value,
       message: 'Profile updated successfully',
+    });
+  }),
+);
+
+/**
+ * PUT /users/age-verification
+ * Verify user age (18+ required)
+ * Protected - requires JWT
+ */
+router.put(
+  '/age-verification',
+  authenticate,
+  validate(ageVerificationSchema),
+  asyncHandler(async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.id;
+    const { dateOfBirth, guardianConsent } = req.body;
+
+    const existingProfile = await usersService.getProfile(userId);
+    if (existingProfile.isOk() && existingProfile.value?.ageVerified) {
+      return res.status(200).json({
+        success: true,
+        data: existingProfile.value,
+        message: 'Age already verified',
+      });
+    }
+
+    const result = await usersService.verifyAge(userId, dateOfBirth);
+
+    if (result.isErr()) {
+      throw result.error;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: result.value,
+      message: 'Age verified successfully',
     });
   }),
 );

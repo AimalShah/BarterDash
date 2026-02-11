@@ -23,4 +23,12 @@ export const usersService = {
     );
     return response.data.data;
   },
+
+  verifyAge: async (data: { dateOfBirth: string }): Promise<User> => {
+    const response = await apiClient.put<ApiResponse<User>>(
+      "/users/age-verification",
+      data,
+    );
+    return response.data.data;
+  },
 };

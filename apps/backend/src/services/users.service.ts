@@ -86,4 +86,43 @@ export class UsersService {
       onboardingStep: step,
     });
   }
+
+  /**
+   * Verify user age (18+ required)
+   */
+  async verifyAge(
+    id: string,
+    dateOfBirth: string,
+  ): Promise<AppResult<Profile>> {
+    const dob = new Date(dateOfBirth);
+    const age = Math.floor(
+      (Date.now() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000),
+    );
+
+    if (age < 18) {
+      return failure(
+        new ValidationError('Users must be 18 or older to complete onboarding'),
+      );
+    }
+
+    return await this.repository.update(id, {
+      dateOfBirth: dob,
+      ageVerified: true,
+      guardianConsent: false,
+    });
+  }
+
+  /**
+   * Update date of birth
+   */
+  async updateDateOfBirth(
+    id: string,
+    dateOfBirth: string,
+  ): Promise<AppResult<Profile>> {
+    const dob = new Date(dateOfBirth);
+
+    return await this.repository.update(id, {
+      dateOfBirth: dob,
+    });
+  }
 }

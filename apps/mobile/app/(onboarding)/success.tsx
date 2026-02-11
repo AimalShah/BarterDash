@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
-import { View, Animated, StatusBar, Dimensions } from "react-native";
+import { View, Animated, StatusBar, Dimensions, TouchableOpacity, StyleSheet, Text as RNText } from "react-native";
 import { router } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   Box,
   Heading,
@@ -9,10 +10,12 @@ import {
   ButtonText,
   Center,
   VStack,
+  HStack,
 } from "@gluestack-ui/themed";
-import { CheckCircle2, Sparkles, ShoppingBag, Users, Trophy } from "lucide-react-native";
+import { CheckCircle2, Sparkles, ShoppingBag, Users, Trophy, Shop } from "lucide-react-native";
 import { COLORS } from "@/constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuthStore } from "@/store/authStore";
 
 const { width } = Dimensions.get("window");
 
@@ -22,30 +25,27 @@ export default function SuccessScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const confettiAnim = useRef(new Animated.Value(0)).current;
+  const { profile } = useAuthStore();
+  const isSeller = profile?.is_seller === true;
 
   useEffect(() => {
-    // Celebrate animation sequence
     Animated.sequence([
-      // Scale up the checkmark
       Animated.spring(scaleAnim, {
         toValue: 1,
         friction: 8,
         tension: 40,
         useNativeDriver: true,
       }),
-      // Fade in content
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 500,
         useNativeDriver: true,
       }),
-      // Slide up text
       Animated.timing(slideAnim, {
         toValue: 0,
         duration: 500,
         useNativeDriver: true,
       }),
-      // Confetti burst
       Animated.timing(confettiAnim, {
         toValue: 1,
         duration: 1000,
@@ -58,7 +58,10 @@ export default function SuccessScreen() {
     router.replace("/(tabs)");
   };
 
-  // Confetti particles
+  const handleBecomeSeller = () => {
+    router.push("/seller/onboarding");
+  };
+
   const renderConfetti = () => {
     const particles = [];
     const colors = [COLORS.primaryGold, COLORS.successGreen, COLORS.warningAmber, COLORS.liveIndicator];
@@ -111,14 +114,12 @@ export default function SuccessScreen() {
       <StatusBar barStyle="light-content" />
       <Box safeAreaTop />
 
-      {/* Confetti overlay */}
       <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, pointerEvents: "none" }}>
         {renderConfetti()}
       </View>
 
       <Box flex={1} px="$8" justifyContent="center" alignItems="center">
         <VStack space="xl" alignItems="center" maxWidth={400}>
-          {/* Success Icon */}
           <Animated.View
             style={{
               transform: [{ scale: scaleAnim }],
@@ -174,84 +175,40 @@ export default function SuccessScreen() {
             </Text>
           </Animated.View>
 
-          {/* Feature highlights */}
-          <Animated.View
-            style={{
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-              width: "100%",
-            }}
-          >
-            <VStack space="md" mb="$8">
-              <HStack
-                space="md"
-                alignItems="center"
-                bg={COLORS.luxuryBlackLight}
-                p="$4"
-                rounded="$xl"
-                borderWidth={1}
-                borderColor={COLORS.darkBorder}
-              >
-                <Center w={48} h={48} rounded="$lg" bg={COLORS.primaryGold}>
-                  <ShoppingBag size={24} color={COLORS.luxuryBlack} />
-                </Center>
-                <VStack flex={1}>
-                  <Text color={COLORS.textPrimary} fontWeight="$bold" size="md">
-                    Discover & Bid
-                  </Text>
-                  <Text color={COLORS.textMuted} size="sm">
-                    Browse live auctions and place bids in real-time
-                  </Text>
-                </VStack>
-              </HStack>
+          {!isSeller && (
+            <Animated.View
+              style={{
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+                width: "100%",
+              }}
+            >
+              <View style={styles.sellerBox}>
+                <View style={styles.sellerIcon}>
+                  <Sparkles size={24} color={COLORS.primaryGold} />
+                </View>
+                <View style={styles.sellerText}>
+                  <RNText style={styles.sellerTitle}>Ready to Sell?</RNText>
+                  <RNText style={styles.sellerSubtitle}>
+                    Turn your passion into profit. Join our seller community.
+                  </RNText>
+                </View>
+                <TouchableOpacity
+                  style={styles.sellerButton}
+                  onPress={handleBecomeSeller}
+                >
+                  <LinearGradient
+                    colors={[COLORS.primaryGold, COLORS.secondaryGold]}
+                    style={styles.sellerGradient}
+                  >
+                    <Shop size={18} color={COLORS.luxuryBlack} />
+                    <RNText style={styles.sellerButtonText}>Become a Seller</RNText>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
+          )}
 
-              <HStack
-                space="md"
-                alignItems="center"
-                bg={COLORS.luxuryBlackLight}
-                p="$4"
-                rounded="$xl"
-                borderWidth={1}
-                borderColor={COLORS.darkBorder}
-              >
-                <Center w={48} h={48} rounded="$lg" bg={COLORS.primaryGold}>
-                  <Users size={24} color={COLORS.luxuryBlack} />
-                </Center>
-                <VStack flex={1}>
-                  <Text color={COLORS.textPrimary} fontWeight="$bold" size="md">
-                    Follow Sellers
-                  </Text>
-                  <Text color={COLORS.textMuted} size="sm">
-                    Get notified when your favorites go live
-                  </Text>
-                </VStack>
-              </HStack>
-
-              <HStack
-                space="md"
-                alignItems="center"
-                bg={COLORS.luxuryBlackLight}
-                p="$4"
-                rounded="$xl"
-                borderWidth={1}
-                borderColor={COLORS.darkBorder}
-              >
-                <Center w={48} h={48} rounded="$lg" bg={COLORS.primaryGold}>
-                  <Trophy size={24} color={COLORS.luxuryBlack} />
-                </Center>
-                <VStack flex={1}>
-                  <Text color={COLORS.textPrimary} fontWeight="$bold" size="md">
-                    Win Auctions
-                  </Text>
-                  <Text color={COLORS.textMuted} size="sm">
-                    Secure unique items at great prices
-                  </Text>
-                </VStack>
-              </HStack>
-            </VStack>
-          </Animated.View>
-
-          {/* CTA Button */}
           <Animated.View
             style={{
               opacity: fadeAnim,
@@ -295,3 +252,53 @@ export default function SuccessScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  sellerBox: {
+    width: '100%',
+    backgroundColor: COLORS.luxuryBlackLight,
+    borderWidth: 1,
+    borderColor: COLORS.darkBorder,
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 20,
+  },
+  sellerIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: COLORS.luxuryBlack,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  sellerText: {
+    marginBottom: 16,
+  },
+  sellerTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+    marginBottom: 4,
+  },
+  sellerSubtitle: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+  },
+  sellerButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  sellerGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    gap: 8,
+  },
+  sellerButtonText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: COLORS.luxuryBlack,
+  },
+});
