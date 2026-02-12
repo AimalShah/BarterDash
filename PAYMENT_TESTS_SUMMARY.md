@@ -4,6 +4,10 @@
 
 This document summarizes the comprehensive test suite created for the Payment Flow implementation. All tests follow the existing patterns in the codebase and provide thorough coverage of the payment functionality.
 
+**Implementation Note (2026-02-12):**
+- Mobile `SECURE CHECKOUT` flow uses Stripe Payment Sheet (in-app) instead of launching Stripe Checkout Session in browser.
+- `POST /payments/create-checkout-session` remains available for web or legacy clients.
+
 ## Test Files Created
 
 ### 1. Mobile Hooks Tests
@@ -134,7 +138,6 @@ API route tests:
 
 **Route Coverage:**
 - ✅ POST /payments/create-intent
-- ✅ POST /payments/create-checkout-session
 - ✅ POST /payments/payment-sheet
 - ✅ POST /payments/setup-intent
 - ✅ GET /payments/methods
@@ -144,6 +147,7 @@ API route tests:
 - ✅ POST /payments/create-intent-with-method
 - ✅ POST /payments/confirm-intent
 - ✅ POST /payments/webhooks/stripe
+- ✅ POST /payments/create-checkout-session (legacy/web flow)
 
 **Feature Tests:**
 - ✅ Idempotency key passing

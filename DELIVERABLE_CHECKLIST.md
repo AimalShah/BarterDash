@@ -8,7 +8,7 @@ Frontend and backend are largely implemented. Critical purchase flow bugs have b
 - [x] Onboarding flow and guard (`barterdash-mobile/app/(onboarding)`, `barterdash-mobile/components/guards/OnboardingGuard.tsx`)
 - [x] Home feed with stream list and realtime refresh (`barterdash-mobile/app/(tabs)/index.tsx`)
 - [x] Search and category filters (`barterdash-mobile/app/(tabs)/search.tsx`, `barterdash-mobile/lib/api/services/categories.ts`)
-- [x] Cart and checkout flow with Stripe checkout session (`barterdash-mobile/app/(tabs)/cart.tsx`, `barterdash-mobile/app/(tabs)/checkout.tsx`, `barterdash-mobile/lib/api/services/cart.ts`, `barterdash-mobile/lib/api/services/payments.ts`)
+- [x] Cart and checkout flow with Stripe Payment Sheet (`barterdash-mobile/app/(tabs)/cart.tsx`, `barterdash-mobile/app/(tabs)/checkout.tsx`, `barterdash-mobile/app/checkout/cart.tsx`, `barterdash-mobile/lib/api/services/cart.ts`, `barterdash-mobile/lib/api/services/payments.ts`)
 - [x] Seller dashboard, streams, auctions, inventory screens (`barterdash-mobile/app/seller`)
 - [x] Stream viewer and seller experiences (`barterdash-mobile/app/stream/[id].tsx`, `barterdash-mobile/components/stream`)
 - [x] Messaging screens and API wiring (`barterdash-mobile/app/messages`, `barterdash-mobile/lib/api/services/messages.ts`)
@@ -20,7 +20,7 @@ Frontend and backend are largely implemented. Critical purchase flow bugs have b
 
 - [ ] Stream edit image upload to storage is TODO (`barterdash-mobile/app/seller/stream/edit/[id].tsx`)
 - [ ] Payment method manager falls back to mock data and uses stub auth flow (`barterdash-mobile/components/payment/PaymentMethodManager.tsx`)
-- [ ] Payment sheet endpoint mismatch with backend (`barterdash-mobile/lib/api/services/payments.ts`)
+- [x] Payment sheet endpoint aligned with backend (`barterdash-mobile/lib/api/services/payments.ts`, `barterdash-backend/src/routes/payments.routes.ts`)
 - [ ] Realtime payment status updates not implemented (`barterdash-mobile/hooks/usePaymentProcessing.ts`)
 - [ ] Seller order label shows dummy PDF (backend mock label) (`barterdash-mobile/app/seller/order/[id].tsx`)
 - [ ] Demo-only payment screen should be removed for production (`barterdash-mobile/app/payment-demo.tsx`)

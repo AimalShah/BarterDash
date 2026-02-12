@@ -43,6 +43,8 @@ export class EscrowService {
       clientSecret: string | null;
       paymentIntentId: string;
       escrowId: string;
+      customer: string;
+      ephemeralKey: string;
     }>
   > {
     try {
@@ -87,9 +89,84 @@ export class EscrowService {
       // 5. Check for existing escrow
       const existingEscrow = await this.repository.findByOrderId(orderId);
       if (existingEscrow && existingEscrow.status !== 'cancelled') {
-        return failure(
-          new ValidationError('Escrow already exists for this order'),
-        );
+        // Retry path: reuse pending escrow payment intent instead of hard-failing
+        if (
+          existingEscrow.status === 'pending' &&
+          existingEscrow.stripePaymentIntentId
+        ) {
+          const existingPaymentIntent = await stripe.paymentIntents.retrieve(
+            existingEscrow.stripePaymentIntentId,
+          );
+
+          if (existingPaymentIntent.status === 'requires_capture') {
+            // Payment already authorized; finalize capture and avoid duplicate intents.
+            await this.captureToEscrow(existingPaymentIntent.id);
+            return failure(
+              new ValidationError(
+                'Payment is already being finalized for this order. Please refresh in a moment.',
+              ),
+            );
+          }
+
+          if (existingPaymentIntent.status === 'succeeded') {
+            return failure(
+              new ValidationError('Payment already completed for this order'),
+            );
+          }
+
+          const existingCustomerId =
+            typeof existingPaymentIntent.customer === 'string'
+              ? existingPaymentIntent.customer
+              : existingPaymentIntent.customer?.id;
+
+          if (
+            existingPaymentIntent.client_secret &&
+            existingCustomerId &&
+            [
+              'requires_payment_method',
+              'requires_confirmation',
+              'requires_action',
+              'processing',
+            ].includes(existingPaymentIntent.status)
+          ) {
+            const existingEphemeralKey = await stripe.ephemeralKeys.create(
+              { customer: existingCustomerId },
+              { apiVersion: '2023-10-16' },
+            );
+            if (!existingEphemeralKey.secret) {
+              return failure(
+                new ValidationError(
+                  'Failed to initialize payment session. Please try again.',
+                ),
+              );
+            }
+
+            return success({
+              clientSecret: existingPaymentIntent.client_secret,
+              paymentIntentId: existingPaymentIntent.id,
+              escrowId: existingEscrow.id,
+              customer: existingCustomerId,
+              ephemeralKey: existingEphemeralKey.secret,
+            });
+          }
+
+          // If intent is canceled, mark escrow canceled and allow fresh creation.
+          if (existingPaymentIntent.status === 'canceled') {
+            await this.repository.update(existingEscrow.id, {
+              status: 'cancelled',
+            });
+          } else {
+            return failure(
+              new ValidationError('Escrow already exists for this order'),
+            );
+          }
+        } else {
+          return failure(
+            new ValidationError(
+              `Escrow already exists for this order (status: ${existingEscrow.status})`,
+            ),
+          );
+        }
       }
 
       // 6. Calculate amounts
@@ -109,7 +186,6 @@ export class EscrowService {
       if (!customerId) {
         // Create a new customer
         const customer = await stripe.customers.create({
-          email: buyerProfile?.email,
           name: buyerProfile?.fullName || buyerProfile?.username,
           metadata: {
             userId: userId,
@@ -129,6 +205,13 @@ export class EscrowService {
         { customer: customerId },
         { apiVersion: '2023-10-16' },
       );
+      if (!ephemeralKey.secret) {
+        return failure(
+          new ValidationError(
+            'Failed to initialize payment session. Please try again.',
+          ),
+        );
+      }
 
       // 9. Create Stripe Payment Intent with manual capture
       const paymentIntent = await stripe.paymentIntents.create({

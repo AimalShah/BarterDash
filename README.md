@@ -2,6 +2,10 @@
 
 This is a Turborepo-powered monorepo containing the BarterDash platform.
 
+## Repository
+
+`https://github.com/AimalShah/BarterDash.git`
+
 ## Structure
 
 ```
@@ -26,6 +30,22 @@ This is a Turborepo-powered monorepo containing the BarterDash platform.
 ```bash
 npm install
 ```
+
+### Environment Setup
+
+Create local env files for both apps:
+
+```bash
+cp apps/backend/.env.example apps/backend/.env
+cp apps/mobile/.env.example apps/mobile/.env
+```
+
+Then update the values in each `.env` file before running the apps.
+
+### Checkout Notes
+
+- Mobile `SECURE CHECKOUT` uses Stripe Payment Sheet (in-app).
+- Backend `FRONTEND_URL` should be an absolute `http(s)` URL when using Stripe Checkout Session endpoints.
 
 ### Development
 

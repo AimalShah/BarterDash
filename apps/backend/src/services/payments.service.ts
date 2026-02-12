@@ -153,6 +153,25 @@ export class PaymentsService {
       }
 
       const amount = Math.round(parseFloat(orderResult.total) * 100);
+      const frontendUrlRaw = process.env.FRONTEND_URL;
+      const hasValidFrontendUrl =
+        typeof frontendUrlRaw === 'string' &&
+        /^https?:\/\//i.test(frontendUrlRaw);
+      const frontendBaseUrl = hasValidFrontendUrl
+        ? frontendUrlRaw.replace(/\/+$/, '')
+        : 'https://barterdash.app';
+
+      if (!hasValidFrontendUrl) {
+        paymentLogger.warn({
+          ...context,
+          operation: 'checkout_session_frontend_url_fallback',
+          metadata: {
+            configuredFrontendUrl: frontendUrlRaw || null,
+            fallbackUrl: frontendBaseUrl,
+            reason: 'FRONTEND_URL must be an absolute http(s) URL',
+          },
+        });
+      }
 
       // 2. Create Stripe Checkout Session
       const session = await stripe.checkout.sessions.create({
@@ -173,8 +192,8 @@ export class PaymentsService {
           },
         ],
         mode: 'payment',
-        success_url: `${process.env.FRONTEND_URL || 'barterdash://checkout/success'}?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.FRONTEND_URL || 'barterdash://checkout/cancel'}`,
+        success_url: `${frontendBaseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${frontendBaseUrl}/checkout/cancel`,
         client_reference_id: orderId,
         metadata: {
           orderId: orderId,
@@ -432,6 +451,29 @@ export class PaymentsService {
           } else {
             await this.handlePaymentSuccess(paymentIntent);
           }
+          break;
+
+        case 'payment_intent.amount_capturable_updated':
+          const capturableIntent = event.data.object;
+          paymentLogger.info({
+            ...context,
+            operation: 'payment_intent_capturable_updated',
+            paymentIntentId: capturableIntent.id,
+            amount: capturableIntent.amount_capturable / 100,
+            currency: capturableIntent.currency,
+          });
+
+          if (capturableIntent.metadata?.type === 'escrow') {
+            await escrowService.captureToEscrow(capturableIntent.id);
+          }
+
+          await this.broadcastPaymentStatusUpdate(capturableIntent.id, {
+            status: 'processing',
+            amount: capturableIntent.amount / 100,
+            currency: capturableIntent.currency,
+            userId: capturableIntent.metadata?.userId,
+            orderId: capturableIntent.metadata?.orderId,
+          });
           break;
 
         case 'payment_intent.payment_failed':

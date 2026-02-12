@@ -30,6 +30,8 @@ export interface CreateEscrowResponse {
     clientSecret: string | null;
     paymentIntentId: string;
     escrowId: string;
+    customer: string;
+    ephemeralKey: string;
 }
 
 export interface ReleaseEscrowResponse {

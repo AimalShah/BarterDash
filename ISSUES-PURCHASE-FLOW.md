@@ -1,5 +1,12 @@
 # Purchase Flow Issues - Bug Report
 
+## Status Update (2026-02-12)
+
+- `SECURE CHECKOUT` now uses in-app Stripe Payment Sheet (`apps/mobile/app/(tabs)/checkout.tsx`) instead of browser checkout session.
+- Escrow checkout retry path fixed for pending escrows to avoid blocking retries (`apps/backend/src/services/escrow.service.ts`).
+- Escrow webhook handling now captures manual intents on `payment_intent.amount_capturable_updated` (`apps/backend/src/services/payments.service.ts`).
+- Error messages in secure checkout now surface backend validation details for easier debugging (`apps/mobile/app/checkout/[orderId].tsx`).
+
 ## Executive Summary
 
 The purchase flow in the BarterDash mobile application has several critical issues that prevent users from completing transactions. These issues affect both the checkout process and product purchasing functionality across marketplace and auction products.

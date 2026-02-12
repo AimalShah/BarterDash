@@ -54,6 +54,7 @@ CORS_ORIGIN=*
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_IDENTITY_WEBHOOK_SECRET=whsec_... # Stripe Identity webhooks
+STRIPE_PUBLISHABLE_KEY=pk_test_...
 
 # Redis (for BullMQ)
 REDIS_URL=redis://localhost:6379
@@ -61,9 +62,11 @@ REDIS_URL=redis://localhost:6379
 # Supabase
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # Optional
 SENTRY_DSN=https://...
+FRONTEND_URL=https://barterdash.app  # Required for Stripe Checkout Session redirects
 ```
 
 ## 🗄️ Database Setup
@@ -119,8 +122,21 @@ The server will run on `http://localhost:3000`
 ### Bids (TODO)
 *Coming soon*
 
-### Payments (TODO)
-*Coming soon*
+### Payments
+- `POST /api/v1/payments/payment-sheet` - Create Stripe Payment Sheet payload *(Protected)*
+- `POST /api/v1/payments/setup-intent` - Create SetupIntent for saving methods *(Protected)*
+- `GET /api/v1/payments/methods` - List saved payment methods *(Protected)*
+- `POST /api/v1/payments/methods` - Save a payment method *(Protected)*
+- `POST /api/v1/payments/create-intent` - Create PaymentIntent *(Protected)*
+- `POST /api/v1/payments/create-checkout-session` - Create Stripe Checkout Session *(Protected / legacy-web flow)*
+- `POST /api/v1/payments/webhooks/stripe` - Stripe webhook receiver *(Public with signature verification)*
+
+### Escrow
+- `POST /api/v1/escrow/create` - Create escrow-backed payment intent *(Protected)*
+- `GET /api/v1/escrow/:escrowId` - Get escrow details *(Protected)*
+- `GET /api/v1/escrow/order/:orderId` - Get escrow by order *(Protected)*
+- `POST /api/v1/escrow/release/:escrowId` - Release escrow to seller *(Protected)*
+- `POST /api/v1/escrow/refund/:escrowId` - Refund escrow to buyer *(Protected)*
 
 ### Sellers (TODO)
 *Coming soon*

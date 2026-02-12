@@ -8,20 +8,20 @@
 - [ ] Confirm database has payments, orders, payment_methods tables and migrations are up-to-date (`barterdash-backend/src/db/schema.ts`)
 
 ### Phase 1: Backend Core (10% -> 45%)
-- [ ] Align payment sheet endpoint naming (either add alias route or change mobile client)
-- [ ] Verify `payments.service.ts` creates PaymentSheet with Stripe customer + ephemeral key
-- [ ] Verify `createCheckoutSession` success/cancel URLs support mobile deep link
+- [x] Align payment sheet endpoint naming (`POST /payments/payment-sheet`)
+- [x] Verify `payments.service.ts` creates PaymentSheet with Stripe customer + ephemeral key
+- [x] Verify `createCheckoutSession` uses valid absolute http(s) redirect URLs
 - [ ] Ensure idempotency for create-intent and checkout session
 - [ ] Ensure payment status updates are persisted to orders/payments tables
 - [ ] Ensure webhook handler verifies signature and handles key events
 - [ ] Add or validate test coverage for payments service and webhook parsing
 
 ### Phase 2: Mobile Core (45% -> 75%)
-- [ ] Update mobile endpoint for PaymentSheet (`/payments/payment-sheet`)
+- [x] Update mobile endpoint for PaymentSheet (`/payments/payment-sheet`)
 - [ ] Remove mock fallback and stub auth in `PaymentMethodManager.tsx`
-- [ ] Implement add payment method flow (Stripe PaymentSheet or SetupIntent)
-- [ ] Ensure checkout flow handles redirect completion and success UI
-- [ ] Add failure/cancel handling with clear user messaging
+- [x] Implement add payment method flow (Stripe PaymentSheet or SetupIntent)
+- [x] Ensure checkout flow handles success/cancel with Payment Sheet
+- [x] Add failure/cancel handling with clear user messaging
 - [ ] Ensure retry logic for network errors
 
 ### Phase 3: Integration (75% -> 90%)
@@ -91,7 +91,7 @@
 - [ ] Seller sales list
 
 ### Payments and Escrow
-- [ ] Payment intent and checkout session
+- [x] Payment intent and payment sheet flows
 - [ ] Payment method management
 - [ ] Escrow hold and release
 - [ ] Refunds and disputes

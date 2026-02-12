@@ -15,18 +15,15 @@ import {
     FormControlLabelText,
     Center,
     Spinner,
-    Pressable,
-    Icon,
-    ChevronLeftIcon
+    Pressable
 } from "@gluestack-ui/themed";
-import { CreditCard, Truck, CheckCircle, ChevronLeft } from 'lucide-react-native';
+import { Truck, ChevronLeft } from 'lucide-react-native';
 import { cartService } from '../../lib/api/services/cart';
 import { useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import { paymentsService } from '../../lib/api/services/payments';
 import { COLORS } from '../../constants/colors';
-
-import { useAuthStore } from '../../store/authStore';
+import { useStripe } from '@stripe/stripe-react-native';
+import { useCartStore } from '../../store/cartStore';
 import { CartTotal, ShippingAddress } from '../../types';
 
 export default function CheckoutScreen() {
@@ -41,8 +38,11 @@ export default function CheckoutScreen() {
     });
     const [loading, setLoading] = useState(true);
     const [placingOrder, setPlacingOrder] = useState(false);
-    const { profile } = useAuthStore();
+    const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+    const [pendingOrderTotal, setPendingOrderTotal] = useState<number | null>(null);
     const router = useRouter();
+    const { initPaymentSheet, presentPaymentSheet } = useStripe();
+    const { setCount } = useCartStore();
 
     useEffect(() => {
         fetchCartTotal();
@@ -70,21 +70,94 @@ export default function CheckoutScreen() {
 
         setPlacingOrder(true);
         try {
-            const order = await cartService.checkout(shippingAddress);
-            const { url } = await paymentsService.createCheckoutSession(order.id);
-
-            if (url) {
-                await WebBrowser.openBrowserAsync(url);
-                Alert.alert(
-                    'Order Initiated',
-                    'Your checkout process has started securely.',
-                    [{ text: 'CONTINUE', onPress: () => router.replace('/') }]
-                );
-            } else {
-                throw new Error('Payment session failed');
+            const order = pendingOrderId
+                ? { id: pendingOrderId, total: pendingOrderTotal ?? cartTotal.total }
+                : await cartService.checkout(shippingAddress);
+            const amount = Number(order.total);
+            if (!Number.isFinite(amount) || amount <= 0) {
+                throw new Error("Invalid order total for payment");
             }
+
+            if (!pendingOrderId) {
+                setPendingOrderId(order.id);
+                setPendingOrderTotal(amount);
+            }
+
+            const paymentSheetParams = await paymentsService.createPaymentSheet({
+                orderId: order.id,
+                amount,
+                currency: "usd",
+                setupFutureUsage: "off_session",
+                automaticPaymentMethods: true,
+            });
+
+            const { error: initError } = await initPaymentSheet({
+                paymentIntentClientSecret: paymentSheetParams.paymentIntent,
+                customerEphemeralKeySecret: paymentSheetParams.ephemeralKey,
+                customerId: paymentSheetParams.customer,
+                merchantDisplayName: "BarterDash",
+                returnURL: "barterdash://checkout/success",
+                allowsDelayedPaymentMethods: true,
+                defaultBillingDetails: {
+                    name: shippingAddress.name || "BarterDash Customer",
+                },
+            });
+
+            if (initError) {
+                throw new Error(
+                    initError.message || "Cannot initialize payment sheet right now."
+                );
+            }
+
+            const { error: presentError } = await presentPaymentSheet();
+
+            if (presentError) {
+                if (presentError.code === "Canceled") {
+                    Alert.alert(
+                        "Payment Cancelled",
+                        "Your order was created but payment was cancelled. You can complete payment from the secure checkout screen.",
+                        [
+                            {
+                                text: "Go to Secure Checkout",
+                                onPress: () => router.push(`/checkout/${order.id}`),
+                            },
+                            {
+                                text: "Later",
+                                style: "cancel",
+                            },
+                        ],
+                    );
+                    return;
+                }
+                throw new Error(
+                    presentError.message || "Payment could not be processed right now."
+                );
+            }
+
+            setCount(0);
+            setPendingOrderId(null);
+            setPendingOrderTotal(null);
+            Alert.alert(
+                "Payment Successful",
+                "Your order has been placed and payment has been received.",
+                [
+                    {
+                        text: "View Order",
+                        onPress: () => router.replace(`/orders/${order.id}`),
+                    },
+                    {
+                        text: "Continue Shopping",
+                        onPress: () => router.replace("/(tabs)"),
+                    },
+                ],
+            );
         } catch (error) {
-            Alert.alert('Error', 'Could not process order. Please try again.');
+            const apiErrorMessage =
+                (error as any)?.response?.data?.error?.message ||
+                (error as any)?.response?.data?.message;
+            const fallbackMessage =
+                (error as any)?.message || "Payment could not be processed right now. Please try again.";
+            Alert.alert("Checkout Error", apiErrorMessage || fallbackMessage);
         } finally {
             setPlacingOrder(false);
         }

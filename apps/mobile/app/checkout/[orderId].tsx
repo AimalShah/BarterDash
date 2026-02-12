@@ -31,8 +31,7 @@ import {
   CreateEscrowResponse,
 } from "../../lib/api/services/escrow";
 import { ordersService } from "../../lib/api/services/orders";
-import { paymentsService } from "../../lib/api/services/payments";
-import { PaymentMethod } from "../../types";
+import { paymentsService, type PaymentMethod } from "../../lib/api/services/payments";
 import { COLORS } from "../../constants/colors";
 
 interface ShippingAddress {
@@ -174,6 +173,16 @@ export default function CheckoutScreen() {
       const escrowResponse = await escrowService.createEscrowPayment(orderId!);
       setEscrowData(escrowResponse);
 
+      if (
+        !escrowResponse.clientSecret ||
+        !escrowResponse.customer ||
+        !escrowResponse.ephemeralKey
+      ) {
+        throw new Error(
+          "Unable to initialize secure payment session. Please try again.",
+        );
+      }
+
       // 2. Initialize Payment Sheet with escrow payment intent
       const { error: initError } = await initPaymentSheet({
         customerId: escrowResponse.customer,
@@ -215,12 +224,18 @@ export default function CheckoutScreen() {
       );
     } catch (err: any) {
       console.error("Payment error:", err);
-      setError(err.message || "Payment failed. Please try again.");
+      const apiErrorMessage =
+        err?.response?.data?.error?.message || err?.response?.data?.message;
+      const errorMessage =
+        apiErrorMessage ||
+        err?.message ||
+        "Payment could not be processed right now. Please try again.";
+      setError(errorMessage);
       
       // Show error alert with retry option
       Alert.alert(
         "Payment Failed",
-        err.message || "Payment could not be processed. Please try again.",
+        errorMessage,
         [
           { text: "Cancel", style: "cancel" },
           { 
