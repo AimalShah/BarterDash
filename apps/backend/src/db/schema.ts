@@ -1553,6 +1553,7 @@ export const profilesRelations = relations(profiles, ({ one, many }) => ({
   reviews: many(reviews),
   followers: many(follows, { relationName: 'following' }),
   following: many(follows, { relationName: 'follower' }),
+  cartItems: many(cartItems),
 }));
 
 export const sellerDetailsRelations = relations(sellerDetails, ({ one }) => ({
@@ -1636,6 +1637,18 @@ export const productsRelations = relations(products, ({ one, many }) => ({
   }),
   streamProducts: many(streamProducts),
   auctions: many(auctions),
+  cartItems: many(cartItems),
+}));
+
+export const cartItemsRelations = relations(cartItems, ({ one }) => ({
+  product: one(products, {
+    fields: [cartItems.productId],
+    references: [products.id],
+  }),
+  user: one(profiles, {
+    fields: [cartItems.userId],
+    references: [profiles.id],
+  }),
 }));
 
 export const streamProductsRelations = relations(streamProducts, ({ one }) => ({

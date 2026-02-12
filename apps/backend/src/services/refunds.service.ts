@@ -1,5 +1,5 @@
 import { RefundsRepository } from '../repositories/refunds.repository';
-import { AppResult, failure, ValidationError } from '../utils/result';
+import { AppResult, failure, ValidationError, NotFoundError } from '../utils/result';
 import { db, orders } from '../db';
 import { eq } from 'drizzle-orm';
 
@@ -29,6 +29,13 @@ export class RefundsService {
       amount: data.amount.toString(),
       reason: data.reason,
     } as any);
+  }
+
+  async getRefund(refundId: string): Promise<AppResult<any>> {
+    const result = await this.repository.findById(refundId);
+    if (result.isErr()) return failure(result.error);
+    if (!result.value) return failure(new NotFoundError('Refund', refundId));
+    return result;
   }
 
   async getOrderRefunds(orderId: string): Promise<AppResult<any[]>> {

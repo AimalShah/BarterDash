@@ -145,7 +145,9 @@ router.post(
       config.stripeIdentityWebhookSecret || config.stripeWebhookSecret;
 
     if (!webhookSecret) {
-      console.warn('Missing STRIPE_IDENTITY_WEBHOOK_SECRET/STRIPE_WEBHOOK_SECRET');
+      console.warn(
+        'Missing STRIPE_IDENTITY_WEBHOOK_SECRET/STRIPE_WEBHOOK_SECRET',
+      );
       res.status(500).send('Webhook secret not configured');
       return;
     }

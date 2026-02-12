@@ -104,7 +104,7 @@ export class EscrowService {
       const buyerProfile = await db.query.profiles.findFirst({
         where: eq(profiles.id, userId),
       });
-      
+
       let customerId = buyerProfile?.stripeCustomerId;
       if (!customerId) {
         // Create a new customer
@@ -116,9 +116,10 @@ export class EscrowService {
           },
         });
         customerId = customer.id;
-        
+
         // Save the customer ID to the buyer's profile
-        await db.update(profiles)
+        await db
+          .update(profiles)
           .set({ stripeCustomerId: customerId })
           .where(eq(profiles.id, userId));
       }
@@ -126,7 +127,7 @@ export class EscrowService {
       // 8. Create ephemeral key for the customer
       const ephemeralKey = await stripe.ephemeralKeys.create(
         { customer: customerId },
-        { apiVersion: '2023-10-16' }
+        { apiVersion: '2023-10-16' },
       );
 
       // 9. Create Stripe Payment Intent with manual capture

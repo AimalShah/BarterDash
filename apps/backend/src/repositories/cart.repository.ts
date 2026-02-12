@@ -17,6 +17,7 @@ export class CartRepository {
       });
       return success(result);
     } catch (error) {
+      console.error('[CartRepository] Error in findByUserId:', error);
       return failure(new ValidationError('Failed to fetch cart items'));
     }
   }
@@ -37,6 +38,7 @@ export class CartRepository {
       });
       return success(result);
     } catch (error) {
+      console.error('[CartRepository] Error in findByUserIdWithProducts:', error);
       return failure(new ValidationError('Failed to fetch cart items'));
     }
   }

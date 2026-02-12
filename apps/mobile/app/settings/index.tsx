@@ -90,7 +90,7 @@ export default function SettingsScreen() {
                             <SettingsItem
                                 icon={<Eye size={20} color={COLORS.textPrimary} />}
                                 label="Privacy & Visibility"
-                                onPress={() => { }}
+                                onPress={() => router.push('/settings/privacy')}
                             />
                         </VStack>
                     </Box>

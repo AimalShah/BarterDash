@@ -149,7 +149,7 @@ export default function AuctionTimer({
         rounded="$lg"
         p={config.padding}
         alignItems="center"
-        minW={100}
+        style={{ minWidth: 100 }}
       >
         <HStack space="sm" alignItems="center">
           <Clock size={config.iconSize} color={color} />

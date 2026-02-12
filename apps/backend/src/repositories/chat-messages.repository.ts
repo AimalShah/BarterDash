@@ -42,8 +42,11 @@ export class ChatMessagesRepository {
     sessionId: string,
     userId: string,
     content: string,
-    messageType: 'user_message' | 'system_message' | 'auction_update' = 'user_message',
-    metadata?: Record<string, any>
+    messageType:
+      | 'user_message'
+      | 'system_message'
+      | 'auction_update' = 'user_message',
+    metadata?: Record<string, any>,
   ): Promise<AppResult<ChatMessageWithUser>> {
     try {
       // Validate session exists and is active
@@ -94,14 +97,14 @@ export class ChatMessagesRepository {
    */
   async getMessageHistory(
     sessionId: string,
-    options: MessageHistoryOptions = {}
+    options: MessageHistoryOptions = {},
   ): Promise<AppResult<ChatMessageWithUser[]>> {
     try {
       const { limit = 50, offset = 0, beforeId, afterId } = options;
 
       let whereCondition = and(
         eq(chatMessages.sessionId, sessionId),
-        eq(chatMessages.isDeleted, false)
+        eq(chatMessages.isDeleted, false),
       );
 
       // Add cursor-based pagination
@@ -110,15 +113,15 @@ export class ChatMessagesRepository {
           whereCondition,
           lt(
             chatMessages.createdAt,
-            sql`(SELECT created_at FROM chat_messages WHERE id = ${beforeId})`
-          )
+            sql`(SELECT created_at FROM chat_messages WHERE id = ${beforeId})`,
+          ),
         );
       }
 
       if (afterId) {
         whereCondition = and(
           whereCondition,
-          sql`${chatMessages.createdAt} > (SELECT created_at FROM chat_messages WHERE id = ${afterId})`
+          sql`${chatMessages.createdAt} > (SELECT created_at FROM chat_messages WHERE id = ${afterId})`,
         );
       }
 
@@ -152,7 +155,7 @@ export class ChatMessagesRepository {
    */
   async getRecentMessages(
     sessionId: string,
-    limit: number = 50
+    limit: number = 50,
   ): Promise<AppResult<ChatMessageWithUser[]>> {
     return this.getMessageHistory(sessionId, { limit });
   }
@@ -163,13 +166,13 @@ export class ChatMessagesRepository {
    */
   async syncMessages(
     sessionId: string,
-    lastMessageId: string
+    lastMessageId: string,
   ): Promise<AppResult<ChatMessageWithUser[]>> {
     try {
       const whereCondition = and(
         eq(chatMessages.sessionId, sessionId),
         eq(chatMessages.isDeleted, false),
-        sql`${chatMessages.createdAt} > (SELECT created_at FROM chat_messages WHERE id = ${lastMessageId})`
+        sql`${chatMessages.createdAt} > (SELECT created_at FROM chat_messages WHERE id = ${lastMessageId})`,
       );
 
       const messages = await db.query.chatMessages.findMany({
@@ -201,20 +204,20 @@ export class ChatMessagesRepository {
    */
   async resolveMessageConflicts(
     sessionId: string,
-    conflictingMessages: { id: string; timestamp: Date }[]
+    conflictingMessages: { id: string; timestamp: Date }[],
   ): Promise<AppResult<ChatMessageWithUser[]>> {
     try {
       // Sort messages by timestamp to resolve conflicts
       const sortedMessages = conflictingMessages.sort(
-        (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
+        (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
       );
 
       // Get the resolved messages in correct order
-      const messageIds = sortedMessages.map(m => m.id);
+      const messageIds = sortedMessages.map((m) => m.id);
       const messages = await db.query.chatMessages.findMany({
         where: and(
           eq(chatMessages.sessionId, sessionId),
-          sql`${chatMessages.id} = ANY(${messageIds})`
+          sql`${chatMessages.id} = ANY(${messageIds})`,
         ),
         with: {
           user: {
@@ -242,12 +245,12 @@ export class ChatMessagesRepository {
   async markMessagesAsRead(
     sessionId: string,
     userId: string,
-    messageIds: string[]
+    messageIds: string[],
   ): Promise<AppResult<void>> {
     try {
       // Update metadata to track read status
       // This is a simplified implementation - in production you might want a separate read_receipts table
-      const updatePromises = messageIds.map(messageId =>
+      const updatePromises = messageIds.map((messageId) =>
         db
           .update(chatMessages)
           .set({
@@ -258,10 +261,12 @@ export class ChatMessagesRepository {
             )`,
             updatedAt: new Date(),
           })
-          .where(and(
-            eq(chatMessages.id, messageId),
-            eq(chatMessages.sessionId, sessionId)
-          ))
+          .where(
+            and(
+              eq(chatMessages.id, messageId),
+              eq(chatMessages.sessionId, sessionId),
+            ),
+          ),
       );
 
       await Promise.all(updatePromises);
@@ -277,7 +282,7 @@ export class ChatMessagesRepository {
    */
   async deleteMessage(
     messageId: string,
-    deletedBy: string
+    deletedBy: string,
   ): Promise<AppResult<ChatMessage>> {
     try {
       const result = await db
@@ -304,7 +309,9 @@ export class ChatMessagesRepository {
   /**
    * Get message by ID with user details
    */
-  async getMessageById(messageId: string): Promise<AppResult<ChatMessageWithUser>> {
+  async getMessageById(
+    messageId: string,
+  ): Promise<AppResult<ChatMessageWithUser>> {
     try {
       const message = await db.query.chatMessages.findFirst({
         where: eq(chatMessages.id, messageId),
@@ -339,10 +346,12 @@ export class ChatMessagesRepository {
       const result = await db
         .select({ count: sql<number>`count(*)` })
         .from(chatMessages)
-        .where(and(
-          eq(chatMessages.sessionId, sessionId),
-          eq(chatMessages.isDeleted, false)
-        ));
+        .where(
+          and(
+            eq(chatMessages.sessionId, sessionId),
+            eq(chatMessages.isDeleted, false),
+          ),
+        );
 
       return success(result[0]?.count || 0);
     } catch (error) {
@@ -356,13 +365,10 @@ export class ChatMessagesRepository {
    * Requirement 9.4: Batch database operations for efficiency
    */
   async batchInsertMessages(
-    messages: NewChatMessage[]
+    messages: NewChatMessage[],
   ): Promise<AppResult<ChatMessage[]>> {
     try {
-      const result = await db
-        .insert(chatMessages)
-        .values(messages)
-        .returning();
+      const result = await db.insert(chatMessages).values(messages).returning();
 
       return success(result);
     } catch (error) {
@@ -374,7 +380,9 @@ export class ChatMessagesRepository {
   /**
    * Validate that a session exists and is accessible
    */
-  private async validateSession(sessionId: string): Promise<AppResult<{ streamId?: string }>> {
+  private async validateSession(
+    sessionId: string,
+  ): Promise<AppResult<{ streamId?: string }>> {
     try {
       const session = await db.query.streamSessions.findFirst({
         where: eq(streamSessions.id, sessionId),

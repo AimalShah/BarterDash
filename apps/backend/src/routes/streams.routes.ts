@@ -290,6 +290,25 @@ router.post(
   }),
 );
 
+// Cancel stream (scheduled streams only)
+router.delete(
+  '/:id',
+  authenticate,
+  validate(uuidParamSchema),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const user = (req as any).user;
+
+    const result = await streamsService.cancelStream(id, user.id);
+
+    handleResult(result, res, (data) => ({
+      success: true,
+      data: transformStream(data),
+      message: 'Stream cancelled successfully',
+    }));
+  }),
+);
+
 // Join stream - increment viewer count
 router.post(
   '/:id/join',

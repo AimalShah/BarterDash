@@ -11,18 +11,23 @@ export class ReportsRepository {
    * Create a new report
    */
   async create(data: {
-    reporterId: string;
-    reportType: string;
-    description: string;
+    reporterId?: string;
     reportedUserId?: string;
     reportedProductId?: string;
     reportedStreamId?: string;
+    reportType: string;
+    description: string;
   }): Promise<AppResult<Report>> {
     try {
       const [newReport] = await db
         .insert(reports)
         .values({
-          ...data,
+          reporterId: data.reporterId || null,
+          reportedUserId: data.reportedUserId || null,
+          reportedProductId: data.reportedProductId || null,
+          reportedStreamId: data.reportedStreamId || null,
+          reportType: data.reportType,
+          description: data.description,
           status: 'pending',
           createdAt: new Date(),
         })
@@ -53,6 +58,21 @@ export class ReportsRepository {
   }
 
   /**
+   * Get reports by reporter
+   */
+  async getByReporter(reporterId: string): Promise<AppResult<Report[]>> {
+    try {
+      const results = await db.query.reports.findMany({
+        where: eq(reports.reporterId, reporterId),
+        orderBy: [desc(reports.createdAt)],
+      });
+      return success(results);
+    } catch (error) {
+      return failure(new ValidationError('Failed to fetch reports'));
+    }
+  }
+
+  /**
    * Get reports for a target user
    */
   async getByUserTarget(userId: string): Promise<AppResult<Report[]>> {
@@ -74,7 +94,7 @@ export class ReportsRepository {
     id: string,
     reviewerId: string,
     status: 'resolved' | 'dismissed',
-    notes: string,
+    notes?: string,
     actionTaken?: string,
   ): Promise<AppResult<Report>> {
     try {
@@ -83,8 +103,8 @@ export class ReportsRepository {
         .set({
           status,
           reviewedBy: reviewerId,
-          reviewNotes: notes,
-          actionTaken,
+          reviewNotes: notes || null,
+          actionTaken: actionTaken || null,
           resolvedAt: new Date(),
         })
         .where(eq(reports.id, id))

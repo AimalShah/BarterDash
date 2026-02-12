@@ -63,9 +63,15 @@ export interface PaymentConfirmationResponse {
   nextAction?: any;
 }
 
+// Generate unique idempotency key
+const generateIdempotencyKey = (): string => {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${Math.random().toString(36).substr(2, 9)}`;
+};
+
 export const paymentsService = {
   createIntent: async (
     payload: CreatePaymentIntentPayload,
+    idempotencyKey?: string,
   ): Promise<{ clientSecret: string | null; id: string }> => {
     const normalizedPayload = {
       auction_id: (payload as any).auction_id ?? (payload as any).auctionId,
@@ -73,9 +79,16 @@ export const paymentsService = {
       amount: payload.amount,
     };
 
+    const key = idempotencyKey || generateIdempotencyKey();
+
     const response = await api.post<ApiResponse<{ clientSecret: string | null; id: string }>>(
       "/payments/create-intent",
       normalizedPayload,
+      {
+        headers: {
+          "Idempotency-Key": key,
+        },
+      }
     );
     return response.data.data;
   },
@@ -89,19 +102,37 @@ export const paymentsService = {
   },
 
   // Payment Sheet Support
-  createPaymentSheet: async (payload: CreatePaymentSheetPayload): Promise<PaymentSheetResponse> => {
+  createPaymentSheet: async (
+    payload: CreatePaymentSheetPayload,
+    idempotencyKey?: string
+  ): Promise<PaymentSheetResponse> => {
+    const key = idempotencyKey || generateIdempotencyKey();
     const response = await api.post<ApiResponse<PaymentSheetResponse>>(
       "/payments/payment-sheet",
-      payload
+      payload,
+      {
+        headers: {
+          "Idempotency-Key": key,
+        },
+      }
     );
     return response.data.data;
   },
 
   // Setup Intent Support (Add Payment Method)
-  createSetupIntent: async (payload: CreateSetupIntentPayload = {}): Promise<SetupIntentResponse> => {
+  createSetupIntent: async (
+    payload: CreateSetupIntentPayload = {},
+    idempotencyKey?: string
+  ): Promise<SetupIntentResponse> => {
+    const key = idempotencyKey || generateIdempotencyKey();
     const response = await api.post<ApiResponse<SetupIntentResponse>>(
       "/payments/setup-intent",
-      payload
+      payload,
+      {
+        headers: {
+          "Idempotency-Key": key,
+        },
+      }
     );
     return response.data.data;
   },

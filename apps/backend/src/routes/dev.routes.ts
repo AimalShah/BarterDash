@@ -20,8 +20,10 @@ router.post(
       return;
     }
 
-    const buyerId = (req.body?.buyerId as string | undefined) || DEFAULT_BUYER_ID;
-    const sellerId = (req.body?.sellerId as string | undefined) || DEFAULT_SELLER_ID;
+    const buyerId =
+      (req.body?.buyerId as string | undefined) || DEFAULT_BUYER_ID;
+    const sellerId =
+      (req.body?.sellerId as string | undefined) || DEFAULT_SELLER_ID;
     const bidAmountRaw = req.body?.bidAmount ?? 25;
     const bidAmount = Number(bidAmountRaw);
 

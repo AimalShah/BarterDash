@@ -46,7 +46,7 @@ class PaymentLogger {
     ];
 
     const sanitized = { ...metadata };
-    
+
     for (const field of sensitiveFields) {
       if (sanitized[field]) {
         sanitized[field] = '[REDACTED]';
@@ -63,10 +63,13 @@ class PaymentLogger {
     return sanitized;
   }
 
-  private formatLogEntry(level: string, context: PaymentLogContext | PaymentErrorContext): string {
+  private formatLogEntry(
+    level: string,
+    context: PaymentLogContext | PaymentErrorContext,
+  ): string {
     const timestamp = context.timestamp || new Date();
     const sanitizedMetadata = this.sanitizeMetadata(context.metadata);
-    
+
     const logEntry = {
       timestamp: timestamp.toISOString(),
       level,
@@ -79,7 +82,7 @@ class PaymentLogger {
       amount: context.amount,
       currency: context.currency,
       metadata: sanitizedMetadata,
-      ...(('error' in context) && {
+      ...('error' in context && {
         error: context.error,
         stripeErrorCode: context.stripeErrorCode,
         stripeErrorType: context.stripeErrorType,
@@ -112,7 +115,9 @@ class PaymentLogger {
     this.info({ ...context, operation: 'payment_intent_created' });
   }
 
-  logPaymentIntentConfirmed(context: Omit<PaymentLogContext, 'operation'>): void {
+  logPaymentIntentConfirmed(
+    context: Omit<PaymentLogContext, 'operation'>,
+  ): void {
     this.info({ ...context, operation: 'payment_intent_confirmed' });
   }
 
@@ -135,7 +140,7 @@ class PaymentLogger {
   logStripeError(
     operation: string,
     stripeError: any,
-    context?: Partial<PaymentLogContext>
+    context?: Partial<PaymentLogContext>,
   ): void {
     this.error({
       ...context,

@@ -75,10 +75,10 @@ router.get(
         },
         lastMessage: conv.messages?.[0]
           ? {
-            content: conv.messages[0].content,
-            createdAt: conv.messages[0].createdAt,
-            readAt: conv.messages[0].readAt,
-          }
+              content: conv.messages[0].content,
+              createdAt: conv.messages[0].createdAt,
+              readAt: conv.messages[0].readAt,
+            }
           : null,
         unreadCount: conv.unreadCount || 0,
         lastMessageAt: conv.lastMessageAt,

@@ -41,14 +41,19 @@ export class CategoriesRepository {
     }
   }
 
-  async create(name: string, parentId?: string | null): Promise<AppResult<Category>> {
+  async create(
+    name: string,
+    parentId?: string | null,
+  ): Promise<AppResult<Category>> {
     try {
       // Generate slug from name
-      const slug = name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '')
-        + '-' + crypto.randomUUID().slice(0, 8);
+      const slug =
+        name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '') +
+        '-' +
+        crypto.randomUUID().slice(0, 8);
 
       const [result] = await db
         .insert(categories)

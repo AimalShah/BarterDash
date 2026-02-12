@@ -19,6 +19,9 @@ import feedRoutes from './feed.routes';
 import analyticsRoutes from './analytics.routes';
 import escrowRoutes from './escrow.routes';
 import stripeConnectRoutes from './stripe-connect.routes';
+import reportsRoutes from './reports.routes';
+import refundsRoutes from './refunds.routes';
+import watchlistRoutes from './watchlist.routes';
 import devRoutes from './dev.routes';
 import { config } from '../config';
 
@@ -59,6 +62,9 @@ router.use('/notifications', notificationsRoutes);
 router.use('/reviews', reviewsRoutes);
 router.use('/feed', feedRoutes);
 router.use('/analytics', analyticsRoutes);
+router.use('/reports', reportsRoutes);
+router.use('/refunds', refundsRoutes);
+router.use('/watchlist', watchlistRoutes);
 
 if (config.nodeEnv === 'development') {
   router.use('/dev', devRoutes);

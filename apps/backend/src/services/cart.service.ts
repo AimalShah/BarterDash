@@ -7,7 +7,7 @@ import {
   ValidationError,
 } from '../utils/result';
 import { db, products, orders, Order } from '../db';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 export class CartService {
   private repository: CartRepository;
@@ -212,7 +212,7 @@ export class CartService {
         await db
           .update(products)
           .set({
-            soldQuantity: products.soldQuantity + cartItem.quantity,
+            soldQuantity: sql`${products.soldQuantity} + ${cartItem.quantity}`,
           })
           .where(eq(products.id, cartItem.productId));
       }

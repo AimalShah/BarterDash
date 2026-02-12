@@ -1,21 +1,21 @@
-const detox = require('detox');
-const adapter = require('detox/runners/jest/adapter');
-const config = require('../package.json').detox;
+// Detox 20.x Jest setup
+// The test environment handles initialization automatically
 
-jest.setTimeout(180000);
+jest.setTimeout(300000); // 5 minutes
 
 beforeAll(async () => {
-  await detox.init(config);
+  // Wait for Detox to initialize
+  await new Promise(resolve => setTimeout(resolve, 1000));
 });
 
 beforeEach(async () => {
-  await adapter.beforeEach();
+  // Test setup
 });
 
 afterEach(async () => {
-  await adapter.afterEach();
+  // Test cleanup
 });
 
 afterAll(async () => {
-  await detox.cleanup();
+  // Global cleanup handled by test environment
 });

@@ -72,6 +72,7 @@ interface Auction {
   topBidder?: string;
   endsAt: Date;
   status: 'active' | 'ended';
+  mode?: 'normal' | 'sudden_death';
 }
 
 interface SellerStreamControlsProps {
@@ -217,7 +218,7 @@ export default function SellerStreamControls({
                         </Box>
                       )}
                       <Pressable onPress={() => onMarkAsPassed(item.product.id)}>
-                        <Box bg={COLORS.errorRed} bgOpacity={0.2} p="$2" rounded="$lg" borderWidth={1} borderColor={COLORS.errorRed}>
+                        <Box bg="rgba(239, 68, 68, 0.2)" p="$2" rounded="$lg" borderWidth={1} borderColor={COLORS.errorRed}>
                           <Trash2 size={18} color={COLORS.errorRed} />
                         </Box>
                       </Pressable>
@@ -272,6 +273,18 @@ export default function SellerStreamControls({
           </Badge>
         </HStack>
 
+        {/* Sudden Death Mode Indicator */}
+        {activeAuction.mode === 'sudden_death' && (
+          <Box bg="rgba(239, 68, 68, 0.2)" p="$3" rounded="$xl" borderWidth={1} borderColor={COLORS.errorRed}>
+            <HStack space="xs" alignItems="center" justifyContent="center">
+              <AlertCircle size={16} color={COLORS.errorRed} />
+              <Text color={COLORS.errorRed} fontWeight="$bold" size="sm">
+                SUDDEN DEATH - No timer extensions
+              </Text>
+            </HStack>
+          </Box>
+        )}
+
         {/* Current Bid Display */}
         <Box bg={COLORS.luxuryBlackLight} p="$5" rounded="$2xl" borderWidth={2} borderColor={COLORS.primaryGold}>
           <VStack space="sm" alignItems="center">
@@ -321,7 +334,7 @@ export default function SellerStreamControls({
 
         {/* Top Bidder */}
         {activeAuction.topBidder ? (
-          <Box bg={COLORS.successGreen} bgOpacity={0.2} p="$4" rounded="$xl" borderWidth={1} borderColor={COLORS.successGreen}>
+          <Box bg="rgba(34, 197, 94, 0.2)" p="$4" rounded="$xl" borderWidth={1} borderColor={COLORS.successGreen}>
             <HStack space="sm" alignItems="center">
               <CheckCircle size={20} color={COLORS.successGreen} />
               <VStack>
@@ -350,15 +363,16 @@ export default function SellerStreamControls({
           <HStack space="sm">
             <Button
               flex={1}
-              bg={COLORS.luxuryBlackLight}
+              bg={activeAuction.mode === 'sudden_death' ? COLORS.darkSurface : COLORS.luxuryBlackLight}
               borderWidth={1}
-              borderColor={COLORS.primaryGold}
+              borderColor={activeAuction.mode === 'sudden_death' ? COLORS.darkBorder : COLORS.primaryGold}
               rounded="$xl"
+              isDisabled={activeAuction.mode === 'sudden_death'}
               onPress={() => onExtendAuction(activeAuction.id, 15)}
             >
               <HStack space="xs" alignItems="center">
-                <Clock size={16} color={COLORS.primaryGold} />
-                <ButtonText color={COLORS.primaryGold} fontWeight="$bold">+15s</ButtonText>
+                <Clock size={16} color={activeAuction.mode === 'sudden_death' ? COLORS.textMuted : COLORS.primaryGold} />
+                <ButtonText color={activeAuction.mode === 'sudden_death' ? COLORS.textMuted : COLORS.primaryGold} fontWeight="$bold">+15s</ButtonText>
               </HStack>
             </Button>
             <Button
@@ -375,8 +389,7 @@ export default function SellerStreamControls({
           </HStack>
           
           <Button
-            bg={COLORS.errorRed}
-            bgOpacity={0.2}
+            bg="rgba(239, 68, 68, 0.2)"
             borderWidth={1}
             borderColor={COLORS.errorRed}
             rounded="$xl"

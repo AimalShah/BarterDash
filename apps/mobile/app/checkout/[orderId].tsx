@@ -165,41 +165,25 @@ export default function CheckoutScreen() {
     setStep("payment");
   };
 
-  const handleCompletePayment = async () => {
-    if (!selectedPaymentMethod) {
-      Alert.alert("Error", "Please select a payment method");
-      return;
-    }
-
+  const handlePayWithEscrow = async () => {
     try {
       setProcessing(true);
       setError(null);
 
-      // 1. Update order with shipping address
-      await ordersService.updateOrder(orderId!, {
-        shippingAddress: JSON.stringify(shippingAddress),
-      });
-
-      // 2. Create escrow payment
+      // 1. Create escrow payment
       const escrowResponse = await escrowService.createEscrowPayment(orderId!);
+      setEscrowData(escrowResponse);
 
-      // 3. Initialize Payment Sheet with escrow payment intent
+      // 2. Initialize Payment Sheet with escrow payment intent
       const { error: initError } = await initPaymentSheet({
         customerId: escrowResponse.customer,
         customerEphemeralKeySecret: escrowResponse.ephemeralKey,
         paymentIntentClientSecret: escrowResponse.clientSecret,
         merchantDisplayName: "BarterDash",
         allowsDelayedPaymentMethods: false,
-        returnURL: "barterdash://payment-return",
+        returnURL: "barterdash://checkout/success",
         defaultBillingDetails: {
-          name: shippingAddress.fullName,
-          address: {
-            line1: shippingAddress.street,
-            city: shippingAddress.city,
-            state: shippingAddress.state,
-            postalCode: shippingAddress.zipCode,
-            country: shippingAddress.country,
-          },
+          name: shippingAddress.fullName || "BarterDash Customer",
         },
       });
 
@@ -207,7 +191,7 @@ export default function CheckoutScreen() {
         throw new Error(initError.message);
       }
 
-      // 4. Present Payment Sheet
+      // 3. Present Payment Sheet
       const { error: presentError } = await presentPaymentSheet();
 
       if (presentError) {
@@ -218,7 +202,7 @@ export default function CheckoutScreen() {
         throw new Error(presentError.message);
       }
 
-      // 5. Payment successful!
+      // 4. Payment successful!
       Alert.alert(
         "Payment Successful!",
         "Your payment is being held in escrow. The seller will ship your item soon.",
@@ -232,6 +216,19 @@ export default function CheckoutScreen() {
     } catch (err: any) {
       console.error("Payment error:", err);
       setError(err.message || "Payment failed. Please try again.");
+      
+      // Show error alert with retry option
+      Alert.alert(
+        "Payment Failed",
+        err.message || "Payment could not be processed. Please try again.",
+        [
+          { text: "Cancel", style: "cancel" },
+          { 
+            text: "Retry", 
+            onPress: () => handlePayWithEscrow()
+          }
+        ]
+      );
     } finally {
       setProcessing(false);
     }

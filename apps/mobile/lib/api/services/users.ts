@@ -1,5 +1,5 @@
 import apiClient from "../client";
-import { User, UpdateProfilePayload, ApiResponse } from "../../../types";
+import { User, UpdateProfilePayload, ApiResponse, DataExportResponse } from "../../../types";
 
 export const usersService = {
   syncProfile: async (data: User): Promise<void> => {
@@ -29,6 +29,11 @@ export const usersService = {
       "/users/age-verification",
       data,
     );
+    return response.data.data;
+  },
+
+  exportData: async (): Promise<DataExportResponse> => {
+    const response = await apiClient.post<ApiResponse<DataExportResponse>>("/users/me/export");
     return response.data.data;
   },
 };

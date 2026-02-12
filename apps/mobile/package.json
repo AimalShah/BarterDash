@@ -13,7 +13,9 @@
     "e2e:build:ios": "detox build -c ios.sim.debug",
     "e2e:test:ios": "detox test -c ios.sim.debug",
     "e2e:build:android": "detox build -c android.emu.debug",
-    "e2e:test:android": "detox test -c android.emu.debug"
+    "e2e:test:android": "detox test -c android.emu.debug",
+    "e2e:build:device": "detox build -c android.device.debug",
+    "e2e:test:device": "detox test -c android.device.debug"
   },
   "dependencies": {
     "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
@@ -121,24 +123,56 @@
     "typescript": "~5.9.2"
   },
   "detox": {
-    "testRunner": "jest",
-    "runnerConfig": "e2e/jest.config.js",
-    "configurations": {
-      "ios.sim.debug": {
-        "type": "ios.simulator",
-        "device": {
-          "type": "iPhone 15"
-        },
+    "testRunner": {
+      "name": "jest",
+      "args": {
+        "config": "e2e/jest.config.js"
+      }
+    },
+    "apps": {
+      "ios.debug": {
+        "type": "ios.app",
         "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/BarterDash.app",
         "build": "xcodebuild -workspace ios/BarterDash.xcworkspace -scheme BarterDash -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build"
       },
-      "android.emu.debug": {
+      "android.debug": {
+        "type": "android.apk",
+        "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
+        "build": "cd android && ./gradlew assembleDebug"
+      }
+    },
+    "devices": {
+      "simulator": {
+        "type": "ios.simulator",
+        "device": {
+          "type": "iPhone 15"
+        }
+      },
+      "emulator": {
         "type": "android.emulator",
         "device": {
           "avdName": "Pixel_5_API_34"
-        },
-        "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
-        "build": "cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug"
+        }
+      },
+      "android.device": {
+        "type": "android.attached",
+        "device": {
+          "adbName": ".*"
+        }
+      }
+    },
+    "configurations": {
+      "ios.sim.debug": {
+        "device": "simulator",
+        "app": "ios.debug"
+      },
+      "android.emu.debug": {
+        "device": "emulator",
+        "app": "android.debug"
+      },
+      "android.device.debug": {
+        "device": "android.device",
+        "app": "android.debug"
       }
     }
   },

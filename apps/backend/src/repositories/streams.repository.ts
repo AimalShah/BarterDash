@@ -1,5 +1,10 @@
 import { db } from '../db';
-import { streams, streamProducts, streamSubscriptions, products } from '../db/schema';
+import {
+  streams,
+  streamProducts,
+  streamSubscriptions,
+  products,
+} from '../db/schema';
 import { eq, and, or, desc, asc, sql, count, gt, lt } from 'drizzle-orm';
 import {
   AppResult,
@@ -8,7 +13,12 @@ import {
   NotFoundError,
   InternalError,
 } from '../utils/result';
-import type { Stream, NewStream, StreamProduct, NewStreamProduct } from '../db/schema';
+import type {
+  Stream,
+  NewStream,
+  StreamProduct,
+  NewStreamProduct,
+} from '../db/schema';
 
 /**
  * Streams Repository
@@ -68,7 +78,9 @@ export class StreamsRepository {
   /**
    * Find stream by Agora channel name
    */
-  async findByChannelName(channelName: string): Promise<AppResult<Stream | null>> {
+  async findByChannelName(
+    channelName: string,
+  ): Promise<AppResult<Stream | null>> {
     try {
       const stream = await db.query.streams.findFirst({
         where: eq(streams.agoraChannelName, channelName),
@@ -88,7 +100,10 @@ export class StreamsRepository {
   /**
    * Update stream
    */
-  async update(id: string, data: Partial<NewStream>): Promise<AppResult<Stream>> {
+  async update(
+    id: string,
+    data: Partial<NewStream>,
+  ): Promise<AppResult<Stream>> {
     try {
       const [stream] = await db
         .update(streams)
@@ -113,13 +128,17 @@ export class StreamsRepository {
   /**
    * Get all streams with optional filtering
    */
-  async findAll(options: {
-    status?: string;
-    categoryId?: string;
-    search?: string;
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<AppResult<{ items: Stream[]; totalCount: number; totalPages: number }>> {
+  async findAll(
+    options: {
+      status?: string;
+      categoryId?: string;
+      search?: string;
+      limit?: number;
+      offset?: number;
+    } = {},
+  ): Promise<
+    AppResult<{ items: Stream[]; totalCount: number; totalPages: number }>
+  > {
     try {
       const { status, categoryId, search, limit = 20, offset = 0 } = options;
       const conditions = [];
@@ -139,7 +158,8 @@ export class StreamsRepository {
         );
       }
 
-      const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
+      const whereCondition =
+        conditions.length > 0 ? and(...conditions) : undefined;
 
       const items = await db.query.streams.findMany({
         where: whereCondition,
@@ -173,7 +193,11 @@ export class StreamsRepository {
   /**
    * Get streams by seller
    */
-  async findBySeller(sellerId: string, limit = 20, offset = 0): Promise<AppResult<Stream[]>> {
+  async findBySeller(
+    sellerId: string,
+    limit = 20,
+    offset = 0,
+  ): Promise<AppResult<Stream[]>> {
     try {
       const items = await db.query.streams.findMany({
         where: eq(streams.sellerId, sellerId),
@@ -195,7 +219,10 @@ export class StreamsRepository {
   /**
    * Start stream
    */
-  async start(id: string, conferenceRoomId?: string): Promise<AppResult<Stream>> {
+  async start(
+    id: string,
+    conferenceRoomId?: string,
+  ): Promise<AppResult<Stream>> {
     try {
       const updateData: any = {
         status: 'live',
@@ -252,7 +279,10 @@ export class StreamsRepository {
   /**
    * Update viewer count
    */
-  async updateViewerCount(id: string, count: number): Promise<AppResult<Stream>> {
+  async updateViewerCount(
+    id: string,
+    count: number,
+  ): Promise<AppResult<Stream>> {
     try {
       const [stream] = await db
         .update(streams)
@@ -346,7 +376,9 @@ export class StreamsRepository {
   /**
    * Get products in stream
    */
-  async getProductsByStream(streamId: string): Promise<AppResult<StreamProduct[]>> {
+  async getProductsByStream(
+    streamId: string,
+  ): Promise<AppResult<StreamProduct[]>> {
     try {
       const products = await db.query.streamProducts.findMany({
         where: eq(streamProducts.streamId, streamId),
@@ -397,7 +429,9 @@ export class StreamsRepository {
   /**
    * Mark stream product as active
    */
-  async markProductAsActive(productId: string): Promise<AppResult<StreamProduct>> {
+  async markProductAsActive(
+    productId: string,
+  ): Promise<AppResult<StreamProduct>> {
     try {
       const [streamProduct] = await db
         .update(streamProducts)
@@ -422,7 +456,9 @@ export class StreamsRepository {
   /**
    * Mark stream product as sold
    */
-  async markProductAsSold(productId: string): Promise<AppResult<StreamProduct>> {
+  async markProductAsSold(
+    productId: string,
+  ): Promise<AppResult<StreamProduct>> {
     try {
       const [streamProduct] = await db
         .update(streamProducts)
@@ -460,7 +496,10 @@ export class StreamsRepository {
   /**
    * Create subscription
    */
-  async createSubscription(streamId: string, userId: string): Promise<AppResult<any>> {
+  async createSubscription(
+    streamId: string,
+    userId: string,
+  ): Promise<AppResult<any>> {
     try {
       const [subscription] = await db
         .insert(streamSubscriptions)
@@ -482,7 +521,10 @@ export class StreamsRepository {
   /**
    * Check if subscription exists
    */
-  async hasSubscription(streamId: string, userId: string): Promise<AppResult<boolean>> {
+  async hasSubscription(
+    streamId: string,
+    userId: string,
+  ): Promise<AppResult<boolean>> {
     try {
       const subscription = await db.query.streamSubscriptions.findFirst({
         where: and(

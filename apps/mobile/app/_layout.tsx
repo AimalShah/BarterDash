@@ -20,8 +20,15 @@ import {
 } from "@expo-google-fonts/plus-jakarta-sans";
 import { View, ActivityIndicator } from "react-native";
 import { COLORS } from "../constants/colors";
+import { useDeepLinkHandler } from "../hooks/useDeepLinkHandler";
 
 const queryClient = new QueryClient();
+
+// Deep link handler component
+function DeepLinkHandler() {
+  useDeepLinkHandler();
+  return null;
+}
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -65,6 +72,7 @@ export default function RootLayout() {
         <GluestackUIProvider config={config}>
           <QueryClientProvider client={queryClient}>
             <ToastProvider>
+              <DeepLinkHandler />
               <AuthGuard>
                 <OnboardingGuard>
                   <Stack

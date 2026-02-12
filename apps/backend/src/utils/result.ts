@@ -77,7 +77,12 @@ export class InternalError extends AppError {
 
 // Payment-specific error types
 export class PaymentError extends AppError {
-  constructor(message: string, statusCode: number = 400, code?: string, details?: unknown) {
+  constructor(
+    message: string,
+    statusCode: number = 400,
+    code?: string,
+    details?: unknown,
+  ) {
     super(message, statusCode, code, details);
     this.name = 'PaymentError';
   }
@@ -93,7 +98,11 @@ export class CardDeclinedError extends PaymentError {
 
 export class InsufficientFundsError extends PaymentError {
   constructor() {
-    super('Insufficient funds on the payment method', 402, 'INSUFFICIENT_FUNDS');
+    super(
+      'Insufficient funds on the payment method',
+      402,
+      'INSUFFICIENT_FUNDS',
+    );
     this.name = 'InsufficientFundsError';
   }
 }
@@ -114,7 +123,12 @@ export class InvalidCardError extends PaymentError {
 
 export class AuthenticationRequiredError extends PaymentError {
   constructor(nextActionUrl?: string) {
-    super('Additional authentication required', 402, 'AUTHENTICATION_REQUIRED', { nextActionUrl });
+    super(
+      'Additional authentication required',
+      402,
+      'AUTHENTICATION_REQUIRED',
+      { nextActionUrl },
+    );
     this.name = 'AuthenticationRequiredError';
   }
 }

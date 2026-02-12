@@ -1,5 +1,6 @@
 import { UsersRepository } from '../repositories/users.repository';
-import { AppResult, success, failure, NotFoundError } from '../utils/result';
+import { DataExportService, ExportResult } from './data-export.service';
+import { AppResult, success, failure, NotFoundError, ValidationError } from '../utils/result';
 import { Profile } from '../db/schema';
 import { UpdateProfileInput } from '../schemas/users.schemas';
 
@@ -9,9 +10,11 @@ import { UpdateProfileInput } from '../schemas/users.schemas';
  */
 export class UsersService {
   private repository: UsersRepository;
+  private dataExportService: DataExportService;
 
   constructor() {
     this.repository = new UsersRepository();
+    this.dataExportService = new DataExportService();
   }
 
   /**
@@ -124,5 +127,12 @@ export class UsersService {
     return await this.repository.update(id, {
       dateOfBirth: dob,
     });
+  }
+
+  /**
+   * Export user data (GDPR compliance)
+   */
+  async exportUserData(userId: string): Promise<AppResult<ExportResult>> {
+    return await this.dataExportService.exportUserData(userId);
   }
 }

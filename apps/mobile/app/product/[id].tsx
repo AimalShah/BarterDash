@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatusBar } from 'react-native';
+import { StatusBar, Alert, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import {
     Box,
@@ -14,9 +14,10 @@ import {
     Button,
     ButtonText
 } from '@gluestack-ui/themed';
-import { ChevronLeft, Share2, Heart, Truck, ShieldCheck, User, Gavel, ChevronRight } from 'lucide-react-native';
+import { ChevronLeft, Share2, Heart, Truck, ShieldCheck, User, Gavel, ChevronRight, ShoppingCart, Zap } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { productsService } from '@/lib/api/services/products';
+import { cartService } from '@/lib/api/services/cart';
 import { Product } from '@/types';
 import { Spinner } from '@gluestack-ui/themed';
 import { COLORS } from '../../constants/colors';
@@ -26,6 +27,7 @@ export default function ProductDetailScreen() {
     const { profile } = useAuthStore();
     const [product, setProduct] = React.useState<Product | null>(null);
     const [loading, setLoading] = React.useState(true);
+    const [actionLoading, setActionLoading] = React.useState<string | null>(null);
 
     React.useEffect(() => {
         if (id) {
@@ -45,6 +47,64 @@ export default function ProductDetailScreen() {
         }
     };
 
+    const handleAddToBag = async () => {
+        if (!product) return;
+        try {
+            setActionLoading('cart');
+            await cartService.addItem(product.id);
+            Alert.alert('Added to Bag', 'Item has been added to your shopping bag', [
+                { text: 'Continue Shopping', style: 'default' },
+                { text: 'View Bag', onPress: () => router.push('/(tabs)/cart') }
+            ]);
+        } catch (error: any) {
+            console.error('Error adding to bag:', error);
+            Alert.alert('Error', error.message || 'Failed to add item to bag');
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleBuyNow = async () => {
+        if (!product) return;
+        try {
+            setActionLoading('buy');
+            const result = await productsService.buyNow(product.id);
+            router.push(`/checkout/${result.order.id}`);
+        } catch (error: any) {
+            console.error('Error with buy now:', error);
+            Alert.alert('Error', error.message || 'Failed to process purchase');
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handlePlaceBid = () => {
+        if (!product) return;
+        const streamId = (product as any).streamId || (product as any).stream_id;
+        if (streamId) {
+            router.push(`/stream/${streamId}`);
+        } else {
+            Alert.alert('Coming Soon', 'Bidding will be available during live streams');
+        }
+    };
+
+    const handleBuyout = async () => {
+        if (!product) return;
+        const buyoutPrice = (product as any).buyout_price || (product as any).buyNowPrice;
+        Alert.alert(
+            'Buy Now',
+            `Purchase this item immediately for $${buyoutPrice}?`,
+            [
+                { text: 'Cancel', style: 'cancel' },
+                { 
+                    text: 'Buy Now', 
+                    style: 'default',
+                    onPress: handleBuyNow
+                }
+            ]
+        );
+    };
+
     if (loading) {
         return (
             <Center flex={1} bg={COLORS.luxuryBlack}>
@@ -62,7 +122,7 @@ export default function ProductDetailScreen() {
     }
 
     const sellerName = (product as any).seller?.username || (product as any).seller_name || 'Verified Seller';
-    const isOwner = profile?.id === product.sellerId;
+    const isOwner = profile?.id === (product.seller_id || (product as any).sellerId);
 
     return (
         <Box flex={1} bg={COLORS.luxuryBlack}>
@@ -151,7 +211,7 @@ export default function ProductDetailScreen() {
                         {/* Seller Info */}
                         <Pressable
                             onPress={() => {
-                                const sellerId = product.sellerId || (product as any).seller_id;
+                                const sellerId = product.seller_id || (product as any).sellerId;
                                 if (sellerId) router.push(`/user/${sellerId}`);
                             }}
                             mb="$10"
@@ -204,37 +264,109 @@ export default function ProductDetailScreen() {
             </ScrollView>
 
             {/* Bottom Action Bar */}
-            <Box bg={COLORS.luxuryBlack} borderTopWidth={1} borderColor={COLORS.darkBorder} px="$8" py="$1.4" flexDirection="row" sx={{ gap: 20 }} alignItems="center" safeAreaBottom>
-                <VStack flex={1}>
-                    <Text color={COLORS.textMuted} size="2xs" textTransform="uppercase" fontWeight="$black" letterSpacing={1} mb="$1">
-                        {(product as any).status === 'live' ? 'BID' : 'TOTAL'}
-                    </Text>
-                    <Text color={COLORS.primaryGold} size="2xl" fontWeight="$black">${product.price || (product as any).current_price || '0.00'}</Text>
-                </VStack>
+            <Box bg={COLORS.luxuryBlack} borderTopWidth={1} borderColor={COLORS.darkBorder} px="$8" py="$4" safeAreaBottom>
                 {isOwner ? (
-                    <Button
-                        onPress={() => { }}
-                        flex={2}
-                        h={56}
-                        bg={COLORS.luxuryBlackLight}
-                        borderColor={COLORS.darkBorder}
-                        borderWidth={1}
-                        rounded="$sm"
-                    >
-                        <ButtonText color={COLORS.textPrimary} fontWeight="$black" textTransform="uppercase">Edit Listing</ButtonText>
-                    </Button>
+                    <HStack space="md" alignItems="center">
+                        <VStack flex={1}>
+                            <Text color={COLORS.textMuted} size="2xs" textTransform="uppercase" fontWeight="$black" letterSpacing={1} mb="$1">
+                                LISTING
+                            </Text>
+                            <Text color={COLORS.primaryGold} size="2xl" fontWeight="$black">${product.price || '0.00'}</Text>
+                        </VStack>
+                        <Button
+                            onPress={() => router.push(`/seller/product/${product.id}/edit`)}
+                            flex={2}
+                            h={56}
+                            bg={COLORS.luxuryBlackLight}
+                            borderColor={COLORS.primaryGold}
+                            borderWidth={2}
+                            rounded="$sm"
+                        >
+                            <ButtonText color={COLORS.primaryGold} fontWeight="$black" textTransform="uppercase">Edit Listing</ButtonText>
+                        </Button>
+                    </HStack>
+                ) : (product as any).status === 'live' ? (
+                    <HStack space="md" alignItems="center">
+                        <VStack flex={1}>
+                            <Text color={COLORS.textMuted} size="2xs" textTransform="uppercase" fontWeight="$black" letterSpacing={1} mb="$1">
+                                CURRENT BID
+                            </Text>
+                            <Text color={COLORS.primaryGold} size="2xl" fontWeight="$black">${(product as any).current_price || product.price || '0.00'}</Text>
+                        </VStack>
+                        {((product as any).buyout_price || (product as any).buyNowPrice) && (
+                            <Button
+                                onPress={handleBuyout}
+                                flex={1}
+                                h={56}
+                                bg={COLORS.successGreen}
+                                rounded="$sm"
+                                isDisabled={actionLoading !== null}
+                            >
+                                {actionLoading === 'buy' ? (
+                                    <ActivityIndicator color={COLORS.textPrimary} />
+                                ) : (
+                                    <ButtonText color={COLORS.textPrimary} fontWeight="$black" textTransform="uppercase">
+                                        Buy ${(product as any).buyout_price || (product as any).buyNowPrice}
+                                    </ButtonText>
+                                )}
+                            </Button>
+                        )}
+                        <Button
+                            onPress={handlePlaceBid}
+                            flex={1}
+                            h={56}
+                            bg={COLORS.primaryGold}
+                            rounded="$sm"
+                            isDisabled={actionLoading !== null}
+                        >
+                            <ButtonText color={COLORS.luxuryBlack} fontWeight="$black" textTransform="uppercase">Place Bid</ButtonText>
+                        </Button>
+                    </HStack>
                 ) : (
-                    <Button
-                        onPress={() => { }}
-                        flex={2}
-                        h={56}
-                        bg={COLORS.primaryGold}
-                        rounded="$sm"
-                    >
-                        <ButtonText color={COLORS.luxuryBlack} fontWeight="$black" textTransform="uppercase">
-                            {(product as any).status === 'live' ? 'Place Bid' : 'Add to Bag'}
-                        </ButtonText>
-                    </Button>
+                    <HStack space="md" alignItems="center">
+                        <VStack flex={1}>
+                            <Text color={COLORS.textMuted} size="2xs" textTransform="uppercase" fontWeight="$black" letterSpacing={1} mb="$1">
+                                TOTAL
+                            </Text>
+                            <Text color={COLORS.primaryGold} size="2xl" fontWeight="$black">${product.price || '0.00'}</Text>
+                        </VStack>
+                        <Button
+                            onPress={handleAddToBag}
+                            flex={1}
+                            h={56}
+                            bg={COLORS.luxuryBlackLight}
+                            borderColor={COLORS.primaryGold}
+                            borderWidth={2}
+                            rounded="$sm"
+                            isDisabled={actionLoading !== null}
+                        >
+                            {actionLoading === 'cart' ? (
+                                <ActivityIndicator color={COLORS.primaryGold} />
+                            ) : (
+                                <HStack alignItems="center" space="xs">
+                                    <ShoppingCart size={16} color={COLORS.primaryGold} />
+                                    <ButtonText color={COLORS.primaryGold} fontWeight="$black" textTransform="uppercase">Add to Bag</ButtonText>
+                                </HStack>
+                            )}
+                        </Button>
+                        <Button
+                            onPress={handleBuyNow}
+                            flex={1}
+                            h={56}
+                            bg={COLORS.primaryGold}
+                            rounded="$sm"
+                            isDisabled={actionLoading !== null}
+                        >
+                            {actionLoading === 'buy' ? (
+                                <ActivityIndicator color={COLORS.luxuryBlack} />
+                            ) : (
+                                <HStack alignItems="center" space="xs">
+                                    <Zap size={16} color={COLORS.luxuryBlack} />
+                                    <ButtonText color={COLORS.luxuryBlack} fontWeight="$black" textTransform="uppercase">Buy Now</ButtonText>
+                                </HStack>
+                            )}
+                        </Button>
+                    </HStack>
                 )}
             </Box>
         </Box>

@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { validate, validateParams } from '../middleware/validate';
 import { asyncHandler } from '../middleware/error-handler';
-import { createBidSchema, auctionIdParamSchema } from '../schemas/bids.schemas';
+import { createBidSchema, createMaxBidSchema, auctionIdParamSchema } from '../schemas/bids.schemas';
 import { BidsService } from '../services/bids.service';
 
 const router = Router();
@@ -75,6 +75,78 @@ router.get(
     res.status(200).json({
       success: true,
       data: result.value,
+    });
+  }),
+);
+
+/**
+ * POST /bids/max
+ * Place a max bid (auto-bidding)
+ * Protected - requires JWT
+ */
+router.post(
+  '/max',
+  authenticate,
+  validate(createMaxBidSchema),
+  asyncHandler(async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.id;
+    const result = await bidsService.placeMaxBid(userId, req.body);
+
+    if (result.isErr()) {
+      throw result.error;
+    }
+
+    res.status(201).json({
+      success: true,
+      data: result.value,
+      message: 'Max bid placed successfully',
+    });
+  }),
+);
+
+/**
+ * GET /bids/my-max-bids
+ * Get current user's active max bids
+ * Protected - requires JWT
+ */
+router.get(
+  '/my-max-bids',
+  authenticate,
+  asyncHandler(async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.id;
+    const result = await bidsService.getMyMaxBids(userId);
+
+    if (result.isErr()) {
+      throw result.error;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: result.value,
+    });
+  }),
+);
+
+/**
+ * DELETE /bids/max/:id
+ * Cancel a max bid
+ * Protected - requires JWT
+ */
+router.delete(
+  '/max/:id',
+  authenticate,
+  asyncHandler(async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.id;
+    const maxBidId = req.params.id as string;
+    const result = await bidsService.cancelMaxBid(userId, maxBidId);
+
+    if (result.isErr()) {
+      throw result.error;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Max bid cancelled successfully',
     });
   }),
 );

@@ -1,38 +1,33 @@
-import apiClient from "../client";
-import { Bid, CreateBidPayload, ApiResponse } from "../../../types";
+import apiClient from '../client';
+import { Bid, ApiResponse } from '../../../types';
+
+export interface PlaceBidPayload {
+  auction_id: string;
+  amount: number;
+  is_max_bid?: boolean;
+}
+
+export interface PlaceBidResponse extends Bid {
+  timer_extended?: boolean;
+  new_ends_at?: string;
+  timer_extensions?: number;
+  bid_count?: number;
+}
+
+export interface MaxBidPayload {
+  auction_id: string;
+  max_amount: number;
+}
 
 export const bidsService = {
-  placeBid: async (payload: CreateBidPayload | { auction_id: string; amount: number }): Promise<Bid> => {
-    // Ensure we have a valid auction_id (handle both snake_case and camelCase)
-    const auctionId = (payload as any).auction_id ?? (payload as any).auctionId;
-    
-    if (!auctionId) {
-      console.error('[bidsService] Missing auction_id in payload:', payload);
-      throw new Error("Missing auction_id: Cannot place bid without a valid auction ID");
-    }
-    
-    const normalizedPayload = {
-      auction_id: auctionId,
-      amount: payload.amount,
-    };
-    
-    console.log('[bidsService] Placing bid with payload:', normalizedPayload);
-    
-    try {
-      const response = await apiClient.post<ApiResponse<Bid>>(
-        "/bids",
-        normalizedPayload,
-      );
-      console.log('[bidsService] Bid placed successfully:', response.data);
-      return response.data.data;
-    } catch (error: any) {
-      console.error('[bidsService] Failed to place bid:', {
-        error: error?.message,
-        response: error?.response?.data,
-        status: error?.response?.status,
-      });
-      throw error;
-    }
+  placeBid: async (payload: PlaceBidPayload): Promise<PlaceBidResponse> => {
+    const response = await apiClient.post<ApiResponse<PlaceBidResponse>>('/bids', payload);
+    return response.data.data;
+  },
+
+  placeMaxBid: async (payload: MaxBidPayload): Promise<PlaceBidResponse> => {
+    const response = await apiClient.post<ApiResponse<PlaceBidResponse>>('/bids/max', payload);
+    return response.data.data;
   },
 
   getAuctionBids: async (auctionId: string): Promise<Bid[]> => {
@@ -41,7 +36,16 @@ export const bidsService = {
   },
 
   getMyBids: async (): Promise<Bid[]> => {
-    const response = await apiClient.get<ApiResponse<Bid[]>>("/bids/my-bids");
+    const response = await apiClient.get<ApiResponse<Bid[]>>('/bids/my-bids');
     return response.data.data;
+  },
+
+  getMyMaxBids: async (): Promise<Bid[]> => {
+    const response = await apiClient.get<ApiResponse<Bid[]>>('/bids/my-max-bids');
+    return response.data.data;
+  },
+
+  cancelMaxBid: async (maxBidId: string): Promise<void> => {
+    await apiClient.delete(`/bids/max/${maxBidId}`);
   },
 };

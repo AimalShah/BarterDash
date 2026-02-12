@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -18,7 +18,7 @@ import { streamsService } from "../../lib/api/services/streams";
 import { useAuthStore } from "../../store/authStore";
 import { useBidding } from "../../hooks/useBidding";
 import { useStreamAuctions } from "../../hooks/useStreamAuctions";
-import { useConnectionManager } from "../../lib/connection/useConnectionManager";
+import { useConnectionManager } from "@/lib/connection/useConnectionManager";
 import {
   StreamVideo,
   StreamVideoClient,
@@ -51,29 +51,38 @@ export default function ViewerStreamViewStream({
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
-  
+
   // Core state
   const [streamInfo, setStreamInfo] = useState<any>(null);
-  const [streamClient, setStreamClient] = useState<StreamVideoClient | null>(null);
+  const [streamClient, setStreamClient] = useState<StreamVideoClient | null>(
+    null,
+  );
   const [isStreamPaused, setIsStreamPaused] = useState(false);
 
   // Auction state
-  const {
-    activeAuction,
-    isLoading: isAuctionLoading,
-    error: auctionError,
-    refetch: refetchAuction,
-  } = useStreamAuctions(streamId);
+  const { activeAuction } = useStreamAuctions(streamId);
 
   // Bidding state
   const {
     currentBid,
+    minimumBid,
+    bidIncrement,
     isPlacingBid,
-    showBidAlert,
-    placeQuickBid,
+    timerExtended,
+    newEndsAt,
+    canBid,
+    cannotBidReason,
+    placeBid,
+    placeCustomBid,
+    placeMaxBid,
   } = useBidding(activeAuction, () => {
     console.log("[ViewerStream] Bid placed successfully");
   });
+
+  const [showBidAlert, setShowBidAlert] = useState(false);
+  const lastBidRef = useRef<number | null>(null);
+  const bidAlertTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const auctionTop = insets.top + 88;
 
   // Reactions
   const { addReaction, renderReactions } = useReactionSystem();
@@ -85,7 +94,6 @@ export default function ViewerStreamViewStream({
     isConnecting,
     isReconnecting,
     reconnectAttempt,
-    connect,
     disconnect,
   } = useConnectionManager({
     streamId,
@@ -172,7 +180,7 @@ export default function ViewerStreamViewStream({
             const orderId = notification.data?.orderId;
             if (orderId) router.push(`/checkout/${orderId}`);
           }
-        }
+        },
       )
       .subscribe();
 
@@ -181,11 +189,45 @@ export default function ViewerStreamViewStream({
     };
   }, [profile?.id, router]);
 
-  // Handlers
-  const handleQuickBid = useCallback(async (amount: number) => {
-    await placeQuickBid(amount);
-  }, [placeQuickBid]);
+  // Show bid alert when bid changes
+  useEffect(() => {
+    if (!activeAuction?.id) {
+      lastBidRef.current = null;
+      setShowBidAlert(false);
+      if (bidAlertTimeoutRef.current) {
+        clearTimeout(bidAlertTimeoutRef.current);
+        bidAlertTimeoutRef.current = null;
+      }
+      return;
+    }
 
+    if (lastBidRef.current === null) {
+      lastBidRef.current = currentBid;
+      return;
+    }
+
+    if (currentBid > lastBidRef.current) {
+      setShowBidAlert(true);
+      if (bidAlertTimeoutRef.current) {
+        clearTimeout(bidAlertTimeoutRef.current);
+      }
+      bidAlertTimeoutRef.current = setTimeout(() => {
+        setShowBidAlert(false);
+      }, 1800);
+    }
+
+    lastBidRef.current = currentBid;
+  }, [activeAuction?.id, currentBid]);
+
+  useEffect(() => {
+    return () => {
+      if (bidAlertTimeoutRef.current) {
+        clearTimeout(bidAlertTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Handlers
   const handlePauseResume = useCallback(() => {
     setIsStreamPaused((prev) => !prev);
   }, []);
@@ -248,24 +290,43 @@ export default function ViewerStreamViewStream({
               blurRadius={1}
             />
             <LinearGradient
-              colors={["transparent", "rgba(0,0,0,0.4)", COLORS.luxuryBlack]}
+              colors={[
+                COLORS.overlaySoft,
+                COLORS.overlayMedium,
+                COLORS.luxuryBlack,
+              ]}
               style={styles.videoOverlay}
             />
           </View>
         )}
       </View>
 
+      <LinearGradient
+        pointerEvents="none"
+        colors={[COLORS.overlaySoft, COLORS.overlayMedium, COLORS.overlayStrong]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={styles.screenScrim}
+      />
+
       {/* Auction Section - Shows overlay and bid buttons */}
-      <View style={styles.auctionContainer}>
-        <AuctionSection
-          auction={activeAuction}
-          currentBid={currentBid}
-          isPlacingBid={isPlacingBid}
-          auctionError={auctionError}
-          isLoading={isAuctionLoading}
-          onPlaceBid={handleQuickBid}
-          onRetry={refetchAuction}
-        />
+      <View style={[styles.auctionContainer, { top: auctionTop }]}>
+        <View style={styles.auctionInner}>
+          <AuctionSection
+            auction={activeAuction}
+            currentBid={currentBid}
+            minimumBid={minimumBid}
+            bidIncrement={bidIncrement}
+            isPlacingBid={isPlacingBid}
+            canBid={canBid}
+            cannotBidReason={cannotBidReason}
+            timerExtended={timerExtended}
+            newEndsAt={newEndsAt}
+            onPlaceBid={placeBid}
+            onPlaceCustomBid={placeCustomBid}
+            onPlaceMaxBid={placeMaxBid}
+          />
+        </View>
       </View>
 
       {/* Floating Reactions */}
@@ -276,45 +337,56 @@ export default function ViewerStreamViewStream({
 
       {/* Top Bar */}
       <LinearGradient
-        colors={["rgba(0,0,0,0.6)", "transparent"]}
-        style={[styles.topBar, { paddingTop: insets.top + 10 }]}
+        colors={[COLORS.overlayStrong, COLORS.overlaySoft]}
+        style={[styles.topBar, { paddingTop: insets.top + 8 }]}
       >
-        <TouchableOpacity onPress={handleLeaveStream} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={22} color={COLORS.textPrimary} />
-        </TouchableOpacity>
+        <View style={styles.topBarContent}>
+          <TouchableOpacity onPress={handleLeaveStream} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={22} color={COLORS.textPrimary} />
+          </TouchableOpacity>
 
-        <View style={styles.streamInfo}>
-          <Text style={styles.streamTitle} numberOfLines={1}>
-            {streamInfo?.title || "Live Stream"}
-          </Text>
-          <View style={styles.liveIndicators}>
-            <View style={styles.liveBadge}>
-              <View
-                style={[styles.liveDot, !isConnected && styles.liveDotOffline]}
-              />
-              <Text style={styles.liveText}>
-                {isConnected ? "LIVE" : connectionState.toUpperCase()}
-              </Text>
-            </View>
-            <View style={styles.viewersBadge}>
-              <Ionicons name="eye" size={12} color={COLORS.textPrimary} />
-              <Text style={styles.viewersText}>
-                {streamInfo?.viewerCount || 0}
-              </Text>
+          <View style={styles.streamInfo}>
+            <Text style={styles.streamTitle} numberOfLines={1}>
+              {streamInfo?.title || "Live Stream"}
+            </Text>
+            <View style={styles.liveIndicators}>
+              <View style={styles.liveBadge}>
+                <View
+                  style={[styles.liveDot, !isConnected && styles.liveDotOffline]}
+                />
+                <Text
+                  style={[
+                    styles.liveText,
+                    !isConnected && styles.liveTextOffline,
+                  ]}
+                >
+                  {isConnected ? "LIVE" : connectionState.toUpperCase()}
+                </Text>
+              </View>
+              <View style={styles.viewersBadge}>
+                <Ionicons name="eye" size={12} color={COLORS.textPrimary} />
+                <Text style={styles.viewersText}>
+                  {streamInfo?.viewerCount || 0}
+                </Text>
+              </View>
             </View>
           </View>
         </View>
       </LinearGradient>
 
       {/* Main Content */}
-      <View style={styles.mainContent}>
+      <View style={[styles.mainContent, { paddingBottom: insets.bottom + 12 }]}>
         {/* Chat Area */}
-        <View style={styles.chatContainer}>
-          <InstagramLiveChat streamId={streamId} showInput={true} />
+        <View style={styles.chatPanel}>
+          <View style={styles.chatContainer}>
+            <InstagramLiveChat streamId={streamId} showInput={true} />
+          </View>
         </View>
 
         {/* Reaction Button */}
-        <ReactionButton onPress={() => addReaction()} />
+        <View style={styles.actionsRow}>
+          <ReactionButton onPress={() => addReaction()} />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -329,6 +401,10 @@ const styles = StyleSheet.create({
     flex: 1,
     zIndex: 0,
     ...StyleSheet.absoluteFillObject,
+  },
+  screenScrim: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1,
   },
   thumbnailOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -350,35 +426,52 @@ const styles = StyleSheet.create({
   },
   auctionContainer: {
     position: "absolute",
-    top: "18%",
     left: 0,
     right: 0,
-    zIndex: 10,
+    zIndex: 12,
+    paddingHorizontal: 16,
+  },
+  auctionInner: {
+    width: "100%",
+    maxWidth: 520,
+    alignSelf: "center",
   },
   topBar: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingBottom: 20,
+    paddingHorizontal: 12,
+    paddingBottom: 12,
     zIndex: 20,
   },
+  topBarContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: COLORS.overlaySoft,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.darkBorderLight,
+  },
   backButton: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: COLORS.overlayMedium,
+    borderWidth: 1,
+    borderColor: COLORS.darkBorderLight,
     justifyContent: "center",
     alignItems: "center",
   },
   streamInfo: {
     flex: 1,
-    marginLeft: 8,
+    marginLeft: 10,
   },
   streamTitle: {
     color: COLORS.textPrimary,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
   },
   liveIndicators: {
@@ -389,20 +482,22 @@ const styles = StyleSheet.create({
   liveBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.liveIndicator,
+    backgroundColor: COLORS.overlayMedium,
+    borderWidth: 1,
+    borderColor: COLORS.darkBorderLight,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 12,
     gap: 3,
   },
   liveDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: "#4CAF50",
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.liveIndicator,
   },
   liveDotOffline: {
-    backgroundColor: "#FF5252",
+    backgroundColor: COLORS.textMuted,
   },
   liveText: {
     fontSize: 9,
@@ -410,15 +505,18 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
     textTransform: "uppercase",
   },
+  liveTextOffline: {
+    color: COLORS.textSecondary,
+  },
   viewersBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: COLORS.overlayMedium,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    borderColor: COLORS.darkBorderLight,
     gap: 4,
   },
   viewersText: {
@@ -430,11 +528,21 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-end",
     paddingHorizontal: 16,
-    paddingBottom: 16,
-    zIndex: 10,
+    zIndex: 12,
+  },
+  chatPanel: {
+    backgroundColor: COLORS.overlayStrong,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: COLORS.darkBorder,
+    overflow: "hidden",
+    marginBottom: 10,
   },
   chatContainer: {
-    height: 180,
-    marginBottom: 12,
+    height: 220,
+  },
+  actionsRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
   },
 });

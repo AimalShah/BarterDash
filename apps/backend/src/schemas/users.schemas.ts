@@ -13,10 +13,22 @@ export const updateProfileSchema = z.object({
     avatar_url: z.string().url().nullable().optional(),
     bio: z.string().max(500).optional(),
     onboarding_step: z
-      .enum(['profile', 'interests', 'age_verification', 'notifications', 'completed'])
+      .enum([
+        'profile',
+        'interests',
+        'age_verification',
+        'notifications',
+        'completed',
+      ])
       .optional(),
     onboardingStep: z
-      .enum(['profile', 'interests', 'age_verification', 'notifications', 'completed'])
+      .enum([
+        'profile',
+        'interests',
+        'age_verification',
+        'notifications',
+        'completed',
+      ])
       .optional(),
     onboarded: z.boolean().optional(),
     interests: z.array(z.string()).optional(),

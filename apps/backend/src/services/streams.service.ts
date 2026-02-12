@@ -12,7 +12,12 @@ import {
   ConflictError,
   InternalError,
 } from '../utils/result';
-import type { Stream, NewStream, StreamProduct, NewStreamProduct } from '../db/schema';
+import type {
+  Stream,
+  NewStream,
+  StreamProduct,
+  NewStreamProduct,
+} from '../db/schema';
 import { randomUUID } from 'crypto';
 
 /**
@@ -85,7 +90,9 @@ export class StreamsService {
   /**
    * Create a new stream
    */
-  async createStream(input: CreateStreamInput): Promise<AppResult<StreamWithDetails>> {
+  async createStream(
+    input: CreateStreamInput,
+  ): Promise<AppResult<StreamWithDetails>> {
     try {
       // Generate Agora channel name and stream key
       const streamChannelName = this.generateStreamChannelName();
@@ -149,13 +156,21 @@ export class StreamsService {
   /**
    * Get all streams with filtering
    */
-  async getStreams(options: {
-    status?: string;
-    categoryId?: string;
-    search?: string;
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<AppResult<{ items: StreamWithDetails[]; totalCount: number; totalPages: number }>> {
+  async getStreams(
+    options: {
+      status?: string;
+      categoryId?: string;
+      search?: string;
+      limit?: number;
+      offset?: number;
+    } = {},
+  ): Promise<
+    AppResult<{
+      items: StreamWithDetails[];
+      totalCount: number;
+      totalPages: number;
+    }>
+  > {
     const result = await this.repository.findAll(options);
     if (result.isErr()) {
       return failure(result.error);
@@ -171,7 +186,9 @@ export class StreamsService {
   /**
    * Get streams by seller
    */
-  async getStreamsBySeller(sellerId: string): Promise<AppResult<StreamWithDetails[]>> {
+  async getStreamsBySeller(
+    sellerId: string,
+  ): Promise<AppResult<StreamWithDetails[]>> {
     const result = await this.repository.findBySeller(sellerId);
     if (result.isErr()) {
       return failure(result.error);
@@ -201,7 +218,9 @@ export class StreamsService {
       }
 
       if (stream.sellerId !== sellerId) {
-        return failure(new ForbiddenError('You can only update your own streams'));
+        return failure(
+          new ForbiddenError('You can only update your own streams'),
+        );
       }
 
       // Can only edit scheduled streams
@@ -211,10 +230,14 @@ export class StreamsService {
 
       const updateData: Partial<NewStream> = {};
       if (input.title !== undefined) updateData.title = input.title;
-      if (input.description !== undefined) updateData.description = input.description;
-      if (input.categoryId !== undefined) updateData.categoryId = input.categoryId;
-      if (input.scheduledStart !== undefined) updateData.scheduledStart = input.scheduledStart;
-      if (input.thumbnailUrl !== undefined) updateData.thumbnailUrl = input.thumbnailUrl;
+      if (input.description !== undefined)
+        updateData.description = input.description;
+      if (input.categoryId !== undefined)
+        updateData.categoryId = input.categoryId;
+      if (input.scheduledStart !== undefined)
+        updateData.scheduledStart = input.scheduledStart;
+      if (input.thumbnailUrl !== undefined)
+        updateData.thumbnailUrl = input.thumbnailUrl;
 
       const result = await this.repository.update(id, updateData);
       if (result.isErr()) {
@@ -256,7 +279,9 @@ export class StreamsService {
       }
 
       if (stream.sellerId !== sellerId) {
-        return failure(new ForbiddenError('You can only start your own streams'));
+        return failure(
+          new ForbiddenError('You can only start your own streams'),
+        );
       }
 
       // Start the stream in the database
@@ -330,7 +355,10 @@ export class StreamsService {
   /**
    * End a stream
    */
-  async endStream(id: string, sellerId: string): Promise<AppResult<StreamWithDetails>> {
+  async endStream(
+    id: string,
+    sellerId: string,
+  ): Promise<AppResult<StreamWithDetails>> {
     try {
       // Verify stream exists and belongs to seller
       const streamResult = await this.repository.findById(id);
@@ -371,9 +399,64 @@ export class StreamsService {
   }
 
   /**
+   * Cancel a scheduled stream
+   */
+  async cancelStream(
+    id: string,
+    sellerId: string,
+  ): Promise<AppResult<StreamWithDetails>> {
+    try {
+      // Verify stream exists and belongs to seller
+      const streamResult = await this.repository.findById(id);
+      if (streamResult.isErr()) {
+        return failure(streamResult.error);
+      }
+
+      const stream = streamResult.value;
+      if (!stream) {
+        return failure(new NotFoundError('Stream', id));
+      }
+
+      if (stream.sellerId !== sellerId) {
+        return failure(
+          new ForbiddenError('You can only cancel your own streams'),
+        );
+      }
+
+      // Can only cancel scheduled streams
+      if (stream.status !== 'scheduled') {
+        return failure(
+          new ValidationError('Can only cancel scheduled streams'),
+        );
+      }
+
+      // Update stream status to cancelled
+      const cancelResult = await this.repository.update(id, {
+        status: 'cancelled',
+      });
+      if (cancelResult.isErr()) {
+        return failure(cancelResult.error);
+      }
+
+      // Get updated stream with details
+      const updatedResult = await this.repository.findById(id);
+      if (updatedResult.isErr()) {
+        return failure(updatedResult.error);
+      }
+
+      return success(updatedResult.value as StreamWithDetails);
+    } catch (error) {
+      console.error('Error cancelling stream:', error);
+      return failure(new InternalError('Failed to cancel stream'));
+    }
+  }
+
+  /**
    * Join a stream (increment viewer count)
    */
-  async joinStream(id: string): Promise<AppResult<{ stream: StreamWithDetails; viewerCount: number }>> {
+  async joinStream(
+    id: string,
+  ): Promise<AppResult<{ stream: StreamWithDetails; viewerCount: number }>> {
     try {
       // Verify stream exists and is live
       const streamResult = await this.repository.findById(id);
@@ -446,7 +529,10 @@ export class StreamsService {
   /**
    * Subscribe to stream notifications
    */
-  async subscribeToStream(id: string, userId: string): Promise<AppResult<void>> {
+  async subscribeToStream(
+    id: string,
+    userId: string,
+  ): Promise<AppResult<void>> {
     try {
       // Verify stream exists
       const streamResult = await this.repository.findById(id);
@@ -461,7 +547,9 @@ export class StreamsService {
 
       // Can only subscribe to scheduled streams
       if (stream.status !== 'scheduled') {
-        return failure(new ValidationError('Can only subscribe to scheduled streams'));
+        return failure(
+          new ValidationError('Can only subscribe to scheduled streams'),
+        );
       }
 
       // Check if already subscribed
@@ -527,19 +615,30 @@ export class StreamsService {
           streamSellerId: stream.sellerId,
           requestSellerId: sellerId,
         });
-        return failure(new ForbiddenError('You can only add products to your own streams'));
+        return failure(
+          new ForbiddenError('You can only add products to your own streams'),
+        );
       }
 
       // Can add products to scheduled or live streams
       if (!['scheduled', 'live'].includes(stream.status)) {
         console.error('[StreamsService] Invalid stream status:', stream.status);
-        return failure(new ValidationError(`Cannot add products to ${stream.status} streams. Only scheduled or live streams are allowed.`));
+        return failure(
+          new ValidationError(
+            `Cannot add products to ${stream.status} streams. Only scheduled or live streams are allowed.`,
+          ),
+        );
       }
 
       // Verify product exists and belongs to seller
-      const productResult = await this.repository.getProductById(input.productId);
+      const productResult = await this.repository.getProductById(
+        input.productId,
+      );
       if (productResult.isErr()) {
-        console.error('[StreamsService] Product lookup failed:', input.productId);
+        console.error(
+          '[StreamsService] Product lookup failed:',
+          input.productId,
+        );
         return failure(productResult.error);
       }
 
@@ -554,7 +653,9 @@ export class StreamsService {
           productSellerId: product.sellerId,
           requestSellerId: sellerId,
         });
-        return failure(new ForbiddenError('You can only add your own products'));
+        return failure(
+          new ForbiddenError('You can only add your own products'),
+        );
       }
 
       console.log('[StreamsService] Adding product to stream:', {
@@ -573,11 +674,17 @@ export class StreamsService {
       });
 
       if (addResult.isErr()) {
-        console.error('[StreamsService] Failed to add product to stream:', addResult.error);
+        console.error(
+          '[StreamsService] Failed to add product to stream:',
+          addResult.error,
+        );
         return failure(addResult.error);
       }
 
-      console.log('[StreamsService] Product added successfully:', addResult.value);
+      console.log(
+        '[StreamsService] Product added successfully:',
+        addResult.value,
+      );
       return success(addResult.value);
     } catch (error) {
       console.error('[StreamsService] Error adding product to stream:', error);
@@ -588,7 +695,9 @@ export class StreamsService {
   /**
    * Get products in stream
    */
-  async getStreamProducts(streamId: string): Promise<AppResult<StreamProduct[]>> {
+  async getStreamProducts(
+    streamId: string,
+  ): Promise<AppResult<StreamProduct[]>> {
     const result = await this.repository.getProductsByStream(streamId);
     if (result.isErr()) {
       return failure(result.error);
@@ -619,14 +728,19 @@ export class StreamsService {
       }
 
       if (stream.sellerId !== sellerId) {
-        return failure(new ForbiddenError('You can only update products in your own streams'));
+        return failure(
+          new ForbiddenError(
+            'You can only update products in your own streams',
+          ),
+        );
       }
 
       // Verify stream product exists
-      const streamProductResult = await this.repository.getStreamProductByStreamAndId(
-        streamId,
-        productId,
-      );
+      const streamProductResult =
+        await this.repository.getStreamProductByStreamAndId(
+          streamId,
+          productId,
+        );
       if (streamProductResult.isErr()) {
         return failure(streamProductResult.error);
       }
@@ -638,7 +752,8 @@ export class StreamsService {
 
       const updateData: Partial<NewStreamProduct> = {};
       if (data.status !== undefined) updateData.status = data.status as any;
-      if (data.displayOrder !== undefined) updateData.displayOrder = data.displayOrder;
+      if (data.displayOrder !== undefined)
+        updateData.displayOrder = data.displayOrder;
 
       const result = await this.repository.updateProduct(productId, updateData);
       if (result.isErr()) {
@@ -673,14 +788,19 @@ export class StreamsService {
       }
 
       if (stream.sellerId !== sellerId) {
-        return failure(new ForbiddenError('You can only update products in your own streams'));
+        return failure(
+          new ForbiddenError(
+            'You can only update products in your own streams',
+          ),
+        );
       }
 
       // Verify stream product exists
-      const streamProductResult = await this.repository.getStreamProductByStreamAndId(
-        streamId,
-        productId,
-      );
+      const streamProductResult =
+        await this.repository.getStreamProductByStreamAndId(
+          streamId,
+          productId,
+        );
       if (streamProductResult.isErr()) {
         return failure(streamProductResult.error);
       }
@@ -723,14 +843,19 @@ export class StreamsService {
       }
 
       if (stream.sellerId !== sellerId) {
-        return failure(new ForbiddenError('You can only update products in your own streams'));
+        return failure(
+          new ForbiddenError(
+            'You can only update products in your own streams',
+          ),
+        );
       }
 
       // Verify stream product exists
-      const streamProductResult = await this.repository.getStreamProductByStreamAndId(
-        streamId,
-        productId,
-      );
+      const streamProductResult =
+        await this.repository.getStreamProductByStreamAndId(
+          streamId,
+          productId,
+        );
       if (streamProductResult.isErr()) {
         return failure(streamProductResult.error);
       }
@@ -773,14 +898,19 @@ export class StreamsService {
       }
 
       if (stream.sellerId !== sellerId) {
-        return failure(new ForbiddenError('You can only remove products from your own streams'));
+        return failure(
+          new ForbiddenError(
+            'You can only remove products from your own streams',
+          ),
+        );
       }
 
       // Verify stream product exists
-      const streamProductResult = await this.repository.getStreamProductByStreamAndId(
-        streamId,
-        productId,
-      );
+      const streamProductResult =
+        await this.repository.getStreamProductByStreamAndId(
+          streamId,
+          productId,
+        );
       if (streamProductResult.isErr()) {
         return failure(streamProductResult.error);
       }
@@ -801,5 +931,4 @@ export class StreamsService {
       return failure(new InternalError('Failed to remove product from stream'));
     }
   }
-
 }

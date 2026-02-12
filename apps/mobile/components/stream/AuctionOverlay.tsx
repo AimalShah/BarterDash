@@ -6,6 +6,7 @@
  * - Countdown timer
  * - Top bidder username
  * - Number of bids
+ * - Sudden Death mode indicator
  */
 
 import React from 'react';
@@ -15,7 +16,7 @@ import {
   VStack,
   Text,
 } from '@gluestack-ui/themed';
-import { TrendingUp, Users } from 'lucide-react-native';
+import { TrendingUp, Users, AlertCircle } from 'lucide-react-native';
 import { AuctionTimerCompact } from './AuctionTimer';
 import { COLORS } from '../../constants/colors';
 
@@ -25,6 +26,7 @@ interface AuctionOverlayProps {
   bidCount: number;
   endsAt: Date;
   productTitle?: string;
+  mode?: 'normal' | 'sudden_death';
 }
 
 export default function AuctionOverlay({
@@ -33,6 +35,7 @@ export default function AuctionOverlay({
   bidCount,
   endsAt,
   productTitle,
+  mode = 'normal',
 }: AuctionOverlayProps) {
   return (
     <Box
@@ -80,6 +83,18 @@ export default function AuctionOverlay({
             </Text>
           )}
         </VStack>
+
+        {/* Sudden Death Indicator */}
+        {mode === 'sudden_death' && (
+          <Box bg="rgba(239, 68, 68, 0.2)" p="$2" rounded="$sm">
+            <HStack space="xs" alignItems="center" justifyContent="center">
+              <AlertCircle size={12} color={COLORS.errorRed} />
+              <Text color={COLORS.errorRed} fontWeight="$bold" size="2xs">
+                SUDDEN DEATH
+              </Text>
+            </HStack>
+          </Box>
+        )}
 
         {/* Divider */}
         <Box h={1} bg={COLORS.darkBorder} />

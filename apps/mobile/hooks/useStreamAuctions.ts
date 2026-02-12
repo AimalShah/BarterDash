@@ -15,6 +15,7 @@ export interface NormalizedAuction {
   currentBidderId?: string;
   product?: any;
   currentBidder?: any;
+  mode?: 'normal' | 'sudden_death';
 }
 
 export interface UseStreamAuctionsReturn {
@@ -72,6 +73,7 @@ function normalizeAuction(raw: any): NormalizedAuction | null {
     currentBidderId,
     product: raw.product,
     currentBidder: raw.currentBidder,
+    mode: raw.mode || 'normal',
   };
   
   console.log('[useStreamAuctions] Normalized result:', normalized);
@@ -164,7 +166,7 @@ export function useStreamAuctions(streamId: string): UseStreamAuctionsReturn {
           filter: `stream_id=eq.${streamId}`,
         },
         async (payload) => {
-          const raw = payload.new || payload.old;
+          const raw = payload.new as any || payload.old as any;
           if (!raw?.id) return;
           
           const status = raw.status;

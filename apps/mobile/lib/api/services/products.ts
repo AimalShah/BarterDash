@@ -94,4 +94,12 @@ export const productsService = {
         const response = await apiClient.get<ApiResponse<Product[]>>("/products/my-products");
         return response.data.data;
     },
+
+    /**
+     * Buy a product directly (creates order and initiates checkout)
+     */
+    buyNow: async (productId: string): Promise<{ order: any; clientSecret?: string }> => {
+        const response = await apiClient.post<ApiResponse<{ order: any; clientSecret?: string }>>(`/products/${productId}/buy`);
+        return response.data.data;
+    },
 };

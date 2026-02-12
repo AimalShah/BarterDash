@@ -86,7 +86,9 @@ export class AuthService {
         // ignore
       }
 
-      const baseUsername = (email?.split('@')[0] || `user_${userId.slice(0, 8)}`)
+      const baseUsername = (
+        email?.split('@')[0] || `user_${userId.slice(0, 8)}`
+      )
         .toLowerCase()
         .replace(/[^a-z0-9_]/g, '');
 
@@ -97,7 +99,8 @@ export class AuthService {
       ].filter((v) => v.length >= 3);
 
       for (const candidate of candidates) {
-        const usernameResult = await this.repository.getProfileByUsername(candidate);
+        const usernameResult =
+          await this.repository.getProfileByUsername(candidate);
         if (usernameResult.isOk() && usernameResult.value) {
           continue;
         }
@@ -124,7 +127,7 @@ export class AuthService {
         const {
           data: { user },
         } = await supabase.auth.admin.getUserById(userId);
-        
+
         if (user?.email_confirmed_at) {
           await this.repository.update(userId, { emailVerified: true });
           profile.emailVerified = true;

@@ -1,9 +1,28 @@
 import { Router, Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { validate, validateParams } from '../middleware/validate';
 import { asyncHandler } from '../middleware/error-handler';
-import { updateProfileSchema, idParamSchema, ageVerificationSchema } from '../schemas/users.schemas';
+import {
+  updateProfileSchema,
+  idParamSchema,
+  ageVerificationSchema,
+} from '../schemas/users.schemas';
 import { UsersService } from '../services/users.service';
+
+const exportDataLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000,
+  max: 1,
+  message: {
+    success: false,
+    error: {
+      code: 'RATE_LIMITED',
+      message: 'You can only request one data export per 24 hours',
+    },
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const router = Router();
 const usersService = new UsersService();
@@ -110,6 +129,32 @@ router.put(
       success: true,
       data: result.value,
       message: 'Age verified successfully',
+    });
+  }),
+);
+
+/**
+ * POST /users/me/export
+ * Request a data export
+ * Protected - requires JWT
+ * Rate limited: 1 per 24 hours
+ */
+router.post(
+  '/me/export',
+  authenticate,
+  exportDataLimiter,
+  asyncHandler(async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.id;
+    const result = await usersService.exportUserData(userId);
+
+    if (result.isErr()) {
+      throw result.error;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: result.value,
+      message: 'Your data export is ready for download',
     });
   }),
 );

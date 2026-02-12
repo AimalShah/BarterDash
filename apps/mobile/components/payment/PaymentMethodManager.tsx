@@ -1,5 +1,5 @@
 import React from "react";
-import { View, ScrollView } from "react-native";
+import { View, ScrollView, Text } from "react-native";
 import { CreditCard } from "lucide-react-native";
 import { COLORS } from "../../constants/colors";
 import EmptyState from "../ui/EmptyState";

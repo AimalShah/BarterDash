@@ -1,33 +1,23 @@
 import { BidsRepository } from '../repositories/bids.repository';
-import { AutoBidsService } from './auto-bids.service';
+import { AutoBidsRepository } from '../repositories/auto-bids.repository';
 import { AuthService } from './auth.service';
-import { AppResult, failure } from '../utils/result';
+import { AppResult, success, failure } from '../utils/result';
 import { Bid } from '../db/schema';
-import { CreateBidInput } from '../schemas/bids.schemas';
+import { CreateBidInput, CreateMaxBidInput } from '../schemas/bids.schemas';
+import { ValidationError, NotFoundError } from '../utils/result';
 
-/**
- * Bids Service
- * Business logic for bidding
- */
 export class BidsService {
   private repository: BidsRepository;
-  private autoBidsService: AutoBidsService;
+  private autoBidsRepository: AutoBidsRepository;
   private authService: AuthService;
 
   constructor() {
     this.repository = new BidsRepository();
-    this.autoBidsService = new AutoBidsService();
+    this.autoBidsRepository = new AutoBidsRepository();
     this.authService = new AuthService();
   }
 
-  /**
-   * Place a bid
-   */
-  async placeBid(
-    userId: string,
-    data: CreateBidInput,
-  ): Promise<AppResult<any>> {
-    // Ensure the bidder has a profile record; create one if missing.
+  async placeBid(userId: string, data: CreateBidInput): Promise<AppResult<any>> {
     const profileResult = await this.authService.getProfile(userId);
     if (profileResult.isErr()) {
       return failure(profileResult.error);
@@ -35,29 +25,68 @@ export class BidsService {
 
     const result = await this.repository.placeBid(userId, data);
 
-    if (result.isOk()) {
-      // Trigger auto-bid processing in the background (don't await to keep response fast)
-      this.autoBidsService
-        .processAutoBids(data.auction_id, userId, data.amount)
-        .catch((err: Error) =>
-          console.error('Auto-bid processing failed:', err),
-        );
+    if (result.isOk() && data.is_max_bid) {
+      await this.autoBidsRepository.createOrUpdate({
+        auction_id: data.auction_id,
+        bidder_id: userId,
+        max_amount: data.amount,
+      });
     }
 
     return result;
   }
 
-  /**
-   * Get auction bid history
-   */
+  async placeMaxBid(userId: string, data: CreateMaxBidInput): Promise<AppResult<any>> {
+    const profileResult = await this.authService.getProfile(userId);
+    if (profileResult.isErr()) {
+      return failure(profileResult.error);
+    }
+
+    const auctionResult = await this.repository.getAuctionForBid(data.auction_id);
+    if (auctionResult.isErr()) {
+      return failure(auctionResult.error);
+    }
+
+    const auction = auctionResult.value;
+    const currentBid = Number(auction.current_bid ?? auction.starting_bid ?? 0);
+
+    if (data.max_amount <= currentBid) {
+      return failure(new ValidationError('Max bid must be higher than current bid'));
+    }
+
+    const bidPayload: CreateBidInput = {
+      auction_id: data.auction_id,
+      amount: data.max_amount,
+      is_max_bid: true,
+    };
+
+    return await this.placeBid(userId, bidPayload);
+  }
+
   async getAuctionBids(auctionId: string): Promise<AppResult<Bid[]>> {
     return await this.repository.findByAuction(auctionId);
   }
 
-  /**
-   * Get user bid history
-   */
   async getMyBids(userId: string): Promise<AppResult<Bid[]>> {
     return await this.repository.findByUser(userId);
+  }
+
+  async getMyMaxBids(userId: string): Promise<AppResult<any[]>> {
+    return await this.autoBidsRepository.findByUser(userId);
+  }
+
+  async cancelMaxBid(userId: string, maxBidId: string): Promise<AppResult<void>> {
+    const maxBid = await this.autoBidsRepository.findById(maxBidId);
+
+    if (!maxBid) {
+      return failure(new NotFoundError('Max bid', maxBidId));
+    }
+
+    if (maxBid.userId !== userId) {
+      return failure(new ValidationError("Cannot cancel another user's max bid"));
+    }
+
+    await this.autoBidsRepository.delete(maxBidId);
+    return success(undefined);
   }
 }

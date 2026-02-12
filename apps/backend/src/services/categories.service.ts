@@ -24,7 +24,10 @@ export class CategoriesService {
     return success(result.value);
   }
 
-  async createCategory(name: string, parentId?: string | null): Promise<AppResult<Category>> {
+  async createCategory(
+    name: string,
+    parentId?: string | null,
+  ): Promise<AppResult<Category>> {
     return await this.repository.create(name, parentId);
   }
 }

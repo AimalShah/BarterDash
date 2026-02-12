@@ -54,6 +54,19 @@ router.get(
 );
 
 router.post(
+  '/:id/buy',
+  authenticate,
+  asyncHandler(async (req: AuthRequest, res: Response) => {
+    const result = await productsService.buyNow(
+      req.user!.id,
+      req.params.id as string,
+    );
+    if (result.isErr()) throw result.error;
+    res.status(201).json({ success: true, data: result.value });
+  }),
+);
+
+router.post(
   '/',
   authenticate,
   requireRoles('SELLER'),

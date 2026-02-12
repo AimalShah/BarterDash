@@ -1,4 +1,7 @@
-import { ChatMessagesRepository, ChatMessageWithUser } from '../repositories/chat-messages.repository';
+import {
+  ChatMessagesRepository,
+  ChatMessageWithUser,
+} from '../repositories/chat-messages.repository';
 import { StreamSessionsRepository } from '../repositories/stream-sessions.repository';
 import { supabase } from '../utils/supabase';
 import {
@@ -10,7 +13,10 @@ import {
   ForbiddenError,
   InternalError,
 } from '../utils/result';
-import { RealtimeChannel, RealtimeChannelSendResponse } from '@supabase/supabase-js';
+import {
+  RealtimeChannel,
+  RealtimeChannelSendResponse,
+} from '@supabase/supabase-js';
 
 /**
  * Chat Service
@@ -76,9 +82,17 @@ export class ChatService {
    * Requirement 4.1: Broadcast message to all stream participants immediately
    * Requirement 9.1: Persist messages to database immediately
    */
-  async sendMessage(input: SendMessageInput): Promise<AppResult<ChatMessageWithUser>> {
+  async sendMessage(
+    input: SendMessageInput,
+  ): Promise<AppResult<ChatMessageWithUser>> {
     try {
-      const { sessionId, userId, content, messageType = 'user_message', metadata } = input;
+      const {
+        sessionId,
+        userId,
+        content,
+        messageType = 'user_message',
+        metadata,
+      } = input;
 
       // Validate input
       if (!content.trim()) {
@@ -86,7 +100,9 @@ export class ChatService {
       }
 
       if (content.length > 1000) {
-        return failure(new ValidationError('Message content too long (max 1000 characters)'));
+        return failure(
+          new ValidationError('Message content too long (max 1000 characters)'),
+        );
       }
 
       // Verify user has access to the session
@@ -101,7 +117,7 @@ export class ChatService {
         userId,
         content,
         messageType,
-        metadata
+        metadata,
       );
 
       if (messageResult.isErr()) {
@@ -126,7 +142,9 @@ export class ChatService {
    * Requirement 9.2: Load and display the last 50 messages
    * Requirement 9.5: Return paginated results with proper sorting
    */
-  async getMessageHistory(input: MessageHistoryInput): Promise<AppResult<ChatMessageWithUser[]>> {
+  async getMessageHistory(
+    input: MessageHistoryInput,
+  ): Promise<AppResult<ChatMessageWithUser[]>> {
     try {
       const { sessionId, limit = 50, offset = 0, beforeId, afterId } = input;
 
@@ -141,12 +159,15 @@ export class ChatService {
       }
 
       // Get message history
-      const historyResult = await this.chatRepository.getMessageHistory(sessionId, {
-        limit,
-        offset,
-        beforeId,
-        afterId,
-      });
+      const historyResult = await this.chatRepository.getMessageHistory(
+        sessionId,
+        {
+          limit,
+          offset,
+          beforeId,
+          afterId,
+        },
+      );
 
       return historyResult;
     } catch (error) {
@@ -162,7 +183,10 @@ export class ChatService {
    * Requirement 5.2: Push updates to all subscribed clients within 100ms
    * Requirement 5.3: Attempt reconnection with exponential backoff
    */
-  async subscribeToChat(sessionId: string, userId: string): Promise<AppResult<Subscription>> {
+  async subscribeToChat(
+    sessionId: string,
+    userId: string,
+  ): Promise<AppResult<Subscription>> {
     try {
       // Verify user has access to the session
       const accessResult = await this.verifySessionAccess(sessionId, userId);
@@ -175,8 +199,12 @@ export class ChatService {
 
       // Check if already subscribed
       if (this.activeSubscriptions.has(subscriptionId)) {
-        const existingSubscription = this.activeSubscriptions.get(subscriptionId)!;
-        if (existingSubscription.isActive && existingSubscription.connectionState === 'connected') {
+        const existingSubscription =
+          this.activeSubscriptions.get(subscriptionId)!;
+        if (
+          existingSubscription.isActive &&
+          existingSubscription.connectionState === 'connected'
+        ) {
           return success(existingSubscription);
         }
       }
@@ -196,7 +224,8 @@ export class ChatService {
       this.activeSubscriptions.set(subscriptionId, subscription);
 
       // Set up Supabase realtime subscription with retry logic
-      const setupResult = await this.setupRealtimeSubscriptionWithRetry(subscription);
+      const setupResult =
+        await this.setupRealtimeSubscriptionWithRetry(subscription);
       if (setupResult.isErr()) {
         // Clean up failed subscription
         this.activeSubscriptions.delete(subscriptionId);
@@ -242,7 +271,10 @@ export class ChatService {
    * Requirement 4.4: Synchronize missed messages after network restoration
    * Requirement 5.4: Clean up subscriptions and notify other participants
    */
-  async syncMessages(sessionId: string, lastMessageId: string): Promise<AppResult<ChatMessageWithUser[]>> {
+  async syncMessages(
+    sessionId: string,
+    lastMessageId: string,
+  ): Promise<AppResult<ChatMessageWithUser[]>> {
     try {
       // Verify session exists
       const sessionResult = await this.streamRepository.findById(sessionId);
@@ -255,7 +287,10 @@ export class ChatService {
       }
 
       // Get messages since last known message
-      const syncResult = await this.chatRepository.syncMessages(sessionId, lastMessageId);
+      const syncResult = await this.chatRepository.syncMessages(
+        sessionId,
+        lastMessageId,
+      );
       if (syncResult.isErr()) {
         return failure(syncResult.error);
       }
@@ -283,7 +318,7 @@ export class ChatService {
   async markMessagesAsRead(
     sessionId: string,
     userId: string,
-    messageIds: string[]
+    messageIds: string[],
   ): Promise<AppResult<void>> {
     try {
       // Verify user has access to the session
@@ -292,7 +327,11 @@ export class ChatService {
         return failure(accessResult.error);
       }
 
-      return await this.chatRepository.markMessagesAsRead(sessionId, userId, messageIds);
+      return await this.chatRepository.markMessagesAsRead(
+        sessionId,
+        userId,
+        messageIds,
+      );
     } catch (error) {
       console.error('Error marking messages as read:', error);
       return failure(new InternalError('Failed to mark messages as read'));
@@ -305,10 +344,13 @@ export class ChatService {
    */
   async resolveMessageConflicts(
     sessionId: string,
-    conflictingMessages: { id: string; timestamp: Date }[]
+    conflictingMessages: { id: string; timestamp: Date }[],
   ): Promise<AppResult<ChatMessageWithUser[]>> {
     try {
-      return await this.chatRepository.resolveMessageConflicts(sessionId, conflictingMessages);
+      return await this.chatRepository.resolveMessageConflicts(
+        sessionId,
+        conflictingMessages,
+      );
     } catch (error) {
       console.error('Error resolving message conflicts:', error);
       return failure(new InternalError('Failed to resolve message conflicts'));
@@ -319,7 +361,10 @@ export class ChatService {
    * Get recent messages when user joins a stream
    * Requirement 4.3: Provide recent message history when joining
    */
-  async getRecentMessages(sessionId: string, limit: number = 50): Promise<AppResult<ChatMessageWithUser[]>> {
+  async getRecentMessages(
+    sessionId: string,
+    limit: number = 50,
+  ): Promise<AppResult<ChatMessageWithUser[]>> {
     try {
       return await this.chatRepository.getRecentMessages(sessionId, limit);
     } catch (error) {
@@ -335,7 +380,7 @@ export class ChatService {
     sessionId: string,
     content: string,
     messageType: 'system_message' | 'auction_update' = 'system_message',
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): Promise<AppResult<ChatMessageWithUser>> {
     try {
       // Use a system user ID (you might want to create a dedicated system user)
@@ -357,28 +402,38 @@ export class ChatService {
   /**
    * Get chat statistics for a session
    */
-  async getChatStats(sessionId: string): Promise<AppResult<{
-    messageCount: number;
-    activeSubscriptions: number;
-    recentActivity: boolean;
-  }>> {
+  async getChatStats(sessionId: string): Promise<
+    AppResult<{
+      messageCount: number;
+      activeSubscriptions: number;
+      recentActivity: boolean;
+    }>
+  > {
     try {
-      const messageCountResult = await this.chatRepository.getMessageCount(sessionId);
+      const messageCountResult =
+        await this.chatRepository.getMessageCount(sessionId);
       if (messageCountResult.isErr()) {
         return failure(messageCountResult.error);
       }
 
-      const activeSubscriptions = Array.from(this.activeSubscriptions.values())
-        .filter(sub => sub.sessionId === sessionId && sub.isActive).length;
+      const activeSubscriptions = Array.from(
+        this.activeSubscriptions.values(),
+      ).filter((sub) => sub.sessionId === sessionId && sub.isActive).length;
 
       // Check for recent activity (messages in last 5 minutes)
-      const recentMessages = await this.chatRepository.getMessageHistory(sessionId, {
-        limit: 1,
-      });
+      const recentMessages = await this.chatRepository.getMessageHistory(
+        sessionId,
+        {
+          limit: 1,
+        },
+      );
 
-      const recentActivity = recentMessages.isOk() && 
+      const recentActivity =
+        recentMessages.isOk() &&
         recentMessages.value.length > 0 &&
-        new Date().getTime() - new Date(recentMessages.value[0].createdAt).getTime() < 5 * 60 * 1000;
+        new Date().getTime() -
+          new Date(recentMessages.value[0].createdAt).getTime() <
+          5 * 60 * 1000;
 
       return success({
         messageCount: messageCountResult.value,
@@ -394,7 +449,10 @@ export class ChatService {
   /**
    * Verify user has access to a stream session
    */
-  private async verifySessionAccess(sessionId: string, userId: string): Promise<AppResult<void>> {
+  private async verifySessionAccess(
+    sessionId: string,
+    userId: string,
+  ): Promise<AppResult<void>> {
     try {
       // Get session details
       const sessionResult = await this.streamRepository.findById(sessionId);
@@ -413,9 +471,12 @@ export class ChatService {
       }
 
       // Check if user is an active viewer
-      const viewersResult = await this.streamRepository.getActiveViewers(sessionId);
+      const viewersResult =
+        await this.streamRepository.getActiveViewers(sessionId);
       if (viewersResult.isOk()) {
-        const isViewer = viewersResult.value.some(viewer => viewer.userId === userId && viewer.isActive);
+        const isViewer = viewersResult.value.some(
+          (viewer) => viewer.userId === userId && viewer.isActive,
+        );
         if (isViewer) {
           return success(undefined);
         }
@@ -427,7 +488,9 @@ export class ChatService {
         return success(undefined);
       }
 
-      return failure(new ForbiddenError('You do not have access to this chat session'));
+      return failure(
+        new ForbiddenError('You do not have access to this chat session'),
+      );
     } catch (error) {
       console.error('Error verifying session access:', error);
       return failure(new InternalError('Failed to verify session access'));
@@ -439,10 +502,13 @@ export class ChatService {
    * Requirement 4.1: Broadcast message to all stream participants immediately
    * Requirement 5.2: Push updates to all subscribed clients within 100ms
    */
-  private async broadcastMessage(sessionId: string, message: ChatMessageWithUser): Promise<void> {
+  private async broadcastMessage(
+    sessionId: string,
+    message: ChatMessageWithUser,
+  ): Promise<void> {
     try {
       const channelName = `chat:${sessionId}`;
-      
+
       // Get or create channel for this session
       let channel = this.realtimeChannels.get(channelName);
       if (!channel) {
@@ -462,9 +528,14 @@ export class ChatService {
       });
 
       // Set timeout to ensure we meet the 100ms requirement
-      const timeoutPromise = new Promise<RealtimeChannelSendResponse>((_, reject) => {
-        setTimeout(() => reject(new Error('Broadcast timeout after 100ms')), 100);
-      });
+      const timeoutPromise = new Promise<RealtimeChannelSendResponse>(
+        (_, reject) => {
+          setTimeout(
+            () => reject(new Error('Broadcast timeout after 100ms')),
+            100,
+          );
+        },
+      );
 
       await Promise.race([broadcastPromise, timeoutPromise]);
 
@@ -480,7 +551,7 @@ export class ChatService {
       console.error('Error broadcasting message:', error);
       // Don't fail the entire operation if broadcast fails
       // The message is already persisted to the database
-      
+
       // If broadcast fails, attempt to reconnect subscriptions
       await this.handleBroadcastFailure(sessionId, error);
     }
@@ -491,7 +562,9 @@ export class ChatService {
    * Requirement 5.1: Authenticate users and subscribe to relevant channels
    * Requirement 5.3: Attempt reconnection with exponential backoff
    */
-  private async setupRealtimeSubscriptionWithRetry(subscription: Subscription): Promise<AppResult<void>> {
+  private async setupRealtimeSubscriptionWithRetry(
+    subscription: Subscription,
+  ): Promise<AppResult<void>> {
     try {
       const result = await this.attemptRealtimeConnection(subscription);
       if (result.isOk()) {
@@ -505,14 +578,18 @@ export class ChatService {
     } catch (error) {
       console.error('Error setting up realtime subscription:', error);
       subscription.connectionState = 'error';
-      return failure(new InternalError('Failed to setup realtime subscription'));
+      return failure(
+        new InternalError('Failed to setup realtime subscription'),
+      );
     }
   }
 
   /**
    * Attempt to establish realtime connection
    */
-  private async attemptRealtimeConnection(subscription: Subscription): Promise<AppResult<void>> {
+  private async attemptRealtimeConnection(
+    subscription: Subscription,
+  ): Promise<AppResult<void>> {
     try {
       // Create or get existing channel
       let channel = this.realtimeChannels.get(subscription.channel);
@@ -543,22 +620,28 @@ export class ChatService {
 
       // Subscribe to channel
       const subscribeResponse = await new Promise<string>((resolve) => {
-        channel!.subscribe((status) => {
+        channel.subscribe((status) => {
           resolve(status);
         });
-        
+
         // Timeout after 5 seconds
         setTimeout(() => resolve('TIMED_OUT'), 5000);
       });
 
       if (subscribeResponse !== 'SUBSCRIBED') {
-        return failure(new InternalError(`Subscription failed with status: ${subscribeResponse}`));
+        return failure(
+          new InternalError(
+            `Subscription failed with status: ${subscribeResponse}`,
+          ),
+        );
       }
 
       // Store channel reference in subscription
       subscription.realtimeChannel = channel;
-      
-      console.log(`Successfully subscribed to channel: ${subscription.channel}`);
+
+      console.log(
+        `Successfully subscribed to channel: ${subscription.channel}`,
+      );
       return success(undefined);
     } catch (error) {
       console.error('Error attempting realtime connection:', error);
@@ -570,10 +653,17 @@ export class ChatService {
    * Retry realtime connection with exponential backoff
    * Requirement 5.3: Attempt reconnection with exponential backoff
    */
-  private async retryRealtimeConnection(subscription: Subscription, lastError: Error): Promise<AppResult<void>> {
+  private async retryRealtimeConnection(
+    subscription: Subscription,
+    lastError: Error,
+  ): Promise<AppResult<void>> {
     if (subscription.retryCount >= this.connectionConfig.maxRetries) {
       subscription.connectionState = 'error';
-      return failure(new InternalError(`Max retries (${this.connectionConfig.maxRetries}) exceeded: ${lastError.message}`));
+      return failure(
+        new InternalError(
+          `Max retries (${this.connectionConfig.maxRetries}) exceeded: ${lastError.message}`,
+        ),
+      );
     }
 
     subscription.retryCount++;
@@ -581,20 +671,28 @@ export class ChatService {
 
     // Calculate delay with exponential backoff
     const delay = Math.min(
-      this.connectionConfig.baseDelay * Math.pow(this.connectionConfig.backoffMultiplier, subscription.retryCount - 1),
-      this.connectionConfig.maxDelay
+      this.connectionConfig.baseDelay *
+        Math.pow(
+          this.connectionConfig.backoffMultiplier,
+          subscription.retryCount - 1,
+        ),
+      this.connectionConfig.maxDelay,
     );
 
-    console.log(`Retrying connection for ${subscription.channel} in ${delay}ms (attempt ${subscription.retryCount}/${this.connectionConfig.maxRetries})`);
+    console.log(
+      `Retrying connection for ${subscription.channel} in ${delay}ms (attempt ${subscription.retryCount}/${this.connectionConfig.maxRetries})`,
+    );
 
     // Wait before retry
-    await new Promise(resolve => setTimeout(resolve, delay));
+    await new Promise((resolve) => setTimeout(resolve, delay));
 
     // Attempt connection again
     const result = await this.attemptRealtimeConnection(subscription);
     if (result.isOk()) {
       subscription.connectionState = 'connected';
-      console.log(`Successfully reconnected to ${subscription.channel} after ${subscription.retryCount} attempts`);
+      console.log(
+        `Successfully reconnected to ${subscription.channel} after ${subscription.retryCount} attempts`,
+      );
       return success(undefined);
     }
 
@@ -608,7 +706,7 @@ export class ChatService {
   private handleIncomingMessage(sessionId: string, payload: any): void {
     try {
       const { message } = payload.payload;
-      
+
       // Update last message ID for subscriptions
       for (const subscription of this.activeSubscriptions.values()) {
         if (subscription.sessionId === sessionId && subscription.isActive) {
@@ -616,7 +714,10 @@ export class ChatService {
         }
       }
 
-      console.log(`Received realtime message for session ${sessionId}:`, message.id);
+      console.log(
+        `Received realtime message for session ${sessionId}:`,
+        message.id,
+      );
     } catch (error) {
       console.error('Error handling incoming message:', error);
     }
@@ -625,22 +726,33 @@ export class ChatService {
   /**
    * Handle broadcast failure and attempt recovery
    */
-  private async handleBroadcastFailure(sessionId: string, error: any): Promise<void> {
+  private async handleBroadcastFailure(
+    sessionId: string,
+    error: any,
+  ): Promise<void> {
     try {
-      console.log(`Broadcast failed for session ${sessionId}, attempting recovery:`, error.message);
+      console.log(
+        `Broadcast failed for session ${sessionId}, attempting recovery:`,
+        error.message,
+      );
 
       // Find all subscriptions for this session and attempt reconnection
-      const sessionSubscriptions = Array.from(this.activeSubscriptions.values())
-        .filter(sub => sub.sessionId === sessionId && sub.isActive);
+      const sessionSubscriptions = Array.from(
+        this.activeSubscriptions.values(),
+      ).filter((sub) => sub.sessionId === sessionId && sub.isActive);
 
       for (const subscription of sessionSubscriptions) {
         if (subscription.connectionState === 'connected') {
           subscription.connectionState = 'error';
-          
+
           // Attempt to reconnect
-          const reconnectResult = await this.setupRealtimeSubscriptionWithRetry(subscription);
+          const reconnectResult =
+            await this.setupRealtimeSubscriptionWithRetry(subscription);
           if (reconnectResult.isErr()) {
-            console.error(`Failed to reconnect subscription ${subscription.id}:`, reconnectResult.error.message);
+            console.error(
+              `Failed to reconnect subscription ${subscription.id}:`,
+              reconnectResult.error.message,
+            );
           }
         }
       }
@@ -653,10 +765,14 @@ export class ChatService {
    * Clean up Supabase realtime subscription
    * Requirement 5.4: Clean up subscriptions and notify other participants
    */
-  private async cleanupRealtimeSubscription(subscription: Subscription): Promise<void> {
+  private async cleanupRealtimeSubscription(
+    subscription: Subscription,
+  ): Promise<void> {
     try {
-      console.log(`Cleaning up realtime subscription for channel: ${subscription.channel}`);
-      
+      console.log(
+        `Cleaning up realtime subscription for channel: ${subscription.channel}`,
+      );
+
       // Unsubscribe from the channel if it exists
       if (subscription.realtimeChannel) {
         await subscription.realtimeChannel.unsubscribe();
@@ -664,8 +780,14 @@ export class ChatService {
       }
 
       // Remove channel from cache if no other subscriptions use it
-      const hasOtherSubscriptions = Array.from(this.activeSubscriptions.values())
-        .some(sub => sub.channel === subscription.channel && sub.id !== subscription.id && sub.isActive);
+      const hasOtherSubscriptions = Array.from(
+        this.activeSubscriptions.values(),
+      ).some(
+        (sub) =>
+          sub.channel === subscription.channel &&
+          sub.id !== subscription.id &&
+          sub.isActive,
+      );
 
       if (!hasOtherSubscriptions) {
         this.realtimeChannels.delete(subscription.channel);
@@ -684,7 +806,7 @@ export class ChatService {
     sessionId: string,
     userId: string,
     error: Error,
-    retryCount: number = 0
+    retryCount: number = 0,
   ): Promise<AppResult<void>> {
     try {
       const subscriptionId = `${userId}_${sessionId}`;
@@ -697,28 +819,41 @@ export class ChatService {
       subscription.connectionState = 'error';
 
       if (retryCount >= this.connectionConfig.maxRetries) {
-        return failure(new InternalError(`Connection failed after ${this.connectionConfig.maxRetries} attempts: ${error.message}`));
+        return failure(
+          new InternalError(
+            `Connection failed after ${this.connectionConfig.maxRetries} attempts: ${error.message}`,
+          ),
+        );
       }
 
       // Calculate delay with exponential backoff
       const delay = Math.min(
-        this.connectionConfig.baseDelay * Math.pow(this.connectionConfig.backoffMultiplier, retryCount),
-        this.connectionConfig.maxDelay
+        this.connectionConfig.baseDelay *
+          Math.pow(this.connectionConfig.backoffMultiplier, retryCount),
+        this.connectionConfig.maxDelay,
       );
-      
-      console.log(`Connection error for session ${sessionId}, user ${userId}. Retrying in ${delay}ms... (attempt ${retryCount + 1}/${this.connectionConfig.maxRetries})`);
-      
+
+      console.log(
+        `Connection error for session ${sessionId}, user ${userId}. Retrying in ${delay}ms... (attempt ${retryCount + 1}/${this.connectionConfig.maxRetries})`,
+      );
+
       // Wait before retry
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
 
       // Clean up existing subscription
       await this.cleanupRealtimeSubscription(subscription);
 
       // Attempt to resubscribe
-      const subscribeResult = await this.setupRealtimeSubscriptionWithRetry(subscription);
+      const subscribeResult =
+        await this.setupRealtimeSubscriptionWithRetry(subscription);
       if (subscribeResult.isErr()) {
         // Recursive retry
-        return this.handleConnectionError(sessionId, userId, error, retryCount + 1);
+        return this.handleConnectionError(
+          sessionId,
+          userId,
+          error,
+          retryCount + 1,
+        );
       }
 
       return success(undefined);
@@ -737,7 +872,10 @@ export class ChatService {
       const now = new Date();
       const inactivityThreshold = 5 * 60 * 1000; // 5 minutes
 
-      for (const [subscriptionId, subscription] of this.activeSubscriptions.entries()) {
+      for (const [
+        subscriptionId,
+        subscription,
+      ] of this.activeSubscriptions.entries()) {
         // Clean up inactive subscriptions
         if (!subscription.isActive) {
           this.activeSubscriptions.delete(subscriptionId);
@@ -746,10 +884,16 @@ export class ChatService {
         }
 
         // Clean up subscriptions that have been in error state for too long
-        if (subscription.connectionState === 'error' && subscription.lastRetryAt) {
-          const timeSinceLastRetry = now.getTime() - subscription.lastRetryAt.getTime();
+        if (
+          subscription.connectionState === 'error' &&
+          subscription.lastRetryAt
+        ) {
+          const timeSinceLastRetry =
+            now.getTime() - subscription.lastRetryAt.getTime();
           if (timeSinceLastRetry > inactivityThreshold) {
-            console.log(`Cleaning up subscription ${subscriptionId} due to prolonged error state`);
+            console.log(
+              `Cleaning up subscription ${subscriptionId} due to prolonged error state`,
+            );
             subscription.isActive = false;
             this.activeSubscriptions.delete(subscriptionId);
             await this.cleanupRealtimeSubscription(subscription);
@@ -760,8 +904,8 @@ export class ChatService {
       // Clean up unused channels
       const activeChannels = new Set(
         Array.from(this.activeSubscriptions.values())
-          .filter(sub => sub.isActive)
-          .map(sub => sub.channel)
+          .filter((sub) => sub.isActive)
+          .map((sub) => sub.channel),
       );
 
       for (const [channelName, channel] of this.realtimeChannels.entries()) {
@@ -779,12 +923,28 @@ export class ChatService {
   /**
    * Get connection status for all subscriptions
    */
-  getConnectionStatus(): { [sessionId: string]: { connected: number; total: number; channels: string[] } } {
-    const status: { [sessionId: string]: { connected: number; total: number; channels: string[] } } = {};
+  getConnectionStatus(): {
+    [sessionId: string]: {
+      connected: number;
+      total: number;
+      channels: string[];
+    };
+  } {
+    const status: {
+      [sessionId: string]: {
+        connected: number;
+        total: number;
+        channels: string[];
+      };
+    } = {};
 
     for (const subscription of this.activeSubscriptions.values()) {
       if (!status[subscription.sessionId]) {
-        status[subscription.sessionId] = { connected: 0, total: 0, channels: [] };
+        status[subscription.sessionId] = {
+          connected: 0,
+          total: 0,
+          channels: [],
+        };
       }
 
       status[subscription.sessionId].total++;
@@ -803,30 +963,39 @@ export class ChatService {
    */
   async forceReconnectSession(sessionId: string): Promise<AppResult<void>> {
     try {
-      const sessionSubscriptions = Array.from(this.activeSubscriptions.values())
-        .filter(sub => sub.sessionId === sessionId && sub.isActive);
+      const sessionSubscriptions = Array.from(
+        this.activeSubscriptions.values(),
+      ).filter((sub) => sub.sessionId === sessionId && sub.isActive);
 
-      const reconnectPromises = sessionSubscriptions.map(async (subscription) => {
-        console.log(`Force reconnecting subscription: ${subscription.id}`);
-        
-        // Clean up existing connection
-        await this.cleanupRealtimeSubscription(subscription);
-        
-        // Reset retry count
-        subscription.retryCount = 0;
-        subscription.connectionState = 'connecting';
-        
-        // Attempt reconnection
-        return await this.setupRealtimeSubscriptionWithRetry(subscription);
-      });
+      const reconnectPromises = sessionSubscriptions.map(
+        async (subscription) => {
+          console.log(`Force reconnecting subscription: ${subscription.id}`);
+
+          // Clean up existing connection
+          await this.cleanupRealtimeSubscription(subscription);
+
+          // Reset retry count
+          subscription.retryCount = 0;
+          subscription.connectionState = 'connecting';
+
+          // Attempt reconnection
+          return await this.setupRealtimeSubscriptionWithRetry(subscription);
+        },
+      );
 
       const results = await Promise.allSettled(reconnectPromises);
-      
+
       // Check if any reconnections failed
-      const failures = results.filter(result => result.status === 'rejected');
+      const failures = results.filter((result) => result.status === 'rejected');
       if (failures.length > 0) {
-        console.error(`${failures.length} reconnections failed for session ${sessionId}`);
-        return failure(new InternalError(`Failed to reconnect ${failures.length} subscriptions`));
+        console.error(
+          `${failures.length} reconnections failed for session ${sessionId}`,
+        );
+        return failure(
+          new InternalError(
+            `Failed to reconnect ${failures.length} subscriptions`,
+          ),
+        );
       }
 
       return success(undefined);

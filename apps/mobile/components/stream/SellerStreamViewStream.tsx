@@ -113,7 +113,8 @@ export default function SellerStreamViewStream({
       endsAt: liveAuction.endsAt ? new Date(liveAuction.endsAt) : new Date(),
       status: liveAuction.status,
       topBidder,
-    };
+      mode: liveAuction.mode || 'normal',
+    } as any;
   }, [liveAuction, streamProducts]);
 
   // Initialize camera
@@ -259,6 +260,8 @@ export default function SellerStreamViewStream({
         reserve_price: config.reservePrice,
         minimum_bid_increment: config.minimumBidIncrement || 1,
         duration_minutes: durationMinutes,
+        mode: config.auctionType === 'sudden_death' ? 'sudden_death' : 'normal',
+        max_timer_extensions: 10,
       })) as any;
 
       await refreshAuction(auction.id);
@@ -323,7 +326,18 @@ export default function SellerStreamViewStream({
     }
   };
 
-  const showDevTools = __DEV__;
+  const handleExtendAuction = async (auctionId: string, seconds: number) => {
+    try {
+      if (!liveAuction || liveAuction.id !== auctionId) return;
+
+      const result = await auctionsService.extend(auctionId, seconds);
+      await refetchAuction();
+    } catch (error: any) {
+      console.error("Error extending auction:", error);
+    }
+  };
+
+  /* const showDevTools = __DEV__;
   const devBuyerId = process.env.EXPO_PUBLIC_DEV_BUYER_ID || "878cdb21-ac5c-463f-8fbf-1bf152bd7a47";
   const devSellerId = process.env.EXPO_PUBLIC_DEV_SELLER_ID || "47d220db-95c8-4365-9ec9-530431bab107";
 
@@ -337,7 +351,7 @@ export default function SellerStreamViewStream({
     } catch (error: any) {
       console.error("Error creating mock auction:", error);
     }
-  };
+  };*/
 
   if (initializing) {
     return (
@@ -369,6 +383,7 @@ export default function SellerStreamViewStream({
           endsAt={activeAuction.endsAt}
           productTitle={activeAuction.product.title}
           topBidder={activeAuction.topBidder}
+          mode={activeAuction.mode}
         />
       )}
 
@@ -417,11 +432,11 @@ export default function SellerStreamViewStream({
           onPinProduct={handlePinProduct}
           onMarkAsSold={handleMarkAsSold}
           onMarkAsPassed={handleMarkAsPassed}
-          onExtendAuction={() => {}}
+          onExtendAuction={handleExtendAuction}
           onEndAuctionEarly={handleEndAuctionEarly}
           onAddProduct={handleAddProduct}
-          onMockAuctionWin={handleMockAuctionWin}
-          showDevTools={showDevTools}
+          //onMockAuctionWin={handleMockAuctionWin}
+          // showDevTools={showDevTools}
           onClose={() => setShowControls(false)}
         />
       )}

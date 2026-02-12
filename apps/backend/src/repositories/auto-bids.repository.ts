@@ -86,6 +86,53 @@ export class AutoBidsRepository {
   }
 
   /**
+   * Create or update an auto bid (alias for upsert)
+   */
+  async createOrUpdate(data: { auction_id: string; bidder_id: string; max_amount: number }): Promise<AppResult<AutoBid>> {
+    return this.upsert({
+      auctionId: data.auction_id,
+      userId: data.bidder_id,
+      maxAmount: data.max_amount.toString(),
+    } as NewAutoBid);
+  }
+
+  /**
+   * Find auto bids by user
+   */
+  async findByUser(userId: string): Promise<AppResult<AutoBid[]>> {
+    try {
+      const results = await db.query.autoBids.findMany({
+        where: eq(autoBids.userId, userId),
+        orderBy: [desc(autoBids.createdAt)],
+      });
+      return success(results);
+    } catch (error) {
+      return failure(new ValidationError('Failed to fetch user auto bids'));
+    }
+  }
+
+  /**
+   * Find auto bid by ID
+   */
+  async findById(id: string): Promise<AutoBid | null> {
+    try {
+      const result = await db.query.autoBids.findFirst({
+        where: eq(autoBids.id, id),
+      });
+      return result || null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Delete an auto bid
+   */
+  async delete(id: string): Promise<void> {
+    await db.delete(autoBids).where(eq(autoBids.id, id));
+  }
+
+  /**
    * Deactivate an auto bid
    */
   async deactivate(

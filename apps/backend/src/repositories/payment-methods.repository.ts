@@ -1,6 +1,12 @@
 import { eq, and, desc } from 'drizzle-orm';
 import { db, paymentMethods, PaymentMethod, NewPaymentMethod } from '../db';
-import { AppResult, success, failure, NotFoundError, InternalError } from '../utils/result';
+import {
+  AppResult,
+  success,
+  failure,
+  NotFoundError,
+  InternalError,
+} from '../utils/result';
 
 /**
  * Payment Methods Repository
@@ -21,8 +27,10 @@ export class PaymentMethodsRepository {
     } catch (error) {
       return failure(
         new InternalError(
-          error instanceof Error ? error.message : 'Failed to create payment method'
-        )
+          error instanceof Error
+            ? error.message
+            : 'Failed to create payment method',
+        ),
       );
     }
   }
@@ -36,14 +44,19 @@ export class PaymentMethodsRepository {
         .select()
         .from(paymentMethods)
         .where(eq(paymentMethods.userId, userId))
-        .orderBy(desc(paymentMethods.isDefault), desc(paymentMethods.createdAt));
+        .orderBy(
+          desc(paymentMethods.isDefault),
+          desc(paymentMethods.createdAt),
+        );
 
       return success(userPaymentMethods);
     } catch (error) {
       return failure(
         new InternalError(
-          error instanceof Error ? error.message : 'Failed to fetch payment methods'
-        )
+          error instanceof Error
+            ? error.message
+            : 'Failed to fetch payment methods',
+        ),
       );
     }
   }
@@ -53,17 +66,14 @@ export class PaymentMethodsRepository {
    */
   async findByIdAndUserId(
     id: string,
-    userId: string
+    userId: string,
   ): Promise<AppResult<PaymentMethod>> {
     try {
       const paymentMethod = await db
         .select()
         .from(paymentMethods)
         .where(
-          and(
-            eq(paymentMethods.id, id),
-            eq(paymentMethods.userId, userId)
-          )
+          and(eq(paymentMethods.id, id), eq(paymentMethods.userId, userId)),
         )
         .limit(1);
 
@@ -75,8 +85,10 @@ export class PaymentMethodsRepository {
     } catch (error) {
       return failure(
         new InternalError(
-          error instanceof Error ? error.message : 'Failed to fetch payment method'
-        )
+          error instanceof Error
+            ? error.message
+            : 'Failed to fetch payment method',
+        ),
       );
     }
   }
@@ -84,7 +96,9 @@ export class PaymentMethodsRepository {
   /**
    * Get payment method by Stripe payment method ID
    */
-  async findByStripeId(stripePaymentMethodId: string): Promise<AppResult<PaymentMethod>> {
+  async findByStripeId(
+    stripePaymentMethodId: string,
+  ): Promise<AppResult<PaymentMethod>> {
     try {
       const paymentMethod = await db
         .select()
@@ -93,15 +107,19 @@ export class PaymentMethodsRepository {
         .limit(1);
 
       if (paymentMethod.length === 0) {
-        return failure(new NotFoundError('Payment method', stripePaymentMethodId));
+        return failure(
+          new NotFoundError('Payment method', stripePaymentMethodId),
+        );
       }
 
       return success(paymentMethod[0]);
     } catch (error) {
       return failure(
         new InternalError(
-          error instanceof Error ? error.message : 'Failed to fetch payment method by Stripe ID'
-        )
+          error instanceof Error
+            ? error.message
+            : 'Failed to fetch payment method by Stripe ID',
+        ),
       );
     }
   }
@@ -109,7 +127,9 @@ export class PaymentMethodsRepository {
   /**
    * Get user's default payment method
    */
-  async findDefaultByUserId(userId: string): Promise<AppResult<PaymentMethod | null>> {
+  async findDefaultByUserId(
+    userId: string,
+  ): Promise<AppResult<PaymentMethod | null>> {
     try {
       const defaultPaymentMethod = await db
         .select()
@@ -117,8 +137,8 @@ export class PaymentMethodsRepository {
         .where(
           and(
             eq(paymentMethods.userId, userId),
-            eq(paymentMethods.isDefault, true)
-          )
+            eq(paymentMethods.isDefault, true),
+          ),
         )
         .limit(1);
 
@@ -126,8 +146,10 @@ export class PaymentMethodsRepository {
     } catch (error) {
       return failure(
         new InternalError(
-          error instanceof Error ? error.message : 'Failed to fetch default payment method'
-        )
+          error instanceof Error
+            ? error.message
+            : 'Failed to fetch default payment method',
+        ),
       );
     }
   }
@@ -138,17 +160,14 @@ export class PaymentMethodsRepository {
   async update(
     id: string,
     userId: string,
-    data: Partial<PaymentMethod>
+    data: Partial<PaymentMethod>,
   ): Promise<AppResult<PaymentMethod>> {
     try {
       const [updatedPaymentMethod] = await db
         .update(paymentMethods)
         .set({ ...data, updatedAt: new Date() })
         .where(
-          and(
-            eq(paymentMethods.id, id),
-            eq(paymentMethods.userId, userId)
-          )
+          and(eq(paymentMethods.id, id), eq(paymentMethods.userId, userId)),
         )
         .returning();
 
@@ -160,8 +179,10 @@ export class PaymentMethodsRepository {
     } catch (error) {
       return failure(
         new InternalError(
-          error instanceof Error ? error.message : 'Failed to update payment method'
-        )
+          error instanceof Error
+            ? error.message
+            : 'Failed to update payment method',
+        ),
       );
     }
   }
@@ -171,7 +192,7 @@ export class PaymentMethodsRepository {
    */
   async setAsDefault(
     id: string,
-    userId: string
+    userId: string,
   ): Promise<AppResult<PaymentMethod>> {
     try {
       // The database trigger will handle unsetting other defaults
@@ -179,10 +200,7 @@ export class PaymentMethodsRepository {
         .update(paymentMethods)
         .set({ isDefault: true, updatedAt: new Date() })
         .where(
-          and(
-            eq(paymentMethods.id, id),
-            eq(paymentMethods.userId, userId)
-          )
+          and(eq(paymentMethods.id, id), eq(paymentMethods.userId, userId)),
         )
         .returning();
 
@@ -194,8 +212,10 @@ export class PaymentMethodsRepository {
     } catch (error) {
       return failure(
         new InternalError(
-          error instanceof Error ? error.message : 'Failed to set default payment method'
-        )
+          error instanceof Error
+            ? error.message
+            : 'Failed to set default payment method',
+        ),
       );
     }
   }
@@ -208,10 +228,7 @@ export class PaymentMethodsRepository {
       const result = await db
         .delete(paymentMethods)
         .where(
-          and(
-            eq(paymentMethods.id, id),
-            eq(paymentMethods.userId, userId)
-          )
+          and(eq(paymentMethods.id, id), eq(paymentMethods.userId, userId)),
         )
         .returning();
 
@@ -223,8 +240,10 @@ export class PaymentMethodsRepository {
     } catch (error) {
       return failure(
         new InternalError(
-          error instanceof Error ? error.message : 'Failed to delete payment method'
-        )
+          error instanceof Error
+            ? error.message
+            : 'Failed to delete payment method',
+        ),
       );
     }
   }
@@ -243,8 +262,10 @@ export class PaymentMethodsRepository {
     } catch (error) {
       return failure(
         new InternalError(
-          error instanceof Error ? error.message : 'Failed to count payment methods'
-        )
+          error instanceof Error
+            ? error.message
+            : 'Failed to count payment methods',
+        ),
       );
     }
   }

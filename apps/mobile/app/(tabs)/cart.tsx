@@ -27,22 +27,68 @@ export default function CartScreen() {
     const [cartTotal, setCartTotal] = useState<CartTotal | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const { profile } = useAuthStore();
 
     const fetchCart = async () => {
         try {
             setLoading(true);
+            setError(null);
+            
+            console.log('[Cart] Fetching cart...');
             const items = await cartService.getCart();
+            console.log('[Cart] Fetched items:', items.length);
             setCartItems(items);
 
             if (items.length > 0) {
-                const total = await cartService.calculateTotal();
-                setCartTotal(total);
+                try {
+                    const total = await cartService.calculateTotal();
+                    setCartTotal(total);
+                } catch (totalError: any) {
+                    console.error("[Cart] Failed to calculate cart total:", totalError);
+                    const errorMessage = totalError?.response?.data?.error?.message 
+                        || "Failed to calculate cart total. Some items may be unavailable.";
+                    setError(errorMessage);
+                    setCartTotal(null);
+                }
             } else {
                 setCartTotal(null);
             }
-        } catch (error) {
-            console.error("Failed to fetch cart:", error);
+        } catch (error: any) {
+            console.error("[Cart] Failed to fetch cart:", error);
+            
+            const statusCode = error?.response?.status;
+            const errorData = error?.response?.data;
+            const errorMessage = errorData?.error?.message || error?.message;
+            
+            console.log('[Cart] Error details:', {
+                statusCode,
+                errorData,
+                errorMessage,
+                fullError: error
+            });
+            
+            let displayError = "Failed to load your cart. Please try again.";
+            
+            if (statusCode === 400) {
+                if (errorMessage?.includes("not available")) {
+                    displayError = "Some items in your cart are no longer available.";
+                } else if (errorMessage?.includes("stock")) {
+                    displayError = "Some items exceed available stock.";
+                } else if (errorMessage) {
+                    displayError = errorMessage;
+                } else {
+                    displayError = "Invalid cart data. Please refresh.";
+                }
+            } else if (statusCode === 401) {
+                displayError = "Please sign in again to view your cart.";
+            } else if (statusCode === 500) {
+                displayError = "Server error. Please try again later.";
+            }
+            
+            setError(displayError);
+            setCartItems([]);
+            setCartTotal(null);
         } finally {
             setLoading(false);
         }
@@ -65,8 +111,21 @@ export default function CartScreen() {
         try {
             await cartService.updateQuantity(cartItemId, newQuantity);
             await fetchCart();
-        } catch (error) {
-            Alert.alert("Error", "Failed to update quantity");
+        } catch (error: any) {
+            const statusCode = error?.response?.status;
+            const errorMessage = error?.response?.data?.error?.message;
+            
+            if (statusCode === 400) {
+                if (errorMessage?.includes("stock")) {
+                    Alert.alert("Stock Limit", "Requested quantity exceeds available stock.");
+                } else if (errorMessage?.includes("not available")) {
+                    Alert.alert("Item Unavailable", "This product is no longer available.");
+                } else {
+                    Alert.alert("Error", errorMessage || "Failed to update quantity");
+                }
+            } else {
+                Alert.alert("Error", "Failed to update quantity. Please try again.");
+            }
         }
     };
 
@@ -112,6 +171,39 @@ export default function CartScreen() {
         );
     }
 
+    // Show error state if there's an error
+    if (error) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <StatusBar barStyle="light-content" />
+                <View style={styles.emptyHeader}>
+                    <Text style={styles.pageTitle}>YOUR BAG</Text>
+                </View>
+                <View style={styles.emptyContainer}>
+                    <ShoppingCart size={64} color={COLORS.liveIndicator} />
+                    <Text style={styles.emptyTitle}>CART ERROR</Text>
+                    <Text style={styles.emptySubtitle}>{error}</Text>
+                    <TouchableOpacity
+                        style={styles.shopButton}
+                        onPress={fetchCart}
+                        accessible={true}
+                        accessibilityLabel="Retry loading cart"
+                        accessibilityHint="Attempts to reload your shopping cart"
+                        accessibilityRole="button"
+                        testID="cart-retry-button"
+                    >
+                        <LinearGradient
+                            colors={[COLORS.primaryGold, COLORS.secondaryGold]}
+                            style={styles.gradientButton}
+                        >
+                            <Text style={styles.shopButtonText}>RETRY</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                </View>
+            </SafeAreaView>
+        );
+    }
+
     if (cartItems.length === 0) {
         return (
             <SafeAreaView style={styles.container}>
@@ -128,6 +220,11 @@ export default function CartScreen() {
                     <TouchableOpacity
                         style={styles.shopButton}
                         onPress={() => router.push("/")}
+                        accessible={true}
+                        accessibilityLabel="Start shopping"
+                        accessibilityHint="Navigate to home screen to browse products"
+                        accessibilityRole="button"
+                        testID="cart-shop-button"
                     >
                         <LinearGradient
                             colors={[COLORS.primaryGold, COLORS.secondaryGold]}
@@ -148,7 +245,14 @@ export default function CartScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.pageTitle}>YOUR BAG</Text>
-                <TouchableOpacity onPress={handleClearCart}>
+                <TouchableOpacity 
+                    onPress={handleClearCart}
+                    accessible={true}
+                    accessibilityLabel="Clear all items from cart"
+                    accessibilityHint="Removes all items from your shopping cart"
+                    accessibilityRole="button"
+                    testID="cart-clear-all-button"
+                >
                     <Text style={styles.clearText}>Clear All</Text>
                 </TouchableOpacity>
             </View>
@@ -203,6 +307,11 @@ export default function CartScreen() {
                                                         Math.max(1, item.quantity - 1),
                                                     )
                                                 }
+                                                accessible={true}
+                                                accessibilityLabel={`Decrease quantity of ${item.product.title}`}
+                                                accessibilityHint="Reduces item quantity by one"
+                                                accessibilityRole="button"
+                                                testID={`cart-decrease-quantity-${item.id}`}
                                             >
                                                 <Minus size={16} color={COLORS.textPrimary} />
                                             </TouchableOpacity>
@@ -212,6 +321,11 @@ export default function CartScreen() {
                                                 onPress={() =>
                                                     handleUpdateQuantity(item.id, item.quantity + 1)
                                                 }
+                                                accessible={true}
+                                                accessibilityLabel={`Increase quantity of ${item.product.title}`}
+                                                accessibilityHint="Increases item quantity by one"
+                                                accessibilityRole="button"
+                                                testID={`cart-increase-quantity-${item.id}`}
                                             >
                                                 <Plus size={16} color={COLORS.textPrimary} />
                                             </TouchableOpacity>
@@ -220,6 +334,11 @@ export default function CartScreen() {
                                         <TouchableOpacity
                                             style={styles.removeButton}
                                             onPress={() => handleRemoveItem(item.id)}
+                                            accessible={true}
+                                            accessibilityLabel={`Remove ${item.product.title} from cart`}
+                                            accessibilityHint="Removes this item from your shopping cart"
+                                            accessibilityRole="button"
+                                            testID={`cart-remove-item-${item.id}`}
                                         >
                                             <Trash2 size={20} color={COLORS.liveIndicator} />
                                         </TouchableOpacity>
@@ -258,6 +377,11 @@ export default function CartScreen() {
                     <TouchableOpacity
                         style={styles.checkoutButton}
                         onPress={handleCheckout}
+                        accessible={true}
+                        accessibilityLabel="Proceed to checkout"
+                        accessibilityHint="Continue to payment and shipping information"
+                        accessibilityRole="button"
+                        testID="cart-checkout-button"
                     >
                         <LinearGradient
                             colors={[COLORS.primaryGold, COLORS.secondaryGold]}

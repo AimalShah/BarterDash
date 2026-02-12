@@ -17,6 +17,8 @@ interface StartStreamAuctionPayload {
   reserve_price?: number;
   minimum_bid_increment?: number;
   duration_minutes?: number;
+  mode?: 'normal' | 'sudden_death';
+  max_timer_extensions?: number;
 }
 
 export const auctionsService = {
@@ -87,6 +89,19 @@ export const auctionsService = {
     const response = await apiClient.delete<ApiResponse<Auction>>(
       `/auctions/${id}`,
     );
+    return response.data.data;
+  },
+
+  /**
+   * Extend auction duration
+   */
+  extend: async (
+    id: string,
+    extensionSeconds: number = 15,
+  ): Promise<Auction & { extension_seconds: number; new_ends_at: string }> => {
+    const response = await apiClient.post<
+      ApiResponse<Auction & { extension_seconds: number; new_ends_at: string }>
+    >(`/auctions/${id}/extend`, { extension_seconds: extensionSeconds });
     return response.data.data;
   },
 };

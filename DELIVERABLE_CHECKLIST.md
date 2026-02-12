@@ -1,7 +1,7 @@
 # BarterDash Deliverable Checklist
 
-## Snapshot (2026-02-09)
-Frontend and backend are largely implemented, but several integration gaps and placeholders remain. This checklist marks what is done vs not done and calls out known incomplete areas with file references.
+## Snapshot (2026-02-12)
+Frontend and backend are largely implemented. Critical purchase flow bugs have been fixed. This checklist marks what is done vs not done and calls out known incomplete areas with file references.
 
 ## Frontend (barterdash-mobile)
 - [x] Auth screens and Supabase auth store (`barterdash-mobile/app/(auth)`, `barterdash-mobile/store/authStore.ts`)
@@ -14,13 +14,14 @@ Frontend and backend are largely implemented, but several integration gaps and p
 - [x] Messaging screens and API wiring (`barterdash-mobile/app/messages`, `barterdash-mobile/lib/api/services/messages.ts`)
 - [x] Notifications screens and API wiring (`barterdash-mobile/app/notifications.tsx`, `barterdash-mobile/lib/api/services/notifications.ts`)
 - [x] Social followers/following screens (`barterdash-mobile/app/social`)
+- [x] Add to Bag handler (`barterdash-mobile/app/product/[id].tsx`)
+- [x] Buy Now button for marketplace products (`barterdash-mobile/app/product/[id].tsx`)
+- [x] Auction buyout UI (`barterdash-mobile/app/product/[id].tsx`)
 
-- [ ] Stream cancel uses direct Supabase delete instead of backend endpoint (`barterdash-mobile/app/seller/stream/[id].tsx`)
 - [ ] Stream edit image upload to storage is TODO (`barterdash-mobile/app/seller/stream/edit/[id].tsx`)
 - [ ] Payment method manager falls back to mock data and uses stub auth flow (`barterdash-mobile/components/payment/PaymentMethodManager.tsx`)
 - [ ] Payment sheet endpoint mismatch with backend (`barterdash-mobile/lib/api/services/payments.ts`)
 - [ ] Realtime payment status updates not implemented (`barterdash-mobile/hooks/usePaymentProcessing.ts`)
-- [ ] Auction duration extension not supported (`barterdash-mobile/components/stream/SellerStreamViewStream.tsx`)
 - [ ] Seller order label shows dummy PDF (backend mock label) (`barterdash-mobile/app/seller/order/[id].tsx`)
 - [ ] Demo-only payment screen should be removed for production (`barterdash-mobile/app/payment-demo.tsx`)
 
@@ -33,12 +34,15 @@ Frontend and backend are largely implemented, but several integration gaps and p
 - [x] Orders, cart, payments, escrow (`barterdash-backend/src/routes/orders.routes.ts`, `barterdash-backend/src/routes/cart.routes.ts`, `barterdash-backend/src/routes/payments.routes.ts`, `barterdash-backend/src/routes/escrow.routes.ts`)
 - [x] Messaging, notifications, reviews, feed, analytics (`barterdash-backend/src/routes/messages.routes.ts`, `barterdash-backend/src/routes/notifications.routes.ts`, `barterdash-backend/src/routes/reviews.routes.ts`, `barterdash-backend/src/routes/feed.routes.ts`, `barterdash-backend/src/routes/analytics.routes.ts`)
 - [x] Social features (`barterdash-backend/src/routes/social.routes.ts`)
+- [x] Direct buy endpoint POST /products/:id/buy (`barterdash-backend/src/routes/products.routes.ts`)
+- [x] Stream cancel endpoint DELETE /streams/:id (`barterdash-backend/src/routes/streams.routes.ts`)
+- [x] Auction extension endpoint POST /auctions/:id/extend (`barterdash-backend/src/routes/auctions.routes.ts`)
+- [x] Reports API routes (`barterdash-backend/src/routes/reports.routes.ts`)
+- [x] Refunds API routes (`barterdash-backend/src/routes/refunds.routes.ts`)
+- [x] Watchlist API routes (`barterdash-backend/src/routes/watchlist.routes.ts`)
 
 - [ ] Auth logout is a placeholder (no token invalidation) (`barterdash-backend/src/routes/auth.routes.ts`, `barterdash-backend/src/services/auth.service.ts`)
 - [ ] Shipping label generation uses a mock provider (`barterdash-backend/src/services/shipping.service.ts`)
-- [ ] Stream cancel endpoint not implemented (no API route) (`barterdash-backend/src/routes/streams.routes.ts`)
-- [ ] Auction extension endpoint not implemented (no API route) (`barterdash-backend/src/routes/auctions.routes.ts`)
-- [ ] Reports, refunds, and watchlist services exist but are not exposed via routes (`barterdash-backend/src/services/reports.service.ts`, `barterdash-backend/src/services/refunds.service.ts`, `barterdash-backend/src/services/watchlist.service.ts`)
 - [ ] Backend README files still mark users/bids/payments/sellers as TODO (docs outdated) (`barterdash-backend/README.md`, `barterdash-backend/README-EXPRESS.md`)
 
 ## Cleanup

@@ -354,3 +354,10 @@ export interface StreamSession {
   scheduledStart?: string;
   category?: string;
 }
+
+// Data Export types
+export interface DataExportResponse {
+  download_url: string;
+  expires_at: string;
+  file_size_mb: number;
+}

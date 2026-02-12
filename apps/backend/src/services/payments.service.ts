@@ -19,7 +19,7 @@ import {
   WebhookVerificationError,
 } from '../utils/result';
 import { paymentLogger } from '../utils/payment-logger';
-import { 
+import {
   CreatePaymentIntentInput,
   SavePaymentMethodInput,
   CreatePaymentIntentWithMethodInput,
@@ -47,7 +47,11 @@ export class PaymentsService {
   /**
    * Maps Stripe errors to application-specific error types
    */
-  private mapStripeError(error: any, operation: string, context?: any): PaymentError {
+  private mapStripeError(
+    error: any,
+    operation: string,
+    context?: any,
+  ): PaymentError {
     paymentLogger.logStripeError(operation, error, context);
 
     if (error.type === 'StripeCardError') {
@@ -71,7 +75,10 @@ export class PaymentsService {
       }
     }
 
-    if (error.type === 'StripeConnectionError' || error.type === 'StripeAPIError') {
+    if (
+      error.type === 'StripeConnectionError' ||
+      error.type === 'StripeAPIError'
+    ) {
       return new StripeConnectionError();
     }
 
@@ -81,7 +88,7 @@ export class PaymentsService {
 
     // Default to generic payment error
     return new PaymentProcessingError(
-      error.message || 'An unexpected payment error occurred'
+      error.message || 'An unexpected payment error occurred',
     );
   }
 
@@ -93,9 +100,12 @@ export class PaymentsService {
     orderId: string,
   ): Promise<AppResult<{ url: string | null; sessionId: string }>> {
     const context = { userId, orderId, operation: 'create_checkout_session' };
-    
+
     try {
-      paymentLogger.info({ ...context, operation: 'checkout_session_creation_started' });
+      paymentLogger.info({
+        ...context,
+        operation: 'checkout_session_creation_started',
+      });
 
       // 1. Fetch order details to get total and items
       const orderResult = await db.query.orders.findFirst({
@@ -188,7 +198,11 @@ export class PaymentsService {
         sessionId: session.id,
       });
     } catch (error) {
-      const mappedError = this.mapStripeError(error, 'create_checkout_session', context);
+      const mappedError = this.mapStripeError(
+        error,
+        'create_checkout_session',
+        context,
+      );
       return failure(mappedError);
     }
   }
@@ -199,6 +213,7 @@ export class PaymentsService {
   async createPaymentIntent(
     userId: string,
     data: CreatePaymentIntentInput,
+    idempotencyKey?: string,
   ): Promise<AppResult<{ clientSecret: string | null; id: string }>> {
     const context = {
       userId,
@@ -209,11 +224,14 @@ export class PaymentsService {
     };
 
     try {
-      paymentLogger.info({ ...context, operation: 'payment_intent_creation_started' });
+      paymentLogger.info({
+        ...context,
+        operation: 'payment_intent_creation_started',
+      });
 
       const amount = Math.round(data.amount * 100); // Convert to cents
 
-      const paymentIntent = await stripe.paymentIntents.create({
+      const paymentIntentData: Stripe.PaymentIntentCreateParams = {
         amount,
         currency: 'usd',
         metadata: {
@@ -224,7 +242,13 @@ export class PaymentsService {
         automatic_payment_methods: {
           enabled: true,
         },
-      });
+      };
+
+      const paymentIntent = idempotencyKey
+        ? await stripe.paymentIntents.create(paymentIntentData, {
+            idempotencyKey,
+          })
+        : await stripe.paymentIntents.create(paymentIntentData);
 
       paymentLogger.logPaymentIntentCreated({
         ...context,
@@ -241,7 +265,11 @@ export class PaymentsService {
         id: paymentIntent.id,
       });
     } catch (error) {
-      const mappedError = this.mapStripeError(error, 'create_payment_intent', context);
+      const mappedError = this.mapStripeError(
+        error,
+        'create_payment_intent',
+        context,
+      );
       return failure(mappedError);
     }
   }
@@ -257,7 +285,8 @@ export class PaymentsService {
     try {
       paymentLogger.info({ ...context, operation: 'payment_capture_started' });
 
-      const paymentIntent = await stripe.paymentIntents.capture(paymentIntentId);
+      const paymentIntent =
+        await stripe.paymentIntents.capture(paymentIntentId);
 
       if (paymentIntent.status === 'succeeded') {
         paymentLogger.info({
@@ -289,7 +318,11 @@ export class PaymentsService {
         );
       }
     } catch (error) {
-      const mappedError = this.mapStripeError(error, 'capture_payment', context);
+      const mappedError = this.mapStripeError(
+        error,
+        'capture_payment',
+        context,
+      );
       return failure(mappedError);
     }
   }
@@ -336,7 +369,11 @@ export class PaymentsService {
 
       return success(event);
     } catch (error) {
-      const mappedError = this.mapStripeError(error, 'construct_webhook_event', context);
+      const mappedError = this.mapStripeError(
+        error,
+        'construct_webhook_event',
+        context,
+      );
       return failure(mappedError);
     }
   }
@@ -379,7 +416,7 @@ export class PaymentsService {
             amount: paymentIntent.amount / 100,
             currency: paymentIntent.currency,
           });
-          
+
           // Broadcast real-time payment status update
           await this.broadcastPaymentStatusUpdate(paymentIntent.id, {
             status: 'succeeded',
@@ -388,7 +425,7 @@ export class PaymentsService {
             userId: paymentIntent.metadata?.userId,
             orderId: paymentIntent.metadata?.orderId,
           });
-          
+
           // Check if this is an escrow payment
           if (paymentIntent.metadata?.type === 'escrow') {
             await escrowService.captureToEscrow(paymentIntent.id);
@@ -405,7 +442,8 @@ export class PaymentsService {
             paymentIntentId: failedIntent.id,
             error: {
               type: 'PaymentFailedError',
-              message: failedIntent.last_payment_error?.message || 'Payment failed',
+              message:
+                failedIntent.last_payment_error?.message || 'Payment failed',
               code: failedIntent.last_payment_error?.code || 'PAYMENT_FAILED',
             },
           });
@@ -484,7 +522,7 @@ export class PaymentsService {
               payoutsEnabled: account.payouts_enabled,
             },
           });
-          
+
           // Broadcast real-time Connect account status update
           await this.broadcastConnectAccountUpdate(account);
           await stripeConnectService.handleAccountUpdated(account);
@@ -532,7 +570,7 @@ export class PaymentsService {
               reason: dispute.reason,
             },
           });
-          
+
           // Broadcast real-time dispute notification
           await this.broadcastDisputeUpdate(dispute, 'created');
           await escrowService.handleDisputeCreated(dispute);
@@ -599,7 +637,10 @@ export class PaymentsService {
           });
 
           // Broadcast real-time payment method update
-          await this.broadcastPaymentMethodUpdate(attachedPaymentMethod, 'attached');
+          await this.broadcastPaymentMethodUpdate(
+            attachedPaymentMethod,
+            'attached',
+          );
           break;
 
         case 'payment_method.detached':
@@ -614,7 +655,10 @@ export class PaymentsService {
           });
 
           // Broadcast real-time payment method update
-          await this.broadcastPaymentMethodUpdate(detachedPaymentMethod, 'detached');
+          await this.broadcastPaymentMethodUpdate(
+            detachedPaymentMethod,
+            'detached',
+          );
           break;
 
         case 'setup_intent.succeeded':
@@ -698,7 +742,7 @@ export class PaymentsService {
           code: 'WEBHOOK_PROCESSING_ERROR',
         },
       });
-      
+
       // Don't fail webhook processing for non-critical errors
       // Stripe will retry failed webhooks
       return success(undefined);
@@ -723,7 +767,7 @@ export class PaymentsService {
         metadata: {
           sessionId: session.id,
           paymentIntentId: session.payment_intent as string,
-          amount: (session.amount_total! / 100),
+          amount: session.amount_total! / 100,
         },
       });
 
@@ -885,7 +929,10 @@ export class PaymentsService {
         updateData.paymentMethod = paymentIntent.payment_method_types[0];
       }
 
-      if (paymentIntent.metadata && Object.keys(paymentIntent.metadata).length > 0) {
+      if (
+        paymentIntent.metadata &&
+        Object.keys(paymentIntent.metadata).length > 0
+      ) {
         updateData.metadata = paymentIntent.metadata;
       }
 
@@ -935,9 +982,8 @@ export class PaymentsService {
       return;
     }
 
-    const existing = await this.paymentMethodsRepository.findByStripeId(
-      paymentMethodId,
-    );
+    const existing =
+      await this.paymentMethodsRepository.findByStripeId(paymentMethodId);
 
     if (existing.isOk()) {
       return;
@@ -965,7 +1011,10 @@ export class PaymentsService {
     const context = { orderId, operation: 'refund_order' };
 
     try {
-      paymentLogger.info({ ...context, operation: 'refund_processing_started' });
+      paymentLogger.info({
+        ...context,
+        operation: 'refund_processing_started',
+      });
 
       // 1. Fetch order details
       const orderResult = await db.query.orders.findFirst({
@@ -1043,7 +1092,7 @@ export class PaymentsService {
    */
   async savePaymentMethod(
     userId: string,
-    data: SavePaymentMethodInput
+    data: SavePaymentMethodInput,
   ): Promise<AppResult<PaymentMethod>> {
     const context = {
       userId,
@@ -1052,15 +1101,20 @@ export class PaymentsService {
     };
 
     try {
-      paymentLogger.info({ ...context, operation: 'payment_method_save_started' });
+      paymentLogger.info({
+        ...context,
+        operation: 'payment_method_save_started',
+      });
 
       // 1. Retrieve payment method from Stripe to get details
       const stripePaymentMethod = await stripe.paymentMethods.retrieve(
-        data.paymentMethodId
+        data.paymentMethodId,
       );
 
       if (!stripePaymentMethod) {
-        return failure(new NotFoundError('Payment method', data.paymentMethodId));
+        return failure(
+          new NotFoundError('Payment method', data.paymentMethodId),
+        );
       }
 
       // 2. Attach payment method to customer if not already attached
@@ -1080,13 +1134,12 @@ export class PaymentsService {
       const paymentMethodData = this.extractPaymentMethodData(
         stripePaymentMethod,
         userId,
-        data.setAsDefault
+        data.setAsDefault,
       );
 
       // 4. Save to database
-      const savedPaymentMethod = await this.paymentMethodsRepository.create(
-        paymentMethodData
-      );
+      const savedPaymentMethod =
+        await this.paymentMethodsRepository.create(paymentMethodData);
 
       if (savedPaymentMethod.isErr()) {
         return failure(savedPaymentMethod.error);
@@ -1104,7 +1157,11 @@ export class PaymentsService {
 
       return success(savedPaymentMethod.value);
     } catch (error) {
-      const mappedError = this.mapStripeError(error, 'save_payment_method', context);
+      const mappedError = this.mapStripeError(
+        error,
+        'save_payment_method',
+        context,
+      );
       return failure(mappedError);
     }
   }
@@ -1116,9 +1173,13 @@ export class PaymentsService {
     const context = { userId, operation: 'get_payment_methods' };
 
     try {
-      paymentLogger.info({ ...context, operation: 'payment_methods_fetch_started' });
+      paymentLogger.info({
+        ...context,
+        operation: 'payment_methods_fetch_started',
+      });
 
-      const paymentMethods = await this.paymentMethodsRepository.findByUserId(userId);
+      const paymentMethods =
+        await this.paymentMethodsRepository.findByUserId(userId);
 
       if (paymentMethods.isErr()) {
         return failure(paymentMethods.error);
@@ -1141,7 +1202,9 @@ export class PaymentsService {
           code: 'FETCH_PAYMENT_METHODS_ERROR',
         },
       });
-      return failure(new PaymentProcessingError('Failed to fetch payment methods'));
+      return failure(
+        new PaymentProcessingError('Failed to fetch payment methods'),
+      );
     }
   }
 
@@ -1150,16 +1213,20 @@ export class PaymentsService {
    */
   async setDefaultPaymentMethod(
     userId: string,
-    paymentMethodId: string
+    paymentMethodId: string,
   ): Promise<AppResult<PaymentMethod>> {
-    const context = { userId, paymentMethodId, operation: 'set_default_payment_method' };
+    const context = {
+      userId,
+      paymentMethodId,
+      operation: 'set_default_payment_method',
+    };
 
     try {
       paymentLogger.info({ ...context, operation: 'set_default_started' });
 
       const result = await this.paymentMethodsRepository.setAsDefault(
         paymentMethodId,
-        userId
+        userId,
       );
 
       if (result.isErr()) {
@@ -1186,7 +1253,9 @@ export class PaymentsService {
           code: 'SET_DEFAULT_PAYMENT_METHOD_ERROR',
         },
       });
-      return failure(new PaymentProcessingError('Failed to set default payment method'));
+      return failure(
+        new PaymentProcessingError('Failed to set default payment method'),
+      );
     }
   }
 
@@ -1195,18 +1264,26 @@ export class PaymentsService {
    */
   async deletePaymentMethod(
     userId: string,
-    paymentMethodId: string
+    paymentMethodId: string,
   ): Promise<AppResult<void>> {
-    const context = { userId, paymentMethodId, operation: 'delete_payment_method' };
+    const context = {
+      userId,
+      paymentMethodId,
+      operation: 'delete_payment_method',
+    };
 
     try {
-      paymentLogger.info({ ...context, operation: 'payment_method_delete_started' });
+      paymentLogger.info({
+        ...context,
+        operation: 'payment_method_delete_started',
+      });
 
       // 1. Get payment method from database
-      const paymentMethod = await this.paymentMethodsRepository.findByIdAndUserId(
-        paymentMethodId,
-        userId
-      );
+      const paymentMethod =
+        await this.paymentMethodsRepository.findByIdAndUserId(
+          paymentMethodId,
+          userId,
+        );
 
       if (paymentMethod.isErr()) {
         return failure(paymentMethod.error);
@@ -1214,7 +1291,9 @@ export class PaymentsService {
 
       // 2. Detach from Stripe
       try {
-        await stripe.paymentMethods.detach(paymentMethod.value.stripePaymentMethodId);
+        await stripe.paymentMethods.detach(
+          paymentMethod.value.stripePaymentMethodId,
+        );
       } catch (stripeError: any) {
         // If payment method is already detached or doesn't exist in Stripe, continue
         if (stripeError.code !== 'resource_missing') {
@@ -1225,7 +1304,7 @@ export class PaymentsService {
       // 3. Delete from database
       const deleteResult = await this.paymentMethodsRepository.delete(
         paymentMethodId,
-        userId
+        userId,
       );
 
       if (deleteResult.isErr()) {
@@ -1243,7 +1322,11 @@ export class PaymentsService {
 
       return success(undefined);
     } catch (error) {
-      const mappedError = this.mapStripeError(error, 'delete_payment_method', context);
+      const mappedError = this.mapStripeError(
+        error,
+        'delete_payment_method',
+        context,
+      );
       return failure(mappedError);
     }
   }
@@ -1253,7 +1336,7 @@ export class PaymentsService {
    */
   async createPaymentIntentWithMethod(
     userId: string,
-    data: CreatePaymentIntentWithMethodInput
+    data: CreatePaymentIntentWithMethodInput,
   ): Promise<AppResult<{ clientSecret: string | null; id: string }>> {
     const context = {
       userId,
@@ -1264,7 +1347,10 @@ export class PaymentsService {
     };
 
     try {
-      paymentLogger.info({ ...context, operation: 'payment_intent_with_method_started' });
+      paymentLogger.info({
+        ...context,
+        operation: 'payment_intent_with_method_started',
+      });
 
       const amount = Math.round(data.amount * 100); // Convert to cents
 
@@ -1298,7 +1384,8 @@ export class PaymentsService {
         paymentIntentData.setup_future_usage = data.setupFutureUsage;
       }
 
-      const paymentIntent = await stripe.paymentIntents.create(paymentIntentData);
+      const paymentIntent =
+        await stripe.paymentIntents.create(paymentIntentData);
 
       paymentLogger.logPaymentIntentCreated({
         ...context,
@@ -1317,7 +1404,11 @@ export class PaymentsService {
         id: paymentIntent.id,
       });
     } catch (error) {
-      const mappedError = this.mapStripeError(error, 'create_payment_intent_with_method', context);
+      const mappedError = this.mapStripeError(
+        error,
+        'create_payment_intent_with_method',
+        context,
+      );
       return failure(mappedError);
     }
   }
@@ -1332,6 +1423,7 @@ export class PaymentsService {
   async createSetupIntent(
     userId: string,
     data: CreateSetupIntentInput,
+    idempotencyKey?: string,
   ): Promise<
     AppResult<{
       setupIntent: string;
@@ -1347,7 +1439,10 @@ export class PaymentsService {
     };
 
     try {
-      paymentLogger.info({ ...context, operation: 'setup_intent_creation_started' });
+      paymentLogger.info({
+        ...context,
+        operation: 'setup_intent_creation_started',
+      });
 
       // 1. Get or create Stripe customer
       const customerResult = await this.getOrCreateStripeCustomer(userId);
@@ -1356,15 +1451,21 @@ export class PaymentsService {
       }
       const customer = customerResult.value;
 
-      // 2. Create setup intent
-      const setupIntent = await stripe.setupIntents.create({
+      // 2. Create setup intent with idempotency key
+      const setupIntentOptions: Stripe.SetupIntentCreateParams = {
         customer: customer.id,
         usage: 'off_session',
         metadata: {
           userId,
           setAsDefault: setAsDefault ? 'true' : 'false',
         },
-      });
+      };
+
+      const setupIntent = idempotencyKey
+        ? await stripe.setupIntents.create(setupIntentOptions, {
+            idempotencyKey,
+          })
+        : await stripe.setupIntents.create(setupIntentOptions);
 
       // 3. Create ephemeral key for the customer
       const ephemeralKey = await stripe.ephemeralKeys.create(
@@ -1389,7 +1490,11 @@ export class PaymentsService {
         publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
       });
     } catch (error) {
-      const mappedError = this.mapStripeError(error, 'create_setup_intent', context);
+      const mappedError = this.mapStripeError(
+        error,
+        'create_setup_intent',
+        context,
+      );
       return failure(mappedError);
     }
   }
@@ -1399,13 +1504,16 @@ export class PaymentsService {
    */
   async createPaymentSheet(
     userId: string,
-    data: CreatePaymentSheetInput
-  ): Promise<AppResult<{
-    paymentIntent: string;
-    ephemeralKey: string;
-    customer: string;
-    publishableKey: string;
-  }>> {
+    data: CreatePaymentSheetInput,
+    idempotencyKey?: string,
+  ): Promise<
+    AppResult<{
+      paymentIntent: string;
+      ephemeralKey: string;
+      customer: string;
+      publishableKey: string;
+    }>
+  > {
     const context = {
       userId,
       orderId: data.orderId,
@@ -1414,7 +1522,10 @@ export class PaymentsService {
     };
 
     try {
-      paymentLogger.info({ ...context, operation: 'payment_sheet_creation_started' });
+      paymentLogger.info({
+        ...context,
+        operation: 'payment_sheet_creation_started',
+      });
 
       const amount = Math.round(data.amount * 100); // Convert to cents
 
@@ -1425,7 +1536,7 @@ export class PaymentsService {
       }
       const customer = customerResult.value;
 
-      // 2. Create payment intent for Payment Sheet
+      // 2. Create payment intent for Payment Sheet with idempotency key
       const paymentIntentData: Stripe.PaymentIntentCreateParams = {
         amount,
         currency: data.currency,
@@ -1447,12 +1558,16 @@ export class PaymentsService {
         paymentIntentData.setup_future_usage = data.setupFutureUsage;
       }
 
-      const paymentIntent = await stripe.paymentIntents.create(paymentIntentData);
+      const paymentIntent = idempotencyKey
+        ? await stripe.paymentIntents.create(paymentIntentData, {
+            idempotencyKey,
+          })
+        : await stripe.paymentIntents.create(paymentIntentData);
 
       // 3. Create ephemeral key for the customer
       const ephemeralKey = await stripe.ephemeralKeys.create(
         { customer: customer.id },
-        { apiVersion: '2023-10-16' } // Use a specific API version for ephemeral keys
+        { apiVersion: '2023-10-16' }, // Use a specific API version for ephemeral keys
       );
 
       paymentLogger.info({
@@ -1474,7 +1589,11 @@ export class PaymentsService {
         publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
       });
     } catch (error) {
-      const mappedError = this.mapStripeError(error, 'create_payment_sheet', context);
+      const mappedError = this.mapStripeError(
+        error,
+        'create_payment_sheet',
+        context,
+      );
       return failure(mappedError);
     }
   }
@@ -1484,12 +1603,14 @@ export class PaymentsService {
    */
   async confirmPaymentIntent(
     userId: string,
-    data: ConfirmPaymentIntentInput
-  ): Promise<AppResult<{
-    status: string;
-    clientSecret?: string;
-    nextAction?: any;
-  }>> {
+    data: ConfirmPaymentIntentInput,
+  ): Promise<
+    AppResult<{
+      status: string;
+      clientSecret?: string;
+      nextAction?: any;
+    }>
+  > {
     const context = {
       userId,
       paymentIntentId: data.paymentIntentId,
@@ -1497,7 +1618,10 @@ export class PaymentsService {
     };
 
     try {
-      paymentLogger.info({ ...context, operation: 'payment_confirmation_started' });
+      paymentLogger.info({
+        ...context,
+        operation: 'payment_confirmation_started',
+      });
 
       const confirmData: Stripe.PaymentIntentConfirmParams = {};
 
@@ -1513,7 +1637,7 @@ export class PaymentsService {
 
       const paymentIntent = await stripe.paymentIntents.confirm(
         data.paymentIntentId,
-        confirmData
+        confirmData,
       );
 
       paymentLogger.logPaymentIntentConfirmed({
@@ -1539,7 +1663,11 @@ export class PaymentsService {
 
       return success(result);
     } catch (error) {
-      const mappedError = this.mapStripeError(error, 'confirm_payment_intent', context);
+      const mappedError = this.mapStripeError(
+        error,
+        'confirm_payment_intent',
+        context,
+      );
       return failure(mappedError);
     }
   }
@@ -1552,12 +1680,14 @@ export class PaymentsService {
     orderId: string,
     amount: number,
     sellerId: string,
-    currency: string = 'usd'
-  ): Promise<AppResult<{
-    clientSecret: string | null;
-    id: string;
-    escrowId: string;
-  }>> {
+    currency: string = 'usd',
+  ): Promise<
+    AppResult<{
+      clientSecret: string | null;
+      id: string;
+      escrowId: string;
+    }>
+  > {
     const context = {
       userId,
       orderId,
@@ -1567,7 +1697,10 @@ export class PaymentsService {
     };
 
     try {
-      paymentLogger.info({ ...context, operation: 'payment_intent_escrow_creation_started' });
+      paymentLogger.info({
+        ...context,
+        operation: 'payment_intent_escrow_creation_started',
+      });
 
       const stripeAmount = Math.round(amount * 100); // Convert to cents
 
@@ -1595,10 +1728,10 @@ export class PaymentsService {
       // 3. Create escrow record (this would integrate with existing escrow service)
       const { EscrowService } = await import('./escrow.service');
       const escrowService = new EscrowService();
-      
+
       const escrowResult = await escrowService.createEscrowPayment(
         orderId,
-        userId
+        userId,
       );
 
       if (escrowResult.isErr()) {
@@ -1624,7 +1757,11 @@ export class PaymentsService {
         escrowId: escrowResult.value.escrowId,
       });
     } catch (error) {
-      const mappedError = this.mapStripeError(error, 'create_payment_intent_with_escrow', context);
+      const mappedError = this.mapStripeError(
+        error,
+        'create_payment_intent_with_escrow',
+        context,
+      );
       return failure(mappedError);
     }
   }
@@ -1636,7 +1773,9 @@ export class PaymentsService {
   /**
    * Get or create Stripe customer for user
    */
-  private async getOrCreateStripeCustomer(userId: string): Promise<AppResult<Stripe.Customer>> {
+  private async getOrCreateStripeCustomer(
+    userId: string,
+  ): Promise<AppResult<Stripe.Customer>> {
     try {
       // 1. Check if user already has a customer ID in database
       const user = await db.query.profiles.findFirst({
@@ -1654,7 +1793,9 @@ export class PaymentsService {
       // 2. If user has a customer ID, retrieve from Stripe
       if (user.stripeCustomerId) {
         try {
-          const customer = await stripe.customers.retrieve(user.stripeCustomerId);
+          const customer = await stripe.customers.retrieve(
+            user.stripeCustomerId,
+          );
           if (customer && !customer.deleted) {
             return success(customer as Stripe.Customer);
           }
@@ -1680,7 +1821,7 @@ export class PaymentsService {
       // 4. Update user record with new customer ID
       await db
         .update(profiles)
-        .set({ 
+        .set({
           stripeCustomerId: customer.id,
           updatedAt: new Date(),
         })
@@ -1706,7 +1847,9 @@ export class PaymentsService {
           code: 'STRIPE_CUSTOMER_ERROR',
         },
       });
-      return failure(new PaymentProcessingError('Failed to get or create Stripe customer'));
+      return failure(
+        new PaymentProcessingError('Failed to get or create Stripe customer'),
+      );
     }
   }
 
@@ -1716,7 +1859,7 @@ export class PaymentsService {
   private extractPaymentMethodData(
     stripePaymentMethod: Stripe.PaymentMethod,
     userId: string,
-    isDefault: boolean = false
+    isDefault: boolean = false,
   ) {
     const baseData = {
       userId,
@@ -1742,7 +1885,10 @@ export class PaymentsService {
       };
     }
 
-    if (stripePaymentMethod.type === 'us_bank_account' && stripePaymentMethod.us_bank_account) {
+    if (
+      stripePaymentMethod.type === 'us_bank_account' &&
+      stripePaymentMethod.us_bank_account
+    ) {
       return {
         ...baseData,
         fingerprint: stripePaymentMethod.us_bank_account.fingerprint || '',
@@ -1777,11 +1923,11 @@ export class PaymentsService {
       clientSecret?: string;
       userId?: string;
       orderId?: string;
-    }
+    },
   ): Promise<void> {
     try {
       const channelName = `payment_status_${paymentIntentId}`;
-      
+
       // Broadcast to payment-specific channel
       const channel = supabase.channel(channelName);
       await channel.send({
@@ -1835,7 +1981,7 @@ export class PaymentsService {
    */
   private async broadcastConnectAccountUpdate(
     account: Stripe.Account,
-    eventType: string = 'updated'
+    eventType: string = 'updated',
   ): Promise<void> {
     try {
       // Extract user ID from account metadata
@@ -1853,7 +1999,7 @@ export class PaymentsService {
 
       const channelName = `connect_account_${userId}`;
       const channel = supabase.channel(channelName);
-      
+
       await channel.send({
         type: 'broadcast',
         event: 'connect_account_update',
@@ -1867,7 +2013,8 @@ export class PaymentsService {
             currentlyDue: account.requirements?.currently_due || [],
             eventuallyDue: account.requirements?.eventually_due || [],
             pastDue: account.requirements?.past_due || [],
-            pendingVerification: account.requirements?.pending_verification || [],
+            pendingVerification:
+              account.requirements?.pending_verification || [],
           },
           timestamp: new Date().toISOString(),
         },
@@ -1900,12 +2047,16 @@ export class PaymentsService {
   /**
    * Broadcast capability updates via Supabase Realtime
    */
-  private async broadcastCapabilityUpdate(capability: Stripe.Capability): Promise<void> {
+  private async broadcastCapabilityUpdate(
+    capability: Stripe.Capability,
+  ): Promise<void> {
     try {
       // Get account to find user ID
-      const account = await stripe.accounts.retrieve(capability.account as string);
+      const account = await stripe.accounts.retrieve(
+        capability.account as string,
+      );
       const userId = account.metadata?.userId;
-      
+
       if (!userId) {
         paymentLogger.warn({
           operation: 'capability_broadcast_skipped',
@@ -1920,7 +2071,7 @@ export class PaymentsService {
 
       const channelName = `connect_account_${userId}`;
       const channel = supabase.channel(channelName);
-      
+
       await channel.send({
         type: 'broadcast',
         event: 'capability_update',
@@ -1963,21 +2114,22 @@ export class PaymentsService {
    */
   private async broadcastDisputeUpdate(
     dispute: Stripe.Dispute,
-    eventType: string
+    eventType: string,
   ): Promise<void> {
     try {
       // Get charge to find payment intent and user info
       const charge = await stripe.charges.retrieve(dispute.charge as string);
       const paymentIntentId = charge.payment_intent as string;
-      
+
       if (paymentIntentId) {
-        const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+        const paymentIntent =
+          await stripe.paymentIntents.retrieve(paymentIntentId);
         const userId = paymentIntent.metadata?.userId;
-        
+
         if (userId) {
           const channelName = `user_payments_${userId}`;
           const channel = supabase.channel(channelName);
-          
+
           await channel.send({
             type: 'broadcast',
             event: 'dispute_update',
@@ -2025,17 +2177,19 @@ export class PaymentsService {
    */
   private async broadcastTransferUpdate(
     transfer: Stripe.Transfer,
-    eventType: string
+    eventType: string,
   ): Promise<void> {
     try {
       // Get destination account to find user ID
-      const account = await stripe.accounts.retrieve(transfer.destination as string);
+      const account = await stripe.accounts.retrieve(
+        transfer.destination as string,
+      );
       const userId = account.metadata?.userId;
-      
+
       if (userId) {
         const channelName = `connect_account_${userId}`;
         const channel = supabase.channel(channelName);
-        
+
         await channel.send({
           type: 'broadcast',
           event: 'transfer_update',
@@ -2079,45 +2233,49 @@ export class PaymentsService {
    */
   private async broadcastPaymentMethodUpdate(
     paymentMethod: Stripe.PaymentMethod,
-    eventType: string
+    eventType: string,
   ): Promise<void> {
     try {
       // Get customer to find user ID
       if (paymentMethod.customer) {
-        const customer = await stripe.customers.retrieve(paymentMethod.customer as string);
+        const customer = await stripe.customers.retrieve(
+          paymentMethod.customer as string,
+        );
         if (customer && !customer.deleted) {
           const userId = (customer as Stripe.Customer).metadata?.userId;
-          
-          if (userId) {
-          const channelName = `user_payments_${userId}`;
-          const channel = supabase.channel(channelName);
-          
-          await channel.send({
-            type: 'broadcast',
-            event: 'payment_method_update',
-            payload: {
-              paymentMethodId: paymentMethod.id,
-              eventType,
-              type: paymentMethod.type,
-              card: paymentMethod.card ? {
-                brand: paymentMethod.card.brand,
-                last4: paymentMethod.card.last4,
-                expMonth: paymentMethod.card.exp_month,
-                expYear: paymentMethod.card.exp_year,
-              } : null,
-              timestamp: new Date().toISOString(),
-            },
-          });
 
-          paymentLogger.info({
-            operation: 'payment_method_broadcast',
-            metadata: {
-              paymentMethodId: paymentMethod.id,
-              userId,
-              eventType,
-              type: paymentMethod.type,
-            },
-          });
+          if (userId) {
+            const channelName = `user_payments_${userId}`;
+            const channel = supabase.channel(channelName);
+
+            await channel.send({
+              type: 'broadcast',
+              event: 'payment_method_update',
+              payload: {
+                paymentMethodId: paymentMethod.id,
+                eventType,
+                type: paymentMethod.type,
+                card: paymentMethod.card
+                  ? {
+                      brand: paymentMethod.card.brand,
+                      last4: paymentMethod.card.last4,
+                      expMonth: paymentMethod.card.exp_month,
+                      expYear: paymentMethod.card.exp_year,
+                    }
+                  : null,
+                timestamp: new Date().toISOString(),
+              },
+            });
+
+            paymentLogger.info({
+              operation: 'payment_method_broadcast',
+              metadata: {
+                paymentMethodId: paymentMethod.id,
+                userId,
+                eventType,
+                type: paymentMethod.type,
+              },
+            });
           }
         }
       }
@@ -2141,40 +2299,42 @@ export class PaymentsService {
    */
   private async broadcastSetupIntentUpdate(
     setupIntent: Stripe.SetupIntent,
-    eventType: string
+    eventType: string,
   ): Promise<void> {
     try {
       // Get customer to find user ID
       if (setupIntent.customer) {
-        const customer = await stripe.customers.retrieve(setupIntent.customer as string);
+        const customer = await stripe.customers.retrieve(
+          setupIntent.customer as string,
+        );
         if (customer && !customer.deleted) {
           const userId = (customer as Stripe.Customer).metadata?.userId;
-          
-          if (userId) {
-          const channelName = `user_payments_${userId}`;
-          const channel = supabase.channel(channelName);
-          
-          await channel.send({
-            type: 'broadcast',
-            event: 'setup_intent_update',
-            payload: {
-              setupIntentId: setupIntent.id,
-              eventType,
-              status: setupIntent.status,
-              paymentMethodId: setupIntent.payment_method,
-              timestamp: new Date().toISOString(),
-            },
-          });
 
-          paymentLogger.info({
-            operation: 'setup_intent_broadcast',
-            metadata: {
-              setupIntentId: setupIntent.id,
-              userId,
-              eventType,
-              status: setupIntent.status,
-            },
-          });
+          if (userId) {
+            const channelName = `user_payments_${userId}`;
+            const channel = supabase.channel(channelName);
+
+            await channel.send({
+              type: 'broadcast',
+              event: 'setup_intent_update',
+              payload: {
+                setupIntentId: setupIntent.id,
+                eventType,
+                status: setupIntent.status,
+                paymentMethodId: setupIntent.payment_method,
+                timestamp: new Date().toISOString(),
+              },
+            });
+
+            paymentLogger.info({
+              operation: 'setup_intent_broadcast',
+              metadata: {
+                setupIntentId: setupIntent.id,
+                userId,
+                eventType,
+                status: setupIntent.status,
+              },
+            });
           }
         }
       }
@@ -2198,42 +2358,44 @@ export class PaymentsService {
    */
   private async broadcastInvoiceUpdate(
     invoice: Stripe.Invoice,
-    eventType: string
+    eventType: string,
   ): Promise<void> {
     try {
       // Get customer to find user ID
       if (invoice.customer) {
-        const customer = await stripe.customers.retrieve(invoice.customer as string);
+        const customer = await stripe.customers.retrieve(
+          invoice.customer as string,
+        );
         if (customer && !customer.deleted) {
           const userId = (customer as Stripe.Customer).metadata?.userId;
-          
-          if (userId) {
-          const channelName = `user_payments_${userId}`;
-          const channel = supabase.channel(channelName);
-          
-          await channel.send({
-            type: 'broadcast',
-            event: 'invoice_update',
-            payload: {
-              invoiceId: invoice.id,
-              eventType,
-              status: invoice.status,
-              amountPaid: invoice.amount_paid / 100,
-              amountDue: invoice.amount_due / 100,
-              attemptCount: invoice.attempt_count,
-              timestamp: new Date().toISOString(),
-            },
-          });
 
-          paymentLogger.info({
-            operation: 'invoice_broadcast',
-            metadata: {
-              invoiceId: invoice.id,
-              userId,
-              eventType,
-              status: invoice.status,
-            },
-          });
+          if (userId) {
+            const channelName = `user_payments_${userId}`;
+            const channel = supabase.channel(channelName);
+
+            await channel.send({
+              type: 'broadcast',
+              event: 'invoice_update',
+              payload: {
+                invoiceId: invoice.id,
+                eventType,
+                status: invoice.status,
+                amountPaid: invoice.amount_paid / 100,
+                amountDue: invoice.amount_due / 100,
+                attemptCount: invoice.attempt_count,
+                timestamp: new Date().toISOString(),
+              },
+            });
+
+            paymentLogger.info({
+              operation: 'invoice_broadcast',
+              metadata: {
+                invoiceId: invoice.id,
+                userId,
+                eventType,
+                status: invoice.status,
+              },
+            });
           }
         }
       }

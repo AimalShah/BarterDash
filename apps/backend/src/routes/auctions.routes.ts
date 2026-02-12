@@ -165,4 +165,37 @@ router.delete(
   }),
 );
 
+/**
+ * POST /auctions/:id/extend
+ * Extend auction duration (seller only, during active auction)
+ * Protected - SELLER role required
+ */
+router.post(
+  '/:id/extend',
+  authenticate,
+  requireRoles('SELLER'),
+  validate(uuidParamSchema),
+  asyncHandler(async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.id;
+    const auctionId = req.params.id as string;
+    const { extension_seconds = 30 } = req.body;
+
+    const result = await auctionsService.extendAuction(
+      auctionId,
+      userId,
+      extension_seconds,
+    );
+
+    if (result.isErr()) {
+      throw result.error;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: result.value,
+      message: `Auction extended by ${extension_seconds} seconds`,
+    });
+  }),
+);
+
 export default router;

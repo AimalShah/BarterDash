@@ -29,7 +29,12 @@ router.post(
   validate(createPaymentIntentSchema),
   asyncHandler(async (req: AuthRequest, res: Response) => {
     const userId = req.user!.id;
-    const result = await paymentsService.createPaymentIntent(userId, req.body);
+    const idempotencyKey = req.headers['idempotency-key'] as string | undefined;
+    const result = await paymentsService.createPaymentIntent(
+      userId,
+      req.body,
+      idempotencyKey,
+    );
 
     if (result.isErr()) {
       throw result.error;
@@ -167,7 +172,10 @@ router.put(
   asyncHandler(async (req: AuthRequest, res: Response) => {
     const userId = req.user!.id;
     const { paymentMethodId } = req.params;
-    const result = await paymentsService.setDefaultPaymentMethod(userId, paymentMethodId as string);
+    const result = await paymentsService.setDefaultPaymentMethod(
+      userId,
+      paymentMethodId as string,
+    );
 
     if (result.isErr()) {
       throw result.error;
@@ -192,7 +200,10 @@ router.delete(
   asyncHandler(async (req: AuthRequest, res: Response) => {
     const userId = req.user!.id;
     const { paymentMethodId } = req.params;
-    const result = await paymentsService.deletePaymentMethod(userId, paymentMethodId as string);
+    const result = await paymentsService.deletePaymentMethod(
+      userId,
+      paymentMethodId as string,
+    );
 
     if (result.isErr()) {
       throw result.error;
@@ -216,7 +227,10 @@ router.post(
   validate(createPaymentIntentWithMethodSchema),
   asyncHandler(async (req: AuthRequest, res: Response) => {
     const userId = req.user!.id;
-    const result = await paymentsService.createPaymentIntentWithMethod(userId, req.body);
+    const result = await paymentsService.createPaymentIntentWithMethod(
+      userId,
+      req.body,
+    );
 
     if (result.isErr()) {
       throw result.error;
@@ -244,7 +258,12 @@ router.post(
   validate(createPaymentSheetSchema),
   asyncHandler(async (req: AuthRequest, res: Response) => {
     const userId = req.user!.id;
-    const result = await paymentsService.createPaymentSheet(userId, req.body);
+    const idempotencyKey = req.headers['idempotency-key'] as string | undefined;
+    const result = await paymentsService.createPaymentSheet(
+      userId,
+      req.body,
+      idempotencyKey,
+    );
 
     if (result.isErr()) {
       throw result.error;
@@ -268,7 +287,12 @@ router.post(
   validate(createSetupIntentSchema),
   asyncHandler(async (req: AuthRequest, res: Response) => {
     const userId = req.user!.id;
-    const result = await paymentsService.createSetupIntent(userId, req.body);
+    const idempotencyKey = req.headers['idempotency-key'] as string | undefined;
+    const result = await paymentsService.createSetupIntent(
+      userId,
+      req.body,
+      idempotencyKey,
+    );
 
     if (result.isErr()) {
       throw result.error;

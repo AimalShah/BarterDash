@@ -200,6 +200,8 @@ export class AuctionsService {
       status: 'active',
       startedAt: now,
       endsAt: endsAt,
+      mode: data.mode || 'normal',
+      maxTimerExtensions: data.max_timer_extensions || 10,
     });
 
     if (auctionResult.isErr()) return auctionResult;
@@ -486,5 +488,69 @@ export class AuctionsService {
     }
 
     return await this.repository.update(auctionId, { status: 'cancelled' });
+  }
+
+  /**
+   * Extend auction duration
+   * Used during live auctions when bids come in near the end (like Whatnot's 10s extension)
+   */
+  async extendAuction(
+    auctionId: string,
+    userId: string,
+    extensionSeconds: number = 30,
+  ): Promise<AppResult<any>> {
+    const auctionResult = await this.repository.findById(auctionId);
+    if (auctionResult.isErr()) return failure(auctionResult.error);
+
+    const auction: any = auctionResult.value;
+    if (!auction) return failure(new NotFoundError('Auction', auctionId));
+
+    // Verify auction is active
+    if (auction.status !== 'active') {
+      return failure(new ValidationError('Can only extend active auctions'));
+    }
+
+    // Verify ownership (seller can extend, or system can extend automatically)
+    if (auction.product?.sellerId !== userId) {
+      return failure(new ForbiddenError('You do not own this auction'));
+    }
+
+    // Check if max extensions reached
+    if (
+      auction.maxTimerExtensions &&
+      (auction.timerExtensions || 0) >= auction.maxTimerExtensions
+    ) {
+      return failure(new ValidationError('Maximum timer extensions reached'));
+    }
+
+    // Calculate new end time
+    const currentEndsAt = new Date(auction.endsAt);
+    const newEndsAt = new Date(
+      currentEndsAt.getTime() + extensionSeconds * 1000,
+    );
+
+    // Update auction
+    const updateResult = await this.repository.update(auctionId, {
+      endsAt: newEndsAt,
+      timerExtensions: (auction.timerExtensions || 0) + 1,
+    });
+
+    if (updateResult.isErr()) {
+      return failure(updateResult.error);
+    }
+
+    // Re-schedule the end job
+    const delay = newEndsAt.getTime() - Date.now();
+    await auctionQueue.add(
+      'end-auction',
+      { auctionId: auction.id },
+      { delay, removeOnComplete: true },
+    );
+
+    return success({
+      ...updateResult.value,
+      extensionSeconds,
+      newEndsAt,
+    });
   }
 }

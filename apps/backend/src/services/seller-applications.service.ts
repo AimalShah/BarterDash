@@ -171,6 +171,10 @@ export class SellerApplicationsService {
     }
 
     try {
+      // Get the return URL from environment or use default
+      const returnUrl =
+        process.env.IDENTITY_RETURN_URL || 'barterdash://seller/verification';
+
       // Create Stripe Identity verification session
       const session = await stripe.identity.verificationSessions.create({
         type: 'document',
@@ -184,6 +188,7 @@ export class SellerApplicationsService {
             require_matching_selfie: true,
           },
         },
+        return_url: returnUrl,
       });
 
       // Update application status to in_review
@@ -224,7 +229,8 @@ export class SellerApplicationsService {
           });
 
           // Create seller details
-          const createResult = await this.repository.createSellerDetails(userId);
+          const createResult =
+            await this.repository.createSellerDetails(userId);
           if (createResult.isErr()) return failure(createResult.error);
 
           const verifyResult = await this.repository.setIdentityVerified(
@@ -384,9 +390,7 @@ export class SellerApplicationsService {
   /**
    * Admin: Get identity verification status for an application
    */
-  async adminGetIdentityStatus(
-    applicationId: string,
-  ): Promise<
+  async adminGetIdentityStatus(applicationId: string): Promise<
     AppResult<{
       applicationId: string;
       userId: string;
