@@ -124,7 +124,7 @@ export default function AddProductScreen() {
             });
 
             Alert.alert("Success", "Product created successfully!", [
-                { text: "OK", onPress: () => router.back() }
+                { text: "OK", onPress: () => router.replace('/seller/inventory') }
             ]);
         } catch (error: any) {
             console.error("Error creating product:", error);
@@ -352,13 +352,14 @@ export default function AddProductScreen() {
                             isDisabled={loading || uploading}
                             size="xl"
                             bg={COLORS.primaryGold}
-                            rounded="$lg"
+                            rounded="$full"
                             h={56}
+                            px="$6"
                         >
                             {loading ? (
                                 <Spinner color={COLORS.luxuryBlack} />
                             ) : (
-                                <ButtonText fontWeight="$black" fontSize="$md" color={COLORS.luxuryBlack}>
+                                <ButtonText fontWeight="$black" fontSize="$md" color={COLORS.luxuryBlack} textAlign="center">
                                     CREATE PRODUCT
                                 </ButtonText>
                             )}

@@ -17,18 +17,21 @@ import {
   Center,
   Pressable,
 } from "@gluestack-ui/themed";
-import { Mail, RefreshCw, ArrowLeft, CheckCircle2 } from "lucide-react-native";
+import { Mail, RefreshCw, ArrowLeft, CheckCircle2, LogIn } from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
 import { COLORS } from "@/constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuthStore } from "@/store/authStore";
 
 export default function VerifyEmailScreen() {
   const insets = useSafeAreaInsets();
   const { email: emailParam } = useLocalSearchParams<{ email?: string }>();
   const [email, setEmail] = useState(emailParam || "");
   const [isResending, setIsResending] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
+  const { fetchProfile } = useAuthStore();
 
   useEffect(() => {
     if (countdown > 0 && !canResend) {
@@ -69,6 +72,48 @@ export default function VerifyEmailScreen() {
       );
     } finally {
       setIsResending(false);
+    }
+  };
+
+  const handleContinue = async () => {
+    setIsChecking(true);
+    try {
+      // Check if user has verified their email by getting the current session
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) throw error;
+
+      if (session?.user?.email_confirmed_at) {
+        // Email is verified, fetch profile and redirect
+        await fetchProfile();
+        
+        Alert.alert(
+          "Email Verified!",
+          "Your email has been verified successfully. Let's set up your profile.",
+          [
+            {
+              text: "Continue",
+              onPress: () => {
+                router.replace("/(onboarding)/profile-setup");
+              },
+            },
+          ]
+        );
+      } else {
+        // Email not verified yet
+        Alert.alert(
+          "Email Not Verified",
+          "Please check your email and click the verification link. If you've already verified, try signing in."
+        );
+      }
+    } catch (error: any) {
+      console.error("Check verification error:", error);
+      Alert.alert(
+        "Error",
+        error.message || "Failed to check verification status. Please try signing in."
+      );
+    } finally {
+      setIsChecking(false);
     }
   };
 
@@ -165,26 +210,58 @@ export default function VerifyEmailScreen() {
         bg={COLORS.luxuryBlack}
       >
         <VStack space="md">
+          {/* Continue Button - Check if email is verified */}
           <Button
             size="xl"
             variant="solid"
-            onPress={handleResendEmail}
-            bg={canResend ? COLORS.primaryGold : COLORS.luxuryBlackLighter}
+            onPress={handleContinue}
+            bg={COLORS.successGreen}
             rounded="$full"
             h={56}
+            px="$6"
+            isDisabled={isChecking}
+            sx={{
+              ":active": { opacity: 0.9 },
+            }}
+          >
+            {isChecking ? (
+              <ActivityIndicator color={COLORS.luxuryBlack} size="small" />
+            ) : (
+              <>
+                <LogIn size={20} color={COLORS.luxuryBlack} style={{ marginRight: 8 }} />
+                <ButtonText
+                  fontWeight="$bold"
+                  color={COLORS.luxuryBlack}
+                  textAlign="center"
+                >
+                  I've Verified My Email
+                </ButtonText>
+              </>
+            )}
+          </Button>
+
+          <Button
+            size="xl"
+            variant="outline"
+            onPress={handleResendEmail}
+            borderColor={canResend ? COLORS.primaryGold : COLORS.darkBorder}
+            rounded="$full"
+            h={56}
+            px="$6"
             isDisabled={!canResend || isResending}
             sx={{
               ":active": { opacity: 0.9 },
             }}
           >
             {isResending ? (
-              <ActivityIndicator color={canResend ? COLORS.luxuryBlack : COLORS.textPrimary} size="small" />
+              <ActivityIndicator color={COLORS.textPrimary} size="small" />
             ) : (
               <>
-                <RefreshCw size={20} color={canResend ? COLORS.luxuryBlack : COLORS.textMuted} style={{ marginRight: 8 }} />
+                <RefreshCw size={20} color={canResend ? COLORS.primaryGold : COLORS.textMuted} style={{ marginRight: 8 }} />
                 <ButtonText
                   fontWeight="$bold"
-                  color={canResend ? COLORS.luxuryBlack : COLORS.textMuted}
+                  color={canResend ? COLORS.primaryGold : COLORS.textMuted}
+                  textAlign="center"
                 >
                   {canResend
                     ? "Resend Verification Email"

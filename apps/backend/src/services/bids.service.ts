@@ -48,7 +48,14 @@ export class BidsService {
     }
 
     const auction = auctionResult.value;
+    const auctionSellerId = auction.seller_id ?? auction.sellerId;
     const currentBid = Number(auction.current_bid ?? auction.starting_bid ?? 0);
+
+    if (auctionSellerId === userId) {
+      return failure(
+        new ValidationError('Sellers cannot bid on their own auctions'),
+      );
+    }
 
     if (data.max_amount <= currentBid) {
       return failure(new ValidationError('Max bid must be higher than current bid'));

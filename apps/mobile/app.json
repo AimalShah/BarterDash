@@ -25,7 +25,10 @@
       "package": "com.barterdash.mobile",
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE"
       ],
       "ndk": {
         "enabled": false
@@ -72,6 +75,15 @@
     "plugins": [
       "expo-router",
       "@react-native-google-signin/google-signin",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#FFD700",
+          "sounds": ["./assets/notification-sound.wav"],
+          "enableBackgroundRemoteNotifications": true
+        }
+      ],
       [
         "expo-camera",
         {

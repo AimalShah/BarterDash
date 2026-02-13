@@ -1,15 +1,15 @@
-import sgMail from '@sendgrid/mail';
+import { Resend } from 'resend';
 import { config } from '../config';
 
 /**
  * Email Service
- * Handles transactional emails via SendGrid
+ * Handles transactional emails via Resend
  */
 export class EmailService {
+  private resend: Resend | null;
+
   constructor() {
-    if (config.sendgridApiKey) {
-      sgMail.setApiKey(config.sendgridApiKey);
-    }
+    this.resend = config.resendApiKey ? new Resend(config.resendApiKey) : null;
   }
 
   /**
@@ -21,7 +21,7 @@ export class EmailService {
     text: string,
     html?: string,
   ): Promise<boolean> {
-    if (!config.sendgridApiKey) {
+    if (!this.resend) {
       console.log('📧 [DEV EMAIL LOG]:');
       console.log(`To: ${to}`);
       console.log(`Subject: ${subject}`);
@@ -30,13 +30,18 @@ export class EmailService {
     }
 
     try {
-      await sgMail.send({
-        to,
+      const { error } = await this.resend.emails.send({
         from: config.fromEmail,
+        to: [to],
         subject,
         text,
         html: html || text,
       });
+
+      if (error) {
+        throw new Error(`Resend API error: ${error.message}`);
+      }
+
       return true;
     } catch (error) {
       console.error('❌ Failed to send email:', error);

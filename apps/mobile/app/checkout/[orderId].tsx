@@ -264,8 +264,18 @@ export default function CheckoutScreen() {
         <Text color={COLORS.textSecondary} mt="$4">
           Order not found
         </Text>
-        <Button mt="$4" bg={COLORS.primaryGold} onPress={() => router.back()}>
-          <ButtonText color={COLORS.luxuryBlack}>Go Back</ButtonText>
+        <Button
+          mt="$4"
+          bg={COLORS.primaryGold}
+          onPress={() => router.replace('/(tabs)')}
+          size="xl"
+          rounded="$full"
+          h={56}
+          px="$6"
+        >
+          <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
+            Go Home
+          </ButtonText>
         </Button>
       </Center>
     );
@@ -505,6 +515,9 @@ export default function CheckoutScreen() {
           bg={COLORS.primaryGold}
           onPress={handlePayWithEscrow}
           isDisabled={processing}
+          rounded="$full"
+          h={56}
+          px="$6"
         >
           {processing ? (
             <ButtonSpinner mr="$2" color={COLORS.luxuryBlack} />
@@ -515,7 +528,7 @@ export default function CheckoutScreen() {
               style={{ marginRight: 8 }}
             />
           )}
-          <ButtonText fontWeight="$bold" color={COLORS.luxuryBlack}>
+          <ButtonText fontWeight="$bold" color={COLORS.luxuryBlack} textAlign="center">
             {processing ? "Processing..." : `Pay $${order.total} Securely`}
           </ButtonText>
         </Button>

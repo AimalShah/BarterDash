@@ -280,9 +280,10 @@ export default function ProductDetailScreen() {
                             bg={COLORS.luxuryBlackLight}
                             borderColor={COLORS.primaryGold}
                             borderWidth={2}
-                            rounded="$sm"
+                            rounded="$full"
+                            px="$4"
                         >
-                            <ButtonText color={COLORS.primaryGold} fontWeight="$black" textTransform="uppercase">Edit Listing</ButtonText>
+                            <ButtonText color={COLORS.primaryGold} fontWeight="$black" textTransform="uppercase" textAlign="center">Edit Listing</ButtonText>
                         </Button>
                     </HStack>
                 ) : (product as any).status === 'live' ? (
@@ -299,13 +300,14 @@ export default function ProductDetailScreen() {
                                 flex={1}
                                 h={56}
                                 bg={COLORS.successGreen}
-                                rounded="$sm"
+                                rounded="$full"
+                                px="$2"
                                 isDisabled={actionLoading !== null}
                             >
                                 {actionLoading === 'buy' ? (
                                     <ActivityIndicator color={COLORS.textPrimary} />
                                 ) : (
-                                    <ButtonText color={COLORS.textPrimary} fontWeight="$black" textTransform="uppercase">
+                                    <ButtonText color={COLORS.textPrimary} fontWeight="$black" textTransform="uppercase" textAlign="center">
                                         Buy ${(product as any).buyout_price || (product as any).buyNowPrice}
                                     </ButtonText>
                                 )}
@@ -316,10 +318,11 @@ export default function ProductDetailScreen() {
                             flex={1}
                             h={56}
                             bg={COLORS.primaryGold}
-                            rounded="$sm"
+                            rounded="$full"
+                            px="$2"
                             isDisabled={actionLoading !== null}
                         >
-                            <ButtonText color={COLORS.luxuryBlack} fontWeight="$black" textTransform="uppercase">Place Bid</ButtonText>
+                            <ButtonText color={COLORS.luxuryBlack} fontWeight="$black" textTransform="uppercase" textAlign="center">Place Bid</ButtonText>
                         </Button>
                     </HStack>
                 ) : (
@@ -337,7 +340,8 @@ export default function ProductDetailScreen() {
                             bg={COLORS.luxuryBlackLight}
                             borderColor={COLORS.primaryGold}
                             borderWidth={2}
-                            rounded="$sm"
+                            rounded="$full"
+                            px="$2"
                             isDisabled={actionLoading !== null}
                         >
                             {actionLoading === 'cart' ? (
@@ -345,7 +349,7 @@ export default function ProductDetailScreen() {
                             ) : (
                                 <HStack alignItems="center" space="xs">
                                     <ShoppingCart size={16} color={COLORS.primaryGold} />
-                                    <ButtonText color={COLORS.primaryGold} fontWeight="$black" textTransform="uppercase">Add to Bag</ButtonText>
+                                    <ButtonText color={COLORS.primaryGold} fontWeight="$black" textTransform="uppercase" textAlign="center">Add to Bag</ButtonText>
                                 </HStack>
                             )}
                         </Button>
@@ -354,7 +358,8 @@ export default function ProductDetailScreen() {
                             flex={1}
                             h={56}
                             bg={COLORS.primaryGold}
-                            rounded="$sm"
+                            rounded="$full"
+                            px="$2"
                             isDisabled={actionLoading !== null}
                         >
                             {actionLoading === 'buy' ? (
@@ -362,7 +367,7 @@ export default function ProductDetailScreen() {
                             ) : (
                                 <HStack alignItems="center" space="xs">
                                     <Zap size={16} color={COLORS.luxuryBlack} />
-                                    <ButtonText color={COLORS.luxuryBlack} fontWeight="$black" textTransform="uppercase">Buy Now</ButtonText>
+                                    <ButtonText color={COLORS.luxuryBlack} fontWeight="$black" textTransform="uppercase" textAlign="center">Buy Now</ButtonText>
                                 </HStack>
                             )}
                         </Button>

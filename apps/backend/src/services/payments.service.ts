@@ -143,6 +143,19 @@ export class PaymentsService {
         );
       }
 
+      if (orderResult.sellerId === userId) {
+        paymentLogger.error({
+          ...context,
+          operation: 'checkout_session_creation_failed',
+          error: {
+            type: 'ValidationError',
+            message: 'Self-checkout is not allowed',
+            code: 'SELF_CHECKOUT_FORBIDDEN',
+          },
+        });
+        return failure(new ValidationError('You cannot pay for your own order'));
+      }
+
       if (orderResult.status === 'paid') {
         paymentLogger.warn({
           ...context,

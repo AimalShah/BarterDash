@@ -1,5 +1,10 @@
 import { FollowsRepository } from '../repositories/follows.repository';
-import { AppResult } from '../utils/result';
+import {
+  AppResult,
+  failure,
+  success,
+  ValidationError,
+} from '../utils/result';
 
 export class SocialService {
   private followsRepository: FollowsRepository;
@@ -12,6 +17,10 @@ export class SocialService {
     followerId: string,
     followingId: string,
   ): Promise<AppResult<boolean>> {
+    if (followerId === followingId) {
+      return failure(new ValidationError('Cannot follow yourself'));
+    }
+
     return await this.followsRepository.follow(followerId, followingId);
   }
 
@@ -19,6 +28,10 @@ export class SocialService {
     followerId: string,
     followingId: string,
   ): Promise<AppResult<boolean>> {
+    if (followerId === followingId) {
+      return failure(new ValidationError('Cannot unfollow yourself'));
+    }
+
     return await this.followsRepository.unfollow(followerId, followingId);
   }
 
@@ -40,6 +53,10 @@ export class SocialService {
     followerId: string,
     followingId: string,
   ): Promise<AppResult<boolean>> {
+    if (followerId === followingId) {
+      return success(false);
+    }
+
     return await this.followsRepository.isFollowing(followerId, followingId);
   }
 }

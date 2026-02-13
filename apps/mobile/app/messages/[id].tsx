@@ -3,7 +3,6 @@ import {
     FlatList,
     KeyboardAvoidingView,
     Platform,
-    Dimensions,
     TextInput,
     StatusBar,
     Vibration,
@@ -37,6 +36,14 @@ interface UserProfile {
 
 interface EnrichedMessage extends Message {
     sender: UserProfile;
+}
+
+function sortMessagesChronologically(items: EnrichedMessage[]): EnrichedMessage[] {
+    return [...items].sort((a, b) => {
+        const aTs = new Date(a.createdAt).getTime();
+        const bTs = new Date(b.createdAt).getTime();
+        return aTs - bTs;
+    });
 }
 
 export default function ConversationScreen() {
@@ -96,11 +103,11 @@ export default function ConversationScreen() {
                             sender: {
                                 id: senderProfile.id,
                                 username: senderProfile.username,
-                                avatarUrl: senderProfile.avatar_url || senderProfile.avatarUrl,
+                                avatarUrl: senderProfile.avatar_url || undefined,
                             }
                         };
 
-                        setMessages((prev) => [enrichedMsg, ...prev]);
+                        setMessages((prev) => sortMessagesChronologically([...prev, enrichedMsg]));
                         Vibration.vibrate(50);
 
                         // Mark as read
@@ -117,7 +124,15 @@ export default function ConversationScreen() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [id]);
+    }, [id, profile?.id]);
+
+    useEffect(() => {
+        if (!hasMessages || loading) return;
+
+        requestAnimationFrame(() => {
+            flatListRef.current?.scrollToEnd({ animated: true });
+        });
+    }, [messages, hasMessages, loading]);
 
     const loadData = async () => {
         setLoading(true);
@@ -137,14 +152,25 @@ export default function ConversationScreen() {
         if (!id || !profile) return;
 
         try {
-            const msgs = await messagesService.getMessages(id, 1);
+            const conversations = await messagesService.getConversations();
+            const currentConversation = conversations.find((conversation) => conversation.id === id);
 
-            if (msgs.length > 0) {
-                const firstMsg = msgs[0];
-                if (firstMsg.sender && firstMsg.senderId !== profile.id) {
-                    setOtherUser(firstMsg.sender);
+            if (currentConversation?.otherUser) {
+                setOtherUser({
+                    id: currentConversation.otherUser.id,
+                    username: currentConversation.otherUser.username,
+                    avatarUrl: currentConversation.otherUser.avatarUrl,
+                });
+                return;
+            }
+
+            const msgs = await messagesService.getMessages(id, 1);
+            const firstOtherUserMessage = msgs.find((msg) => msg.senderId !== profile.id);
+            if (firstOtherUserMessage) {
+                if (firstOtherUserMessage.sender) {
+                    setOtherUser(firstOtherUserMessage.sender);
                 } else {
-                    await fetchOtherUser(firstMsg.senderId === profile.id ? firstMsg.senderId : firstMsg.senderId);
+                    await fetchOtherUser(firstOtherUserMessage.senderId);
                 }
             }
         } catch (error) {
@@ -158,7 +184,7 @@ export default function ConversationScreen() {
             setOtherUser({
                 id: userProfile.id,
                 username: userProfile.username,
-                avatarUrl: userProfile.avatar_url || userProfile.avatarUrl,
+                avatarUrl: userProfile.avatar_url || undefined,
             });
         } catch (error) {
             console.error("Error fetching other user:", error);
@@ -169,7 +195,7 @@ export default function ConversationScreen() {
         if (!id) return;
         try {
             const data = await messagesService.getMessages(id);
-            setMessages(data as EnrichedMessage[]);
+            setMessages(sortMessagesChronologically(data as EnrichedMessage[]));
 
             if (data.length > 0) {
                 await messagesService.markAsRead(id);
@@ -197,7 +223,9 @@ export default function ConversationScreen() {
 
         try {
             const newMessage = await messagesService.sendMessage(id, content);
-            setMessages((prev) => [newMessage as EnrichedMessage, ...prev]);
+            setMessages((prev) =>
+                sortMessagesChronologically([...prev, newMessage as EnrichedMessage]),
+            );
         } catch (error) {
             console.error("Error sending message:", error);
             setInputText(content);
@@ -326,11 +354,9 @@ export default function ConversationScreen() {
                             data={messages}
                             renderItem={renderMessage}
                             keyExtractor={(item) => item.id}
-                            inverted
                             contentContainerStyle={{
                                 paddingHorizontal: 16,
-                                paddingTop: 24,
-                                paddingBottom: 24,
+                                paddingVertical: 24,
                                 flexGrow: 1,
                                 justifyContent: hasMessages ? "flex-start" : "center",
                                 alignItems: "stretch",

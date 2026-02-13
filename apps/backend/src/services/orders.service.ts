@@ -37,6 +37,10 @@ export class OrdersService {
   }
 
   async createOrder(data: any): Promise<AppResult<any>> {
+    if (data?.buyerId && data?.sellerId && data.buyerId === data.sellerId) {
+      return failure(new ForbiddenError('You cannot buy your own product'));
+    }
+
     return await this.repository.create(data);
   }
 

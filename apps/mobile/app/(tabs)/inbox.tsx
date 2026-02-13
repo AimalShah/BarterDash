@@ -100,7 +100,13 @@ export default function InboxScreen() {
 
 		try {
 			const data = await messagesService.getConversations();
-			setConversations(Array.isArray(data) ? data : []);
+			const normalized = Array.isArray(data) ? data : [];
+			const sorted = [...normalized].sort((a, b) => {
+				const aTs = new Date(a.lastMessage?.createdAt || a.lastMessageAt || 0).getTime();
+				const bTs = new Date(b.lastMessage?.createdAt || b.lastMessageAt || 0).getTime();
+				return bTs - aTs;
+			});
+			setConversations(sorted);
 		} catch (error) {
 			console.error("Error fetching conversations:", error);
 			setConversations([]);
@@ -118,8 +124,8 @@ export default function InboxScreen() {
 				socialService.getFollowers(profile.id),
 				socialService.getFollowing(profile.id),
 			]);
-			setFollowers(followersRes?.followers || []);
-			setFollowing(followingRes?.following || []);
+			setFollowers((followersRes?.followers || []).filter((user) => user.id !== profile.id));
+			setFollowing((followingRes?.following || []).filter((user) => user.id !== profile.id));
 		} catch (error) {
 			console.error("Error fetching follow users:", error);
 		} finally {
@@ -296,8 +302,10 @@ export default function InboxScreen() {
 					py="$4"
 					borderBottomWidth={1}
 					borderColor={COLORS.darkBorder}
-					bg={COLORS.luxuryBlack}>
-					<VStack alignItems="center">
+					bg={COLORS.luxuryBlack}
+					justifyContent="space-between"
+					alignItems="center">
+					<VStack>
 						<Heading size="2xl" color={COLORS.textPrimary} fontWeight="$bold">
 							Inbox
 						</Heading>

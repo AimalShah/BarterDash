@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Alert, StatusBar } from 'react-native';
 import { router } from 'expo-router';
+import { makeRedirectUri } from 'expo-auth-session';
 import {
     Box,
     Heading,
@@ -30,8 +31,16 @@ export default function ForgotPasswordScreen() {
 
         setLoading(true);
         try {
+            // Create redirect URI for password reset
+            const redirectTo = makeRedirectUri({
+                scheme: 'barterdash',
+                path: 'auth/update-password'
+            });
+
+            console.log('Password reset redirectTo:', redirectTo);
+
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: 'barterdash://auth/update-password',
+                redirectTo,
             });
 
             if (error) throw error;
@@ -94,17 +103,18 @@ export default function ForgotPasswordScreen() {
                         </FormControl>
 
                         <Button
-                            size="lg"
+                            size="xl"
                             variant="solid"
-                            action="primary"
                             isDisabled={loading}
-                            isFocusVisible={false}
                             onPress={handleReset}
                             bg={COLORS.primaryGold}
                             mt="$2"
-                            sx={{ ":active": { bg: COLORS.secondaryGold } }}
+                            rounded="$full"
+                            h={56}
+                            px="$6"
+                            sx={{ ":active": { opacity: 0.9 } }}
                         >
-                            <ButtonText fontWeight="$bold" color={COLORS.luxuryBlack}>
+                            <ButtonText fontWeight="$bold" color={COLORS.luxuryBlack} textAlign="center">
                                 {loading ? "Sending..." : "Send Reset Link"}
                             </ButtonText>
                         </Button>
@@ -112,12 +122,13 @@ export default function ForgotPasswordScreen() {
                         <Button
                             size="md"
                             variant="link"
-                            action="secondary"
-                            isFocusVisible={false}
                             onPress={() => router.back()}
                             mt="$2"
+                            h={48}
                         >
-                            <ButtonText color={COLORS.textSecondary}>Back to Login</ButtonText>
+                            <ButtonText color={COLORS.textSecondary} fontWeight="$bold" textAlign="center">
+                                Back to Login
+                            </ButtonText>
                         </Button>
                     </VStack>
                 </Box>

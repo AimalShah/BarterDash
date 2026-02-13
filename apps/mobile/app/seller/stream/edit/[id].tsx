@@ -137,7 +137,7 @@ export default function EditStreamScreen() {
         });
 
         Alert.alert("Success", "Stream updated successfully", [
-          { text: "OK", onPress: () => router.back() },
+          { text: "OK", onPress: () => router.replace(`/seller/stream/${streamId}`) },
         ]);
       } catch (error: any) {
         Alert.alert("Error", error.message || "Failed to update stream");
@@ -174,11 +174,16 @@ export default function EditStreamScreen() {
               The stream you're looking for could not be found.
             </Text>
             <Button
-              size="lg"
-              onPress={() => router.back()}
+              size="xl"
+              onPress={() => router.replace('/seller/dashboard')}
               bg={COLORS.primaryGold}
+              rounded="$full"
+              h={56}
+              px="$6"
             >
-              <ButtonText color={COLORS.luxuryBlack}>Go Back</ButtonText>
+              <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
+                Back to Dashboard
+              </ButtonText>
             </Button>
           </VStack>
         </Center>
@@ -312,12 +317,13 @@ export default function EditStreamScreen() {
             size="xl"
             onPress={handleSave}
             bg={COLORS.primaryGold}
-            rounded="$sm"
+            rounded="$full"
             h={56}
             isDisabled={saving}
             mt="$4"
+            px="$6"
           >
-            <ButtonText fontWeight="$black" size="md" color={COLORS.luxuryBlack}>
+            <ButtonText fontWeight="$black" size="md" color={COLORS.luxuryBlack} textAlign="center">
               {saving ? "Saving..." : "Save Changes"}
             </ButtonText>
           </Button>

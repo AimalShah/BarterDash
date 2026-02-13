@@ -7,6 +7,7 @@ import {
   ScrollView,
 } from "react-native";
 import { router } from "expo-router";
+import { makeRedirectUri } from "expo-auth-session";
 import {
   Box,
   Heading,
@@ -40,9 +41,20 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
+      // Create redirect URI for email verification
+      const redirectTo = makeRedirectUri({
+        scheme: 'barterdash',
+        path: 'auth/confirm'
+      });
+
+      console.log('Registering with redirectTo:', redirectTo);
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: redirectTo,
+        },
       });
 
       if (error) throw error;

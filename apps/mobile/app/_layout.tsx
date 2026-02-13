@@ -21,12 +21,19 @@ import {
 import { View, ActivityIndicator } from "react-native";
 import { COLORS } from "../constants/colors";
 import { useDeepLinkHandler } from "../hooks/useDeepLinkHandler";
+import { usePushNotificationHandler } from "../hooks/usePushNotificationHandler";
 
 const queryClient = new QueryClient();
 
 // Deep link handler component
 function DeepLinkHandler() {
   useDeepLinkHandler();
+  return null;
+}
+
+// Push notification handler component
+function PushNotificationHandler() {
+  usePushNotificationHandler();
   return null;
 }
 
@@ -73,6 +80,7 @@ export default function RootLayout() {
           <QueryClientProvider client={queryClient}>
             <ToastProvider>
               <DeepLinkHandler />
+              <PushNotificationHandler />
               <AuthGuard>
                 <OnboardingGuard>
                   <Stack

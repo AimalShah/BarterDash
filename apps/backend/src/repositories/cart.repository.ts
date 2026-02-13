@@ -168,6 +168,12 @@ export class CartRepository {
           continue;
         }
 
+        // Block self-purchase attempts from ever reaching checkout.
+        if (product.sellerId === userId) {
+          invalidItems.push(cartItem);
+          continue;
+        }
+
         // Check if quantity is available
         if (cartItem.quantity > product.quantity - product.soldQuantity) {
           invalidItems.push(cartItem);

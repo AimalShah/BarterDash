@@ -59,7 +59,7 @@ You must configure these environment variables in Render Dashboard under your se
 | `STREAM_API_KEY` | GetStream API key | No |
 | `STREAM_API_SECRET` | GetStream API secret | No |
 | `EXPO_ACCESS_TOKEN` | Expo push notification token | No |
-| `SENDGRID_API_KEY` | SendGrid email API key | No |
+| `RESEND_API_KEY` | Resend email API key | No |
 
 ---
 

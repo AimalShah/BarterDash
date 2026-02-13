@@ -336,19 +336,20 @@ export default function CheckoutScreen() {
                     <Button
                         size="xl"
                         bg={COLORS.primaryGold}
-                        h="$16"
+                        h={56}
                         mt="$6"
-                        rounded="$sm"
+                        rounded="$full"
+                        px="$6"
                         onPress={handlePlaceOrder}
                         disabled={placingOrder}
                     >
                         {placingOrder ? (
                             <HStack space="md" alignItems="center">
                                 <Spinner color={COLORS.luxuryBlack} size="small" />
-                                <ButtonText fontWeight="$black" textTransform="uppercase" color={COLORS.luxuryBlack}>PROCESSING...</ButtonText>
+                                <ButtonText fontWeight="$black" textTransform="uppercase" color={COLORS.luxuryBlack} textAlign="center">PROCESSING...</ButtonText>
                             </HStack>
                         ) : (
-                            <ButtonText fontWeight="$black" textTransform="uppercase" color={COLORS.luxuryBlack}>SECURE CHECKOUT</ButtonText>
+                            <ButtonText fontWeight="$black" textTransform="uppercase" color={COLORS.luxuryBlack} textAlign="center">SECURE CHECKOUT</ButtonText>
                         )}
                     </Button>
 

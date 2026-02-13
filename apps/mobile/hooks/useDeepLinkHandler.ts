@@ -2,10 +2,15 @@ import { useEffect, useCallback } from 'react';
 import { Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useToast } from '../context/ToastContext';
+import { supabase } from '../lib/supabase';
+import * as QueryParams from 'expo-auth-session/build/QueryParams';
 
 /**
  * Deep Link Handler
  * Handles deep links for:
+ * - Email verification confirmations
+ * - Magic Link authentication
+ * - Password reset flows
  * - Stripe Identity verification callbacks
  * - Payment return URLs
  * - Other app-specific deep links
@@ -14,13 +19,155 @@ export function useDeepLinkHandler() {
   const router = useRouter();
   const { showToast } = useToast();
 
-  const handleDeepLink = useCallback((url: string) => {
+  const createSessionFromUrl = useCallback(async (url: string) => {
+    console.log('Creating session from URL:', url);
+    
+    try {
+      const { params, errorCode } = QueryParams.getQueryParams(url);
+      
+      if (errorCode) {
+        console.error('Query params error:', errorCode);
+        throw new Error(errorCode);
+      }
+
+      const { access_token, refresh_token, type, token_hash } = params;
+
+      // Handle OTP verification (email confirmation, magic link, password reset)
+      if (token_hash && type) {
+        console.log('Verifying OTP:', { type, token_hash });
+        
+        const { data, error } = await supabase.auth.verifyOtp({
+          token_hash,
+          type: type as any,
+        });
+
+        if (error) {
+          console.error('OTP verification error:', error);
+          throw error;
+        }
+
+        if (data.session) {
+          console.log('OTP verification successful, session created');
+          showToast('Email verified successfully!', 'success');
+          
+          // Redirect based on type
+          if (type === 'signup' || type === 'email') {
+            // Email verification - go to onboarding
+            router.replace('/(onboarding)/profile-setup');
+          } else if (type === 'recovery') {
+            // Password reset - go to update password screen
+            router.replace({
+              pathname: '/(auth)/update-password',
+              params: { access_token: data.session.access_token }
+            });
+          } else if (type === 'magiclink') {
+            // Magic link - go to main app
+            router.replace('/(tabs)');
+          }
+          
+          return true;
+        }
+      }
+
+      // Handle direct access_token/refresh_token (for OAuth, etc.)
+      if (access_token && refresh_token) {
+        console.log('Setting session from tokens');
+        
+        const { data, error } = await supabase.auth.setSession({
+          access_token,
+          refresh_token,
+        });
+
+        if (error) {
+          console.error('Session error:', error);
+          throw error;
+        }
+
+        if (data.session) {
+          console.log('Session set successfully');
+          showToast('Signed in successfully!', 'success');
+          router.replace('/(tabs)');
+          return true;
+        }
+      }
+
+      return false;
+    } catch (error: any) {
+      console.error('Session creation error:', error);
+      showToast(error.message || 'Authentication failed', 'error');
+      return false;
+    }
+  }, [router, showToast]);
+
+  const handleDeepLink = useCallback(async (url: string) => {
     console.log('Deep link received:', url);
 
     // Parse the URL
     const parsedUrl = new URL(url);
     const path = parsedUrl.pathname;
     const params = parsedUrl.searchParams;
+
+    // Handle auth confirmation URLs (Supabase sends these in emails)
+    // URL format: barterdash://auth/confirm?token_hash=xxx&type=signup
+    if (path.includes('auth/confirm') || path.includes('confirm')) {
+      console.log('Handling auth confirmation deep link');
+      const success = await createSessionFromUrl(url);
+      
+      if (!success) {
+        showToast('Failed to verify email. Please try again.', 'error');
+        router.replace('/(auth)/login');
+      }
+      return;
+    }
+
+    // Handle password reset/update
+    if (path.includes('auth/update-password') || path.includes('reset-password')) {
+      console.log('Handling password reset deep link');
+      const accessToken = params.get('access_token') || params.get('code');
+      
+      if (accessToken) {
+        router.push({
+          pathname: '/(auth)/update-password',
+          params: { access_token: accessToken }
+        });
+      } else {
+        // Try to create session from URL parameters
+        const success = await createSessionFromUrl(url);
+        if (!success) {
+          showToast('Invalid or expired reset link', 'error');
+          router.replace('/(auth)/forgot-password');
+        }
+      }
+      return;
+    }
+
+    // Handle magic link authentication
+    if (path.includes('auth/magic-link') || path.includes('magiclink')) {
+      console.log('Handling magic link deep link');
+      const success = await createSessionFromUrl(url);
+      
+      if (!success) {
+        showToast('Magic link expired or invalid', 'error');
+        router.replace('/(auth)/login');
+      }
+      return;
+    }
+
+    // Handle email verification callback
+    if (path.includes('verify') || path.includes('verification')) {
+      console.log('Handling verification deep link');
+      const success = await createSessionFromUrl(url);
+      
+      if (!success) {
+        // Check if this is a post-verification redirect
+        const verified = params.get('verified');
+        if (verified === 'true') {
+          showToast('Email verified! Please sign in.', 'success');
+          router.replace('/(auth)/login');
+        }
+      }
+      return;
+    }
 
     // Handle Stripe Identity verification callbacks
     if (path.includes('seller/verification')) {
@@ -73,7 +220,7 @@ export function useDeepLinkHandler() {
 
     // Handle other deep links
     console.log('Unhandled deep link:', url);
-  }, [router, showToast]);
+  }, [router, showToast, createSessionFromUrl]);
 
   useEffect(() => {
     // Handle deep link when app is opened from a URL
@@ -93,7 +240,7 @@ export function useDeepLinkHandler() {
     };
   }, [handleDeepLink]);
 
-  return { handleDeepLink };
+  return { handleDeepLink, createSessionFromUrl };
 }
 
 export default useDeepLinkHandler;

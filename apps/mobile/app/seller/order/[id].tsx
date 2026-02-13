@@ -48,8 +48,9 @@ export default function OrderDetailsScreen() {
             setOrder(data);
         } catch (error) {
             console.error('Error fetching order:', error);
-            Alert.alert('Error', 'Failed to load order details');
-            router.back();
+            Alert.alert('Error', 'Failed to load order details', [
+                { text: 'OK', onPress: () => router.replace('/seller/orders') }
+            ]);
         } finally {
             setLoading(false);
         }
@@ -179,45 +180,57 @@ export default function OrderDetailsScreen() {
                     {order.status === 'pending' && (
                         <Button
                             mt="$4"
-                            size="md"
+                            size="xl"
                             variant="solid"
-                            action="primary"
                             bg={COLORS.primaryGold}
                             onPress={() => handleUpdateStatus('processing')}
                             isDisabled={updating}
+                            rounded="$full"
+                            h={56}
+                            px="$6"
                         >
-                            <ButtonText color={COLORS.luxuryBlack}>Accept & Process Order</ButtonText>
+                            <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
+                                Accept & Process Order
+                            </ButtonText>
                         </Button>
                     )}
 
                     {order.status === 'processing' && !order.trackingNumber && (
                         <VStack space="sm" mt="$4">
                             <Button
-                                size="md"
+                                size="xl"
                                 variant="solid"
-                                action="positive"
                                 bg={COLORS.primaryGold}
                                 onPress={handleGenerateLabel}
                                 isDisabled={generatingLabel}
+                                rounded="$full"
+                                h={56}
+                                px="$6"
                             >
                                 {generatingLabel ? (
                                     <Spinner color={COLORS.luxuryBlack} />
                                 ) : (
                                     <HStack space="sm" alignItems="center">
                                         <Truck size={18} color={COLORS.luxuryBlack} />
-                                        <ButtonText color={COLORS.luxuryBlack}>Generate Shipping Label</ButtonText>
+                                        <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
+                                            Generate Shipping Label
+                                        </ButtonText>
                                     </HStack>
                                 )}
                             </Button>
                             <Button
-                                size="md"
+                                size="xl"
                                 variant="outline"
-                                action="secondary"
                                 borderColor={COLORS.successGreen}
                                 onPress={() => handleUpdateStatus('shipped')}
                                 isDisabled={updating}
+                                rounded="$full"
+                                h={56}
+                                px="$6"
                             >
-                                <ButtonText color={COLORS.successGreen}>Mark as Shipped (Manual)</ButtonText>
+                                <ButtonText color={COLORS.successGreen} fontWeight="$bold" textAlign="center">
+                                    Mark as Shipped (Manual)
+                                </ButtonText>
                             </Button>
                         </VStack>
                     )}
@@ -232,15 +245,19 @@ export default function OrderDetailsScreen() {
                                 </HStack>
                             </Box>
                             <Button
-                                size="md"
+                                size="xl"
                                 variant="solid"
-                                action="primary"
                                 bg={COLORS.primaryGold}
                                 onPress={handlePrintLabel}
+                                rounded="$full"
+                                h={56}
+                                px="$6"
                             >
                                 <HStack space="sm" alignItems="center">
                                     <Package size={18} color={COLORS.luxuryBlack} />
-                                    <ButtonText color={COLORS.luxuryBlack}>Print Label</ButtonText>
+                                    <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
+                                        Print Label
+                                    </ButtonText>
                                 </HStack>
                             </Button>
                         </VStack>

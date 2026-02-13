@@ -304,8 +304,18 @@ export default function CartCheckoutScreen() {
         <Text color={COLORS.textSecondary} mt="$4">
           Your cart is empty
         </Text>
-        <Button mt="$4" bg={COLORS.primaryGold} onPress={() => router.replace("/(tabs)")}>
-          <ButtonText color={COLORS.luxuryBlack}>Start Shopping</ButtonText>
+        <Button
+          mt="$4"
+          bg={COLORS.primaryGold}
+          onPress={() => router.replace("/(tabs)")}
+          size="xl"
+          rounded="$full"
+          h={56}
+          px="$6"
+        >
+          <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
+            Start Shopping
+          </ButtonText>
         </Button>
       </Center>
     );
@@ -488,8 +498,11 @@ export default function CartCheckoutScreen() {
                 size="xl"
                 bg={COLORS.primaryGold}
                 onPress={() => setStep("shipping")}
+                rounded="$full"
+                h={56}
+                px="$6"
               >
-                <ButtonText fontWeight="$bold" color={COLORS.luxuryBlack}>
+                <ButtonText fontWeight="$bold" color={COLORS.luxuryBlack} textAlign="center">
                   Continue to Shipping
                 </ButtonText>
               </Button>
@@ -648,13 +661,16 @@ export default function CartCheckoutScreen() {
                 bg={COLORS.primaryGold}
                 onPress={handleCreateOrder}
                 isDisabled={processing}
+                rounded="$full"
+                h={56}
+                px="$6"
               >
                 {processing ? (
                   <ButtonSpinner mr="$2" color={COLORS.luxuryBlack} />
                 ) : (
                   <CreditCard size={20} color={COLORS.luxuryBlack} style={{ marginRight: 8 }} />
                 )}
-                <ButtonText fontWeight="$bold" color={COLORS.luxuryBlack}>
+                <ButtonText fontWeight="$bold" color={COLORS.luxuryBlack} textAlign="center">
                   {processing ? "Creating Order..." : `Pay $${cartTotal?.total.toFixed(2)}`}
                 </ButtonText>
               </Button>
@@ -718,8 +734,14 @@ export default function CartCheckoutScreen() {
                     bg={COLORS.primaryGold}
                     onPress={handleAddPaymentMethod}
                     isDisabled={processing}
+                    size="md"
+                    rounded="$full"
+                    h={44}
+                    px="$4"
                   >
-                    <ButtonText color={COLORS.luxuryBlack}>Add Payment Method</ButtonText>
+                    <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
+                      Add Payment Method
+                    </ButtonText>
                   </Button>
                 </Box>
               ) : (
@@ -770,9 +792,14 @@ export default function CartCheckoutScreen() {
                     borderColor={COLORS.darkBorder}
                     onPress={handleAddPaymentMethod}
                     isDisabled={processing}
+                    rounded="$full"
+                    h={48}
+                    px="$4"
                   >
                     <Plus size={20} color={COLORS.textSecondary} style={{ marginRight: 8 }} />
-                    <ButtonText color={COLORS.textSecondary}>Add New Payment Method</ButtonText>
+                    <ButtonText color={COLORS.textSecondary} fontWeight="$bold" textAlign="center">
+                      Add New Payment Method
+                    </ButtonText>
                   </Button>
 
                   {orderId && cartTotal && (
@@ -782,13 +809,16 @@ export default function CartCheckoutScreen() {
                       onPress={() => handlePayment(orderId, cartTotal.total)}
                       isDisabled={processing}
                       mt="$4"
+                      rounded="$full"
+                      h={56}
+                      px="$6"
                     >
                       {processing ? (
                         <ButtonSpinner mr="$2" color={COLORS.luxuryBlack} />
                       ) : (
                         <CreditCard size={20} color={COLORS.luxuryBlack} style={{ marginRight: 8 }} />
                       )}
-                      <ButtonText fontWeight="$bold" color={COLORS.luxuryBlack}>
+                      <ButtonText fontWeight="$bold" color={COLORS.luxuryBlack} textAlign="center">
                         {processing ? "Processing..." : `Pay $${cartTotal?.total.toFixed(2)}`}
                       </ButtonText>
                     </Button>
@@ -819,15 +849,27 @@ export default function CartCheckoutScreen() {
                 <Button
                   bg={COLORS.primaryGold}
                   onPress={() => router.replace(`/orders/${orderId}`)}
+                  size="xl"
+                  rounded="$full"
+                  h={56}
+                  px="$6"
                 >
-                  <ButtonText color={COLORS.luxuryBlack}>View Order</ButtonText>
+                  <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
+                    View Order
+                  </ButtonText>
                 </Button>
                 <Button
                   variant="outline"
                   borderColor={COLORS.darkBorder}
                   onPress={() => router.replace("/(tabs)")}
+                  size="xl"
+                  rounded="$full"
+                  h={56}
+                  px="$6"
                 >
-                  <ButtonText color={COLORS.textSecondary}>Continue Shopping</ButtonText>
+                  <ButtonText color={COLORS.textSecondary} fontWeight="$bold" textAlign="center">
+                    Continue Shopping
+                  </ButtonText>
                 </Button>
               </VStack>
             </Center>

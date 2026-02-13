@@ -124,9 +124,10 @@ export default function AuctionDetailScreen() {
           <Text style={styles.errorText}>Auction not found</Text>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={() => router.replace('/(tabs)')}
           >
             <ArrowLeft size={24} color={COLORS.primaryGold} />
+            <Text style={{ color: COLORS.primaryGold, marginLeft: 8 }}>Go Home</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

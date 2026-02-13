@@ -207,11 +207,13 @@ const styles = StyleSheet.create({
     marginTop: 16,
     justifyContent: "center",
     alignItems: "center",
+    paddingHorizontal: 24,
   },
   signInText: {
     color: COLORS.luxuryBlack,
     fontSize: 16,
     fontWeight: "800",
+    textAlign: "center",
   },
   footer: {
     flexDirection: "row",

@@ -148,7 +148,7 @@ export default function ViewerStreamViewStream({
         const stream = await streamsService.findById(streamId);
         if (stream.status === "ended") {
           Alert.alert("Stream Ended", "The stream has ended.", [
-            { text: "OK", onPress: () => router.back() },
+            { text: "OK", onPress: () => router.replace('/(tabs)') },
           ]);
           clearInterval(interval);
         }
@@ -234,7 +234,7 @@ export default function ViewerStreamViewStream({
 
   const handleLeaveStream = useCallback(async () => {
     await disconnect();
-    router.back();
+    router.replace('/(tabs)');
   }, [disconnect, router]);
 
   // Show connection overlay while connecting

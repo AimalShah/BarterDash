@@ -19,9 +19,18 @@ export class BidsRepository {
   async getAuctionForBid(auctionId: string): Promise<AppResult<any>> {
     try {
       const result = await db.execute(sql`
-        SELECT id, status, current_bid, starting_bid, ends_at, minimum_bid_increment, mode
-        FROM auctions 
-        WHERE id = ${auctionId}
+        SELECT
+          a.id,
+          a.status,
+          a.current_bid,
+          a.starting_bid,
+          a.ends_at,
+          a.minimum_bid_increment,
+          a.mode,
+          p.seller_id
+        FROM auctions a
+        JOIN products p ON p.id = a.product_id
+        WHERE a.id = ${auctionId}
       `);
 
       const rows = (result as any)?.rows;
@@ -41,10 +50,20 @@ export class BidsRepository {
       console.log('[BidsRepository] Placing bid:', { auction: data.auction_id, user: userId, amount: data.amount });
 
       const auctionCheck = await db.execute(sql`
-        SELECT id, status, current_bid, starting_bid, ends_at, mode, timer_extensions, max_timer_extensions
-        FROM auctions 
-        WHERE id = ${data.auction_id}
-        AND status IN ('active', 'live')
+        SELECT
+          a.id,
+          a.status,
+          a.current_bid,
+          a.starting_bid,
+          a.ends_at,
+          a.mode,
+          a.timer_extensions,
+          a.max_timer_extensions,
+          p.seller_id
+        FROM auctions a
+        JOIN products p ON p.id = a.product_id
+        WHERE a.id = ${data.auction_id}
+        AND a.status IN ('active', 'live')
       `);
 
       const auctionRows = (auctionCheck as any)?.rows;
@@ -56,18 +75,36 @@ export class BidsRepository {
       const now = new Date();
       const endsAt = auction.ends_at ? new Date(auction.ends_at) : null;
 
+      if (auction.seller_id === userId) {
+        return failure(
+          new ValidationError('Sellers cannot bid on their own auctions'),
+        );
+      }
+
       if (endsAt && endsAt.getTime() < now.getTime()) {
         return failure(new ValidationError('Auction has ended'));
       }
 
       const result = await db.transaction(async (tx) => {
         const lockResult = await tx.execute(sql`
-          SELECT id, current_bid, starting_bid, minimum_bid_increment, status, ends_at, 
-                 bid_count, mode, timer_extensions, max_timer_extensions, original_ends_at
-          FROM auctions
-          WHERE id = ${data.auction_id}
-          AND status IN ('active', 'live')
-          AND (ends_at IS NULL OR ends_at > NOW())
+          SELECT
+            a.id,
+            a.current_bid,
+            a.starting_bid,
+            a.minimum_bid_increment,
+            a.status,
+            a.ends_at,
+            a.bid_count,
+            a.mode,
+            a.timer_extensions,
+            a.max_timer_extensions,
+            a.original_ends_at,
+            p.seller_id
+          FROM auctions a
+          JOIN products p ON p.id = a.product_id
+          WHERE a.id = ${data.auction_id}
+          AND a.status IN ('active', 'live')
+          AND (a.ends_at IS NULL OR a.ends_at > NOW())
           FOR UPDATE
         `);
 
@@ -79,6 +116,12 @@ export class BidsRepository {
         const auctionStatus = lockedAuction.status as string;
         if (!['active', 'live'].includes(auctionStatus)) {
           return failure(new ValidationError('Auction is not active'));
+        }
+
+        if (lockedAuction.seller_id === userId) {
+          return failure(
+            new ValidationError('Sellers cannot bid on their own auctions'),
+          );
         }
 
         const auctionEndsAt = lockedAuction.ends_at ? new Date(lockedAuction.ends_at) : null;

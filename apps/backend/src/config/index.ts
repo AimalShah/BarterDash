@@ -41,7 +41,7 @@ const configSchema = z.object({
   // Security
   encryptionKey: z.string().optional(),
   // Email (optional for dev)
-  sendgridApiKey: z.string().optional(),
+  resendApiKey: z.string().optional(),
   fromEmail: z.string().email().default('no-reply@barterdash.com'),
 
   // Stream Video (getstream.io) credentials
@@ -73,7 +73,7 @@ function loadConfig(): Config {
     supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
     sentryDsn: process.env.SENTRY_DSN,
     encryptionKey: process.env.ENCRYPTION_KEY,
-    sendgridApiKey: process.env.SENDGRID_API_KEY,
+    resendApiKey: process.env.RESEND_API_KEY,
     fromEmail: process.env.FROM_EMAIL || 'no-reply@barterdash.com',
     streamApiKey: process.env.STREAM_API_KEY,
     streamApiSecret: process.env.STREAM_API_SECRET,

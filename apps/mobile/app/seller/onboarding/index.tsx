@@ -245,7 +245,8 @@ export default function SellerOnboardingScreen() {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     } else {
-      router.back();
+      // Exit onboarding and go to dashboard
+      router.replace('/seller/dashboard');
     }
   };
 
@@ -467,9 +468,12 @@ export default function SellerOnboardingScreen() {
         borderColor={COLORS.darkBorder}
         onPress={handleDocumentPick}
         isDisabled={!selectedDocType}
+        rounded="$full"
+        h={56}
+        px="$6"
       >
         <Icon as={Upload} color={COLORS.textSecondary} mr="$2" />
-        <ButtonText color={COLORS.textSecondary}>Upload Document</ButtonText>
+        <ButtonText color={COLORS.textSecondary} fontWeight="$bold" textAlign="center">Upload Document</ButtonText>
       </Button>
 
       {/* Show uploaded documents */}
@@ -649,11 +653,14 @@ export default function SellerOnboardingScreen() {
       <Box px="$4" py="$4" borderTopWidth={1} borderTopColor={COLORS.darkBorder}>
         {currentStep === 3 ? (
           <Button
-            size="lg"
+            size="xl"
             backgroundColor={COLORS.primaryGold}
             onPress={() => router.replace('/(tabs)')}
+            rounded="$full"
+            h={56}
+            px="$6"
           >
-            <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold">
+            <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
               Go Home
             </ButtonText>
           </Button>
@@ -666,21 +673,27 @@ export default function SellerOnboardingScreen() {
                 borderColor={COLORS.darkBorder}
                 onPress={handleBack}
                 isDisabled={loading}
+                rounded="$full"
+                h={56}
+                px="$4"
               >
-                <ButtonText color={COLORS.textSecondary}>Back</ButtonText>
+                <ButtonText color={COLORS.textSecondary} fontWeight="$bold" textAlign="center">Back</ButtonText>
               </Button>
             )}
             <Button
               flex={currentStep > 0 ? 1 : undefined}
-              size="lg"
+              size="xl"
               backgroundColor={COLORS.primaryGold}
               onPress={handleNext}
               isDisabled={loading}
+              rounded="$full"
+              h={56}
+              px="$6"
             >
               {loading ? (
                 <ActivityIndicator color={COLORS.luxuryBlack} />
               ) : (
-                <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold">
+                <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
                   {currentStep === 2 ? 'Start Verification' : 'Continue'}
                 </ButtonText>
               )}

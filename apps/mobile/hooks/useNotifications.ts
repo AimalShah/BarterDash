@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { notificationsService, Notification } from '../lib/api/services/notifications';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
-import { Platform } from 'react-native';
+import { Platform, Alert } from 'react-native';
 
 interface UseNotificationsReturn {
   notifications: Notification[];
@@ -47,50 +47,95 @@ export function useNotifications(userId: string | undefined): UseNotificationsRe
     }
   }, [userId]);
 
-  // Register push token
+  // Register push token with improved error handling and permissions
   const registerPushToken = useCallback(async () => {
-    if (!userId || pushTokenRegistered) return;
+    if (!userId || pushTokenRegistered) {
+      console.log('⏭️ Skipping push token registration:', { userId, pushTokenRegistered });
+      return;
+    }
     
     try {
+      // Check if running on physical device
       if (!Device.isDevice) {
-        console.log('📱 Push notifications require a physical device');
+        console.log('📱 Push notifications require a physical device (not simulator/emulator)');
         return;
+      }
+
+      console.log('🔔 Starting push token registration...');
+
+      // For Android 13+, request POST_NOTIFICATIONS permission
+      if (Platform.OS === 'android' && Platform.Version >= 33) {
+        const { PermissionsAndroid } = await import('react-native');
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('🚫 Android notification permission denied');
+          return;
+        }
       }
 
       // Request permissions
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      console.log('📋 Existing notification permission status:', existingStatus);
+      
       let finalStatus = existingStatus;
       
       if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
+        console.log('📝 Requesting notification permissions...');
+        const { status } = await Notifications.requestPermissionsAsync({
+          ios: {
+            allowAlert: true,
+            allowBadge: true,
+            allowSound: true,
+          },
+        });
         finalStatus = status;
+        console.log('📋 New permission status:', finalStatus);
       }
       
       if (finalStatus !== 'granted') {
         console.log('🚫 Push notification permissions not granted');
+        Alert.alert(
+          'Notifications Disabled',
+          'Please enable notifications in your device settings to receive updates about auctions, messages, and live streams.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => Notifications.requestPermissionsAsync() }
+          ]
+        );
         return;
       }
+
+      console.log('✅ Notification permissions granted');
 
       // Get push token - wrapped in try-catch for Firebase initialization errors
       let token: string;
       try {
-        token = (await Notifications.getExpoPushTokenAsync()).data;
+        console.log('🎫 Getting Expo push token...');
+        const pushTokenData = await Notifications.getExpoPushTokenAsync({
+          projectId: '1b23c933-44a4-472e-a968-9e3b1d96ef7c', // Your EAS project ID
+        });
+        token = pushTokenData.data;
+        console.log('🎫 Got push token:', token.substring(0, 20) + '...');
       } catch (pushError: any) {
         // Firebase not initialized - this is expected in development
         if (pushError.message?.includes('FirebaseApp is not initialized')) {
-          console.log('ℹ️ Firebase not initialized. Push notifications disabled. This is normal in development.');
+          console.log('ℹ️ Firebase not initialized. Push notifications disabled. This is normal in development without a physical device build.');
           return;
         }
+        console.error('❌ Error getting push token:', pushError);
         throw pushError;
       }
       
       // Register with backend
       const platform = Platform.OS as 'ios' | 'android';
+      console.log('📤 Registering push token with backend...', { platform });
       await notificationsService.registerPushToken(token, platform);
       
       setPushTokenRegistered(true);
-      console.log('✅ Push token registered:', token);
-    } catch (error) {
+      console.log('✅ Push token registered successfully');
+    } catch (error: any) {
       console.error('❌ Failed to register push token:', error);
       // Don't throw - app can still work without push notifications
     }
@@ -105,8 +150,10 @@ export function useNotifications(userId: string | undefined): UseNotificationsRe
     // Initial fetch
     fetchNotifications();
     
-    // Register push token
-    registerPushToken();
+    // Register push token (with slight delay to ensure everything is ready)
+    const tokenTimer = setTimeout(() => {
+      registerPushToken();
+    }, 2000);
 
     // Subscribe to new notifications via Supabase Realtime
     const subscription = supabase
@@ -120,7 +167,7 @@ export function useNotifications(userId: string | undefined): UseNotificationsRe
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          console.log('📨 New notification received:', payload.new);
+          console.log('📨 New notification received via realtime:', payload.new);
           const newNotification = payload.new as Notification;
           
           // Add to list and update unread count
@@ -159,6 +206,7 @@ export function useNotifications(userId: string | undefined): UseNotificationsRe
 
     return () => {
       console.log('🧹 Cleaning up notification subscription');
+      clearTimeout(tokenTimer);
       supabase.removeChannel(subscription);
     };
   }, [userId, fetchNotifications, registerPushToken]);

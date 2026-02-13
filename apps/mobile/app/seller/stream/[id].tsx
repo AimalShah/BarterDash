@@ -356,12 +356,13 @@ export default function StreamManagementScreen() {
                 size="xl"
                 onPress={handleGoLive}
                 bg={isLive ? COLORS.liveIndicator : COLORS.primaryGold}
-                rounded="$sm"
+                rounded="$full"
                 h={56}
+                px="$6"
               >
                 <HStack space="sm" alignItems="center">
                   <Play size={20} color={COLORS.luxuryBlack} fill={COLORS.luxuryBlack} />
-                  <ButtonText fontWeight="$black" size="md" color={COLORS.luxuryBlack}>
+                  <ButtonText fontWeight="$black" size="md" color={COLORS.luxuryBlack} textAlign="center">
                     {isLive ? 'JOIN LIVE STREAM' : 'GO LIVE'}
                   </ButtonText>
                 </HStack>
@@ -371,16 +372,17 @@ export default function StreamManagementScreen() {
             {/* Edit Button - Only for scheduled streams */}
             {isScheduled && (
               <Button
-                size="lg"
+                size="xl"
                 variant="outline"
                 onPress={handleEditStream}
                 borderColor={COLORS.primaryGold}
-                rounded="$sm"
-                h={50}
+                rounded="$full"
+                h={56}
+                px="$6"
               >
                 <HStack space="sm" alignItems="center">
                   <Edit3 size={18} color={COLORS.primaryGold} />
-                  <ButtonText color={COLORS.primaryGold} fontWeight="$bold">
+                  <ButtonText color={COLORS.primaryGold} fontWeight="$bold" textAlign="center">
                     Edit Stream Details
                   </ButtonText>
                 </HStack>
@@ -390,17 +392,18 @@ export default function StreamManagementScreen() {
             {/* Cancel Button - Only for scheduled streams */}
             {isScheduled && (
               <Button
-                size="lg"
+                size="xl"
                 variant="outline"
                 onPress={handleCancelStream}
                 borderColor={COLORS.errorRed}
-                rounded="$sm"
-                h={50}
+                rounded="$full"
+                h={56}
+                px="$6"
                 isDisabled={deleting}
               >
                 <HStack space="sm" alignItems="center">
                   <Trash2 size={18} color={COLORS.errorRed} />
-                  <ButtonText color={COLORS.errorRed} fontWeight="$bold">
+                  <ButtonText color={COLORS.errorRed} fontWeight="$bold" textAlign="center">
                     {deleting ? 'Cancelling...' : 'Cancel Stream'}
                   </ButtonText>
                 </HStack>
@@ -443,12 +446,17 @@ export default function StreamManagementScreen() {
                 </Text>
                 {isScheduled && (
                   <Button
-                    size="sm"
+                    size="md"
                     mt="$4"
                     onPress={handleAddProduct}
                     bg={COLORS.primaryGold}
+                    rounded="$full"
+                    h={44}
+                    px="$4"
                   >
-                    <ButtonText color={COLORS.luxuryBlack}>Add Your First Product</ButtonText>
+                    <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
+                      Add Your First Product
+                    </ButtonText>
                   </Button>
                 )}
               </Box>

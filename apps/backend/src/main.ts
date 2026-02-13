@@ -120,16 +120,6 @@ const server = app.listen(PORT, () => {
   console.log(
     `💚 Health Check: http://localhost:${PORT}/${config.apiPrefix}/health`,
   );
-  console.log('');
-  console.log('Available Routes:');
-  console.log(`  - POST /${config.apiPrefix}/auth/sync`);
-  console.log(`  - POST /${config.apiPrefix}/auth/logout`);
-  console.log(`  - GET  /${config.apiPrefix}/auth/me`);
-  console.log(`  - POST /${config.apiPrefix}/auctions`);
-  console.log(`  - GET  /${config.apiPrefix}/auctions`);
-  console.log(`  - GET  /${config.apiPrefix}/auctions/:id`);
-  console.log(`  - POST /${config.apiPrefix}/auctions/:id/go-live`);
-  console.log('');
 });
 
 // ============================================

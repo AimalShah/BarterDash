@@ -5,6 +5,7 @@ import {
   failure,
   NotFoundError,
   ValidationError,
+  ForbiddenError,
 } from '../utils/result';
 import { db, products, orders, Order } from '../db';
 import { eq, sql } from 'drizzle-orm';
@@ -46,6 +47,10 @@ export class CartService {
       return failure(
         new ValidationError('Product is not available for purchase'),
       );
+    }
+
+    if (productResult.sellerId === userId) {
+      return failure(new ForbiddenError('You cannot buy your own product'));
     }
 
     if (quantity > productResult.quantity - productResult.soldQuantity) {
@@ -138,6 +143,10 @@ export class CartService {
           continue;
         }
 
+        if (product.sellerId === userId) {
+          continue;
+        }
+
         if (cartItem.quantity > product.quantity - product.soldQuantity) {
           continue;
         }
@@ -182,6 +191,10 @@ export class CartService {
         return failure(
           new ValidationError('Cart is empty or contains no valid items'),
         );
+      }
+
+      if (validItems.some((item: any) => item.product?.sellerId === userId)) {
+        return failure(new ForbiddenError('You cannot buy your own product'));
       }
 
       // Calculate totals

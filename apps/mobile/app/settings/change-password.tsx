@@ -55,7 +55,7 @@ export default function ChangePasswordScreen() {
             if (error) throw error;
 
             showSuccess('Password updated successfully');
-            router.back();
+            router.replace('/settings');
         } catch (error: any) {
             console.error(error);
             showError(error.message || 'Failed to update password');
@@ -164,9 +164,10 @@ export default function ChangePasswordScreen() {
                                 isDisabled={loading}
                                 h={56}
                                 bg={COLORS.primaryGold}
-                                rounded="$2xl"
+                                rounded="$full"
+                                px="$6"
                                 sx={{
-                                    ":active": { bg: COLORS.secondaryGold },
+                                    ":active": { opacity: 0.9 },
                                     shadowColor: COLORS.primaryGold,
                                     shadowOffset: { width: 0, height: 4 },
                                     shadowOpacity: 0.4,
@@ -175,7 +176,9 @@ export default function ChangePasswordScreen() {
                                 }}
                             >
                                 {loading ? <Spinner color={COLORS.luxuryBlack} /> : (
-                                    <ButtonText fontWeight="$bold" color={COLORS.luxuryBlack}>Update Password</ButtonText>
+                                    <ButtonText fontWeight="$bold" color={COLORS.luxuryBlack} textAlign="center">
+                                        Update Password
+                                    </ButtonText>
                                 )}
                             </Button>
                         </Box>

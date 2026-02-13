@@ -70,7 +70,7 @@ export default function CreateAuctionScreen() {
             });
 
             Alert.alert("Success", "Auction created successfully!", [
-                { text: "OK", onPress: () => router.back() }
+                { text: "OK", onPress: () => router.replace('/seller/auctions') }
             ]);
         } catch (error: any) {
             console.error("Error creating auction:", error);
@@ -138,12 +138,17 @@ export default function CreateAuctionScreen() {
                                 >
                                     <Text size="sm" color={COLORS.textSecondary}>No products available</Text>
                                     <Button
-                                        size="sm"
+                                        size="md"
                                         bg={COLORS.primaryGold}
                                         mt="$3"
                                         onPress={() => router.push('/seller/add-product')}
+                                        rounded="$full"
+                                        h={44}
+                                        px="$4"
                                     >
-                                        <ButtonText color={COLORS.luxuryBlack}>Add a Product First</ButtonText>
+                                        <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
+                                            Add a Product First
+                                        </ButtonText>
                                     </Button>
                                 </Box>
                             ) : (
@@ -285,13 +290,14 @@ export default function CreateAuctionScreen() {
                             isDisabled={loading || !selectedProduct}
                             size="xl"
                             bg={COLORS.primaryGold}
-                            rounded="$lg"
+                            rounded="$full"
                             h={56}
+                            px="$6"
                         >
                             {loading ? (
                                 <Spinner color={COLORS.luxuryBlack} />
                             ) : (
-                                <ButtonText fontWeight="$black" fontSize="$md" color={COLORS.luxuryBlack}>
+                                <ButtonText fontWeight="$black" fontSize="$md" color={COLORS.luxuryBlack} textAlign="center">
                                     START AUCTION
                                 </ButtonText>
                             )}

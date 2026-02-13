@@ -14,7 +14,7 @@ export default function NewConversationScreen() {
 
     useEffect(() => {
         if (!userId) {
-            router.back();
+            router.replace('/(tabs)/inbox');
             return;
         }
 
@@ -30,7 +30,7 @@ export default function NewConversationScreen() {
             console.error("Error starting conversation:", error);
             const message = handleApiError(error, { context: "Messaging", showAlert: false });
             showError(message);
-            router.back();
+            router.replace('/(tabs)/inbox');
         }
     };
 
