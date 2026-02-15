@@ -32,7 +32,40 @@ export default function VerifyEmailScreen() {
   const [isChecking, setIsChecking] = useState(false);
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
+  const [isAutoChecking, setIsAutoChecking] = useState(false);
   const { fetchProfile } = useAuthStore();
+
+  // Auto-check for email verification every 3 seconds
+  useEffect(() => {
+    const checkVerification = async () => {
+      try {
+        setIsAutoChecking(true);
+        // Refresh session to get latest auth state
+        await supabase.auth.refreshSession();
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user?.email_confirmed_at) {
+          // Email verified! Auto-redirect to profile setup
+          console.log("✅ Email verified! Auto-redirecting...");
+          await fetchProfile();
+          router.replace("/(onboarding)/profile-setup");
+        }
+      } catch (error) {
+        console.error("Auto-check error:", error);
+      } finally {
+        setIsAutoChecking(false);
+      }
+    };
+
+    // Check immediately on mount
+    checkVerification();
+
+    // Then check every 3 seconds
+    const interval = setInterval(checkVerification, 3000);
+
+    return () => clearInterval(interval);
+  }, [fetchProfile, router]);
 
   useEffect(() => {
     if (countdown > 0 && !canResend) {
@@ -180,6 +213,16 @@ export default function VerifyEmailScreen() {
             . Please check your inbox and click the link to verify your account.
           </Text>
 
+          {/* Auto-checking indicator */}
+          {isAutoChecking && (
+            <HStack space="sm" alignItems="center" mt="$2">
+              <ActivityIndicator size="small" color={COLORS.primaryGold} />
+              <Text color={COLORS.textMuted} size="sm">
+                Checking verification status...
+              </Text>
+            </HStack>
+          )}
+
           {/* Instructions */}
           <Box
             bg={COLORS.luxuryBlackLight}
@@ -218,7 +261,7 @@ export default function VerifyEmailScreen() {
                   style={{ marginTop: 2 }}
                 />
                 <Text color={COLORS.textSecondary} size="sm" flex={1}>
-                  You can close this screen after verification
+                  The app checks automatically every 3 seconds
                 </Text>
               </HStack>
             </VStack>
