@@ -48,10 +48,18 @@ export default function RootLayout() {
   });
 
   const stripePublishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
+  const applePayMerchantIdentifier =
+    process.env.EXPO_PUBLIC_STRIPE_APPLE_PAY_MERCHANT_ID || "";
 
   if (!stripePublishableKey) {
     console.warn(
       "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set. Stripe PaymentSheet will be unavailable."
+    );
+  }
+
+  if (__DEV__ && !applePayMerchantIdentifier) {
+    console.warn(
+      "EXPO_PUBLIC_STRIPE_APPLE_PAY_MERCHANT_ID is not set. Apple Pay will not be available."
     );
   }
 
@@ -75,6 +83,7 @@ export default function RootLayout() {
       <StripeProvider
         publishableKey={stripePublishableKey}
         urlScheme="barterdash"
+        merchantIdentifier={applePayMerchantIdentifier || undefined}
       >
         <GluestackUIProvider config={config}>
           <QueryClientProvider client={queryClient}>

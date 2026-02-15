@@ -89,12 +89,18 @@ export default function OrderDetailsScreen() {
 
     const handlePrintLabel = () => {
         if (order?.trackingNumber && order.status === 'shipped') {
-            // In a real app we would use the actual label URL from the backend response
-            // For this mock, we'll use the dummy URL or the one returned if we stored it
-            const labelUrl = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
-            Alert.alert('Print Label', 'Opening label PDF...', [
-                { text: 'Open', onPress: () => Linking.openURL(labelUrl) }
-            ]);
+            // Display tracking info with demo mode notice
+            Alert.alert(
+                'Shipping Label',
+                `Carrier: ${order.carrier || 'USPS'}\nTracking: ${order.trackingNumber}\n\n📦 Demo Mode: Labels are currently mocked for testing. EasyPost integration coming soon.`,
+                [
+                    { text: 'Copy Tracking', onPress: () => {
+                        // Copy to clipboard functionality would go here
+                        Alert.alert('Copied', 'Tracking number copied to clipboard');
+                    }},
+                    { text: 'OK', style: 'cancel' }
+                ]
+            );
         }
     };
 

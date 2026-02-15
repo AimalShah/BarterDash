@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  StatusBar,
-  ActivityIndicator,
-  Alert,
-} from "react-native";
+import { View, StatusBar, ActivityIndicator, Alert } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import {
   Box,
@@ -17,7 +12,13 @@ import {
   Center,
   Pressable,
 } from "@gluestack-ui/themed";
-import { Mail, RefreshCw, ArrowLeft, CheckCircle2, LogIn } from "lucide-react-native";
+import {
+  Mail,
+  RefreshCw,
+  ArrowLeft,
+  CheckCircle2,
+  LogIn,
+} from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
 import { COLORS } from "@/constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -58,7 +59,7 @@ export default function VerifyEmailScreen() {
 
       Alert.alert(
         "Email Sent",
-        "A new verification email has been sent to your inbox."
+        "A new verification email has been sent to your inbox.",
       );
 
       // Reset countdown
@@ -68,7 +69,8 @@ export default function VerifyEmailScreen() {
       console.error("Resend error:", error);
       Alert.alert(
         "Error",
-        error.message || "Failed to resend verification email. Please try again."
+        error.message ||
+          "Failed to resend verification email. Please try again.",
       );
     } finally {
       setIsResending(false);
@@ -79,14 +81,17 @@ export default function VerifyEmailScreen() {
     setIsChecking(true);
     try {
       // Check if user has verified their email by getting the current session
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
       if (error) throw error;
 
       if (session?.user?.email_confirmed_at) {
         // Email is verified, fetch profile and redirect
         await fetchProfile();
-        
+
         Alert.alert(
           "Email Verified!",
           "Your email has been verified successfully. Let's set up your profile.",
@@ -97,20 +102,21 @@ export default function VerifyEmailScreen() {
                 router.replace("/(onboarding)/profile-setup");
               },
             },
-          ]
+          ],
         );
       } else {
         // Email not verified yet
         Alert.alert(
           "Email Not Verified",
-          "Please check your email and click the verification link. If you've already verified, try signing in."
+          "Please check your email and click the verification link. If you've already verified, try signing in.",
         );
       }
     } catch (error: any) {
       console.error("Check verification error:", error);
       Alert.alert(
         "Error",
-        error.message || "Failed to check verification status. Please try signing in."
+        error.message ||
+          "Failed to check verification status. Please try signing in.",
       );
     } finally {
       setIsChecking(false);
@@ -178,19 +184,31 @@ export default function VerifyEmailScreen() {
           >
             <VStack space="md">
               <HStack space="sm" alignItems="flex-start">
-                <CheckCircle2 size={20} color={COLORS.successGreen} style={{ marginTop: 2 }} />
+                <CheckCircle2
+                  size={20}
+                  color={COLORS.successGreen}
+                  style={{ marginTop: 2 }}
+                />
                 <Text color={COLORS.textSecondary} size="sm" flex={1}>
                   Check your spam/junk folder if you don't see it
                 </Text>
               </HStack>
               <HStack space="sm" alignItems="flex-start">
-                <CheckCircle2 size={20} color={COLORS.successGreen} style={{ marginTop: 2 }} />
+                <CheckCircle2
+                  size={20}
+                  color={COLORS.successGreen}
+                  style={{ marginTop: 2 }}
+                />
                 <Text color={COLORS.textSecondary} size="sm" flex={1}>
                   The link expires in 24 hours
                 </Text>
               </HStack>
               <HStack space="sm" alignItems="flex-start">
-                <CheckCircle2 size={20} color={COLORS.successGreen} style={{ marginTop: 2 }} />
+                <CheckCircle2
+                  size={20}
+                  color={COLORS.successGreen}
+                  style={{ marginTop: 2 }}
+                />
                 <Text color={COLORS.textSecondary} size="sm" flex={1}>
                   You can close this screen after verification
                 </Text>
@@ -219,6 +237,8 @@ export default function VerifyEmailScreen() {
             rounded="$full"
             h={56}
             px="$6"
+            alignItems="center"
+            justifyContent="center"
             isDisabled={isChecking}
             sx={{
               ":active": { opacity: 0.9 },
@@ -228,11 +248,13 @@ export default function VerifyEmailScreen() {
               <ActivityIndicator color={COLORS.luxuryBlack} size="small" />
             ) : (
               <>
-                <LogIn size={20} color={COLORS.luxuryBlack} style={{ marginRight: 8 }} />
+                {/* <LogIn size={20} color={COLORS.luxuryBlack} style={{ marginRight: 8 }} /> */}
                 <ButtonText
                   fontWeight="$bold"
                   color={COLORS.luxuryBlack}
                   textAlign="center"
+                  justifyContent="center"
+                  alignItems="center"
                 >
                   I've Verified My Email
                 </ButtonText>
@@ -257,7 +279,12 @@ export default function VerifyEmailScreen() {
               <ActivityIndicator color={COLORS.textPrimary} size="small" />
             ) : (
               <>
-                <RefreshCw size={20} color={canResend ? COLORS.primaryGold : COLORS.textMuted} style={{ marginRight: 8 }} />
+                {/*
+                <RefreshCw
+                  size={20}
+                  color={canResend ? COLORS.primaryGold : COLORS.textMuted}
+                  style={{ marginRight: 8 }}
+                /> */}
                 <ButtonText
                   fontWeight="$bold"
                   color={canResend ? COLORS.primaryGold : COLORS.textMuted}
@@ -281,7 +308,11 @@ export default function VerifyEmailScreen() {
               ":active": { opacity: 0.7 },
             }}
           >
-            <ArrowLeft size={18} color={COLORS.textSecondary} style={{ marginRight: 8 }} />
+            <ArrowLeft
+              size={18}
+              color={COLORS.textSecondary}
+              style={{ marginRight: 8 }}
+            />
             <Text color={COLORS.textSecondary} fontWeight="$bold" size="sm">
               Back to Login
             </Text>

@@ -23,12 +23,24 @@ import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { ThumbnailUpload } from "../../../../components/seller/ThumbnailUpload";
 import { CategoryPicker } from "../../../../components/seller/CategoryPicker";
 import { COLORS } from "../../../../constants/colors";
+import { supabase } from "../../../../lib/supabase";
+import { decode } from "base64-arraybuffer";
 
 export default function EditStreamScreen() {
   const { id: streamId } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
    const [stream, setStream] = useState<Stream | null>(null);
+   const [categories, setCategories] = useState<any[]>([]);
+   const [title, setTitle] = useState("");
+   const [description, setDescription] = useState("");
+   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+   const [localImage, setLocalImage] = useState<string | null>(null);
+   const [scheduleStart, setScheduleStart] = useState<Date>(new Date());
+   const [loading, setLoading] = useState(true);
+   const [saving, setSaving] = useState(false);
+   const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     if (streamId) {
@@ -99,20 +111,53 @@ export default function EditStreamScreen() {
   };
 
   const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      aspect: [16, 9],
-      quality: 0.8,
-      base64: true,
-    });
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.8,
+        base64: true,
+      });
 
-    if (result.canceled) return;
+      if (result.canceled) return;
 
-    const selectedAsset = result.assets[0];
-    if (selectedAsset.base64) {
-      setLocalImage(selectedAsset.uri);
-      // TODO: Upload to Supabase storage and get URL
-      // For now, we'll just use the local image
+      const selectedAsset = result.assets[0];
+      if (selectedAsset.base64) {
+        setLocalImage(selectedAsset.uri);
+        setUploadingImage(true);
+
+        // Upload to Supabase storage
+        const fileExt = selectedAsset.uri.split('.').pop() || 'jpg';
+        const fileName = `${streamId}/thumbnail-${Date.now()}.${fileExt}`;
+        const filePath = `stream-thumbnails/${fileName}`;
+
+        const { data, error } = await supabase.storage
+          .from('stream-images')
+          .upload(filePath, decode(selectedAsset.base64), {
+            contentType: `image/${fileExt}`,
+            upsert: true,
+          });
+
+        if (error) {
+          console.error('Upload error:', error);
+          Alert.alert('Upload Error', 'Failed to upload thumbnail. Please try again.');
+          setUploadingImage(false);
+          return;
+        }
+
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('stream-images')
+          .getPublicUrl(filePath);
+
+        setThumbnailUrl(urlData.publicUrl);
+        Alert.alert('Success', 'Thumbnail uploaded successfully');
+        setUploadingImage(false);
+      }
+    } catch (error) {
+      console.error('Error picking/uploading image:', error);
+      Alert.alert('Error', 'Failed to process image. Please try again.');
+      setUploadingImage(false);
     }
   };
 
@@ -226,8 +271,8 @@ export default function EditStreamScreen() {
         <VStack space="xl" p="$6">
           {/* Thumbnail Upload */}
           <ThumbnailUpload
-            thumbnailUrl={thumbnailUrl}
             localImage={localImage}
+            uploading={uploadingImage}
             onPickImage={pickImage}
           />
 

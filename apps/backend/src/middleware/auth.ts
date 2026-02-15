@@ -3,6 +3,7 @@ import { UnauthorizedError } from '../utils/result';
 import { supabase } from '../utils/supabase';
 import { UsersRepository } from '../repositories/users.repository';
 import { UserRole } from '../db/schema';
+import { TokenBlacklist } from '../utils/token-blacklist';
 
 /**
  * JWT Payload type
@@ -56,6 +57,12 @@ export const authenticate = async (
     }
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+
+    // Check if token is blacklisted
+    const isBlacklisted = await TokenBlacklist.isBlacklisted(token);
+    if (isBlacklisted) {
+      throw new UnauthorizedError('Token has been revoked');
+    }
 
     const {
       data: { user },

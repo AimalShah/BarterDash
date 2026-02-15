@@ -69,3 +69,41 @@ export const resetPasswordSchema = z.object({
 });
 
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>['body'];
+
+const supabaseAuthUserRecordSchema = z
+  .object({
+    id: z.string().uuid(),
+    email_confirmed_at: z.string().nullable().optional(),
+    emailConfirmedAt: z.string().nullable().optional(),
+    confirmed_at: z.string().nullable().optional(),
+    confirmedAt: z.string().nullable().optional(),
+  })
+  .passthrough();
+
+// Supabase Database Webhook payload for auth.users updates
+export const supabaseEmailConfirmationWebhookSchema = z.object({
+  body: z
+    .object({
+      type: z.string().optional(),
+      table: z.string().optional(),
+      schema: z.string().optional(),
+      record: supabaseAuthUserRecordSchema.optional(),
+      new_record: supabaseAuthUserRecordSchema.optional(),
+      newRecord: supabaseAuthUserRecordSchema.optional(),
+      old_record: supabaseAuthUserRecordSchema.optional(),
+      oldRecord: supabaseAuthUserRecordSchema.optional(),
+    })
+    .superRefine((payload, ctx) => {
+      if (!payload.record && !payload.new_record && !payload.newRecord) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['record'],
+          message: 'record/new_record is required',
+        });
+      }
+    }),
+});
+
+export type SupabaseEmailConfirmationWebhookInput = z.infer<
+  typeof supabaseEmailConfirmationWebhookSchema
+>['body'];

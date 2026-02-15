@@ -63,6 +63,7 @@ REDIS_URL=redis://localhost:6379
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_WEBHOOK_SECRET=your-random-webhook-shared-secret
 
 # Optional
 SENTRY_DSN=https://...
@@ -110,17 +111,27 @@ The server will run on `http://localhost:3000`
 - `POST /api/v1/auth/logout` - Logout user *(Protected)*
 - `GET /api/v1/auth/me` - Get current user profile *(Protected)*
 
+### Webhooks
+- `POST /api/v1/webhooks/supabase/email-confirmation` - Supabase auth.users webhook to sync `profiles.email_verified` *(Public with shared-secret verification)*
+- SQL helper to create the trigger in Supabase: `supabase/email-confirmation-webhook.sql`
+
 ### Auctions
 - `POST /api/v1/auctions` - Create new auction *(Protected, SELLER only)*
 - `GET /api/v1/auctions` - List all auctions *(Public)*
 - `GET /api/v1/auctions/:id` - Get auction details *(Public)*
 - `POST /api/v1/auctions/:id/go-live` - Start live auction *(Protected, SELLER only)*
 
-### Users (TODO)
-*Coming soon*
+### Users
+- `GET /api/v1/users` - List users (Public)
+- `GET /api/v1/users/:id` - Get user profile (Public)
+- `PATCH /api/v1/users/me` - Update current user profile *(Protected)*
+- `GET /api/v1/users/me/stats` - Get user statistics *(Protected)*
 
-### Bids (TODO)
-*Coming soon*
+### Bids
+- `POST /api/v1/bids` - Place a bid on an auction *(Protected)*
+- `GET /api/v1/bids` - List user's bids *(Protected)*
+- `GET /api/v1/bids/:id` - Get bid details *(Protected)*
+- `DELETE /api/v1/bids/:id` - Cancel a bid *(Protected)*
 
 ### Payments
 - `POST /api/v1/payments/payment-sheet` - Create Stripe Payment Sheet payload *(Protected)*
@@ -138,8 +149,17 @@ The server will run on `http://localhost:3000`
 - `POST /api/v1/escrow/release/:escrowId` - Release escrow to seller *(Protected)*
 - `POST /api/v1/escrow/refund/:escrowId` - Refund escrow to buyer *(Protected)*
 
-### Sellers (TODO)
-*Coming soon*
+### Sellers
+- `GET /api/v1/sellers` - List all sellers (Public)
+- `GET /api/v1/sellers/:id` - Get seller profile (Public)
+- `GET /api/v1/sellers/:id/products` - Get seller's products (Public)
+- `GET /api/v1/sellers/:id/streams` - Get seller's streams (Public)
+- `GET /api/v1/sellers/:id/stats` - Get seller statistics (Public)
+- `POST /api/v1/sellers/me` - Become a seller *(Protected)*
+- `PATCH /api/v1/sellers/me` - Update seller profile *(Protected)*
+- `GET /api/v1/sellers/me/dashboard` - Get seller dashboard data *(Protected)*
+- `GET /api/v1/sellers/me/orders` - Get seller's orders *(Protected)*
+- `POST /api/v1/sellers/me/withdraw` - Request payout *(Protected)*
 
 ## 📁 Project Structure
 

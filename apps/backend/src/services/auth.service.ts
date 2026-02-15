@@ -9,6 +9,8 @@ import {
 import { Profile } from '../db/schema';
 import { supabase } from '../utils/supabase';
 import { config } from '../config';
+import { SupabaseEmailConfirmationWebhookInput } from '../schemas/auth.schemas';
+import { TokenBlacklist } from '../utils/token-blacklist';
 
 /**
  * Auth Service
@@ -129,7 +131,7 @@ export class AuthService {
         } = await supabase.auth.admin.getUserById(userId);
 
         if (user?.email_confirmed_at) {
-          await this.repository.update(userId, { emailVerified: true });
+          await this.repository.updateProfile(userId, { emailVerified: true });
           profile.emailVerified = true;
         }
       } catch (e) {
@@ -141,10 +143,20 @@ export class AuthService {
   }
 
   /**
-   * Logout (placeholder - token invalidation would go here if using blacklist)
+   * Logout - Blacklists the JWT token to prevent reuse
+   * @param token - JWT token to invalidate
    */
-  async logout(): Promise<AppResult<{ message: string }>> {
-    return success({ message: 'Logged out successfully' });
+  async logout(token: string): Promise<AppResult<{ message: string }>> {
+    try {
+      // Calculate token expiry and add to blacklist
+      const expiresIn = TokenBlacklist.getTokenExpiry(token);
+      await TokenBlacklist.blacklist(token, expiresIn);
+      
+      return success({ message: 'Logged out successfully' });
+    } catch (error) {
+      console.error('Logout error:', error);
+      return failure(new ValidationError('Failed to logout'));
+    }
   }
 
   /**
@@ -216,5 +228,80 @@ export class AuthService {
       console.error('Reset password error:', error);
       return failure(new ValidationError('Failed to reset password'));
     }
+  }
+
+  /**
+   * Handle Supabase auth.users email confirmation webhook
+   */
+  async handleEmailConfirmationWebhook(
+    payload: SupabaseEmailConfirmationWebhookInput,
+  ): Promise<
+    AppResult<{
+      userId: string;
+      updated: boolean;
+      emailVerified: boolean;
+      skippedReason?: string;
+    }>
+  > {
+    const record = payload.record || payload.new_record || payload.newRecord;
+
+    if (!record) {
+      return failure(new ValidationError('Missing webhook record payload'));
+    }
+
+    const userId = record.id;
+    const emailConfirmedAt =
+      record.email_confirmed_at ??
+      record.emailConfirmedAt ??
+      record.confirmed_at ??
+      record.confirmedAt ??
+      null;
+
+    if (!emailConfirmedAt) {
+      return success({
+        userId,
+        updated: false,
+        emailVerified: false,
+        skippedReason: 'email_not_confirmed',
+      });
+    }
+
+    const profileResult = await this.repository.getProfile(userId);
+    if (profileResult.isErr()) {
+      return failure(profileResult.error);
+    }
+
+    if (!profileResult.value) {
+      // Profile may not exist yet if the user has not completed app onboarding.
+      return success({
+        userId,
+        updated: false,
+        emailVerified: true,
+        skippedReason: 'profile_not_found',
+      });
+    }
+
+    if (profileResult.value.emailVerified) {
+      return success({
+        userId,
+        updated: false,
+        emailVerified: true,
+        skippedReason: 'already_verified',
+      });
+    }
+
+    const updateResult = await this.repository.updateProfile(userId, {
+      emailVerified: true,
+    });
+
+    if (updateResult.isErr()) {
+      return failure(updateResult.error);
+    }
+
+    return success({
+      userId,
+      updated: true,
+      emailVerified: true,
+    });
   }
 }

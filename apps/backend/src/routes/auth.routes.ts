@@ -38,14 +38,17 @@ router.post(
 
 /**
  * POST /auth/logout
- * Logout user (placeholder)
+ * Logout user and invalidate JWT token
  * Protected route - requires JWT
  */
 router.post(
   '/logout',
   authenticate,
   asyncHandler(async (req: AuthRequest, res: Response) => {
-    const result = await authService.logout();
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.substring(7) || '';
+    
+    const result = await authService.logout(token);
 
     if (result.isErr()) {
       throw result.error;

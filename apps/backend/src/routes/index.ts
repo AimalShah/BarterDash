@@ -23,6 +23,7 @@ import reportsRoutes from './reports.routes';
 import refundsRoutes from './refunds.routes';
 import watchlistRoutes from './watchlist.routes';
 import devRoutes from './dev.routes';
+import webhooksRoutes from './webhooks.routes';
 import { config } from '../config';
 
 const router = Router();
@@ -65,6 +66,7 @@ router.use('/analytics', analyticsRoutes);
 router.use('/reports', reportsRoutes);
 router.use('/refunds', refundsRoutes);
 router.use('/watchlist', watchlistRoutes);
+router.use('/webhooks', webhooksRoutes);
 
 if (config.nodeEnv === 'development') {
   router.use('/dev', devRoutes);

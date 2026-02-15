@@ -32,6 +32,7 @@ import {
 } from "../../lib/api/services/escrow";
 import { ordersService } from "../../lib/api/services/orders";
 import { paymentsService, type PaymentMethod } from "../../lib/api/services/payments";
+import { getWalletPaymentSheetParams } from "../../lib/payments/walletConfig";
 import { COLORS } from "../../constants/colors";
 
 interface ShippingAddress {
@@ -189,6 +190,7 @@ export default function CheckoutScreen() {
         customerEphemeralKeySecret: escrowResponse.ephemeralKey,
         paymentIntentClientSecret: escrowResponse.clientSecret,
         merchantDisplayName: "BarterDash",
+        ...getWalletPaymentSheetParams(),
         allowsDelayedPaymentMethods: false,
         returnURL: "barterdash://checkout/success",
         defaultBillingDetails: {

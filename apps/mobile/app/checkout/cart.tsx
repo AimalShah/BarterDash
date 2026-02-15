@@ -32,6 +32,7 @@ import {
 import { useStripe } from "@stripe/stripe-react-native";
 import { cartService } from "../../lib/api/services/cart";
 import { paymentsService } from "../../lib/api/services/payments";
+import { getWalletPaymentSheetParams } from "../../lib/payments/walletConfig";
 import { PaymentMethod } from "../../types";
 import { COLORS } from "../../constants/colors";
 import { useCartStore } from "../../store/cartStore";
@@ -181,6 +182,7 @@ export default function CartCheckoutScreen() {
         customerEphemeralKeySecret: paymentSheetParams.ephemeralKey,
         customerId: paymentSheetParams.customer,
         merchantDisplayName: "BarterDash",
+        ...getWalletPaymentSheetParams(),
         returnURL: "barterdash://checkout/success",
         allowsDelayedPaymentMethods: true,
         defaultBillingDetails: {

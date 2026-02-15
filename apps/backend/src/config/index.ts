@@ -34,6 +34,7 @@ const configSchema = z.object({
   supabaseUrl: z.string().url(),
   supabaseAnonKey: z.string(),
   supabaseServiceRoleKey: z.string().optional(),
+  supabaseWebhookSecret: z.string().optional(),
 
   // Monitoring
   sentryDsn: z.string().url().optional(),
@@ -71,6 +72,7 @@ function loadConfig(): Config {
     supabaseUrl: process.env.SUPABASE_URL,
     supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
     supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    supabaseWebhookSecret: process.env.SUPABASE_WEBHOOK_SECRET,
     sentryDsn: process.env.SENTRY_DSN,
     encryptionKey: process.env.ENCRYPTION_KEY,
     resendApiKey: process.env.RESEND_API_KEY,

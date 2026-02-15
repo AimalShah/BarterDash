@@ -8,17 +8,11 @@ import {
   TextInput,
   Animated,
   PanResponder,
-  Dimensions,
-  Easing,
+  Image,
 } from "react-native";
 import { COLORS } from "../../constants/colors";
-import {
-  formatBidAmount,
-  getQuickBidOptions,
-  getMinimumBidIncrement,
-} from "../../lib/bidding/utils";
+import { formatBidAmount, getQuickBidOptions } from "../../lib/bidding/utils";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const SWIPE_THRESHOLD = 80;
 const SWIPE_DISTANCE = 120;
 
@@ -26,11 +20,15 @@ interface Auction {
   id: string;
   currentBid?: number;
   startingBid?: number;
+  bidCount?: number;
   endsAt: string | Date;
   status?: string;
   title?: string;
   shippingCost?: number;
   mode?: "normal" | "sudden_death";
+  product?: {
+    images?: string[];
+  };
 }
 
 interface AuctionSectionProps {
@@ -128,7 +126,7 @@ export default function AuctionSection({
         isSwiping.current = true;
         hasTriggeredBid.current = false;
         setShowPreview(true);
-        setPreviewAmount(minimumBid);
+        setPreviewAmount(safeMinimumBid);
         Animated.parallel([
           Animated.timing(swipeAnim, {
             toValue: 0,
@@ -145,11 +143,10 @@ export default function AuctionSection({
       onPanResponderMove: (_, gestureState) => {
         if (gestureState.dx < 0) return;
 
-        const progress = Math.min(gestureState.dx / SWIPE_DISTANCE, 1);
         swipeAnim.setValue(gestureState.dx);
 
         const increments = Math.floor(gestureState.dx / 40);
-        const previewValue = minimumBid + increments * bidIncrement;
+        const previewValue = safeMinimumBid + increments * safeBidIncrement;
         setPreviewAmount(previewValue);
 
         if (gestureState.dx > SWIPE_THRESHOLD && !hasTriggeredBid.current) {
@@ -238,10 +235,10 @@ export default function AuctionSection({
 
   const handleQuickBid = useCallback(
     async (increment: number) => {
-      const amount = currentBid + increment;
+      const amount = safeCurrentBid + increment;
       await onPlaceCustomBid(amount);
     },
-    [currentBid, onPlaceCustomBid],
+    [safeCurrentBid, onPlaceCustomBid],
   );
 
   const handleTapBid = useCallback(async () => {
@@ -250,9 +247,9 @@ export default function AuctionSection({
   }, [onPlaceBid]);
 
   const handleOpenCustom = useCallback(() => {
-    setCustomAmount(minimumBid.toString());
+    setCustomAmount(safeMinimumBid.toString());
     setShowCustomBid(true);
-  }, [minimumBid]);
+  }, [safeMinimumBid]);
 
   if (!auction || !auction.id) {
     return (
@@ -278,52 +275,76 @@ export default function AuctionSection({
   }
 
   const displayBid = safeCurrentBid;
-  //    currentBid || auction.currentBid || auction.startingBid || 0;
   const isSuddenDeath = auction.mode === "sudden_death";
+  const bidCount = Number(auction.bidCount ?? 0);
+  const productImage = auction.product?.images?.[0];
 
   return (
     <View style={styles.container}>
       <View style={styles.infoCard}>
-        <View style={styles.infoRow}>
-          <View style={styles.priceSection}>
-            <Text style={styles.currentBidLabel}>Current Bid</Text>
-            <Text style={styles.currentBidAmount}>
-              {formatBidAmount(displayBid)}
-            </Text>
-            <Text style={styles.minimumBidText}>
-              Min: {formatBidAmount(minimumBid)} (+
-              {formatBidAmount(bidIncrement).replace("$", "")})
-            </Text>
+        <View style={styles.metaRow}>
+          <View style={styles.liveBadge}>
+            <View style={styles.liveDot} />
+            <Text style={styles.liveBadgeText}>LIVE AUCTION</Text>
           </View>
           {endsAtToUse && <AuctionTimerCompact endsAt={endsAtToUse} />}
         </View>
 
-        {auction.title && (
-          <Text style={styles.itemTitle} numberOfLines={1}>
-            {auction.title}
+        <View style={styles.itemRow}>
+          <View style={styles.itemPreview}>
+            {productImage ? (
+              <Image
+                source={{ uri: productImage }}
+                style={styles.itemPreviewImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <Text style={styles.itemPreviewFallback}>LIVE</Text>
+            )}
+          </View>
+
+          <View style={styles.itemMeta}>
+            <Text style={styles.itemTitle} numberOfLines={1}>
+              {auction.title || "Live item"}
+            </Text>
+            <Text style={styles.bidCountText}>{bidCount} bids</Text>
+          </View>
+
+          <View style={styles.priceSection}>
+            <Text style={styles.currentBidLabel}>Current</Text>
+            <Text style={styles.currentBidAmount}>
+              {formatBidAmount(displayBid)}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.minimumBidRow}>
+          <Text style={styles.minimumBidText}>
+            Next bid {formatBidAmount(safeMinimumBid)}
           </Text>
-        )}
+          <Text style={styles.incrementText}>
+            +{formatBidAmount(safeBidIncrement).replace("$", "")} increment
+          </Text>
+        </View>
 
         <View style={styles.infoFooter}>
           {auction.shippingCost !== undefined && (
             <Text style={styles.shippingText}>
-              Shipping: {formatBidAmount(auction.shippingCost)}
+              Shipping {formatBidAmount(auction.shippingCost)}
             </Text>
           )}
-          {isSuddenDeath && (
+          {isSuddenDeath ? (
             <View style={styles.suddenDeathBadge}>
               <Text style={styles.suddenDeathText}>SUDDEN DEATH</Text>
             </View>
-          )}
+          ) : null}
         </View>
 
-        {timerExtended && !isSuddenDeath && (
+        {timerExtended ? (
           <View style={styles.timerExtendedBanner}>
-            <Text style={styles.timerExtendedText}>
-              ⏱ Timer extended! +10 seconds
-            </Text>
+            <Text style={styles.timerExtendedText}>Timer extended +10 seconds</Text>
           </View>
-        )}
+        ) : null}
       </View>
 
       <View style={styles.bidButtonWrapper}>
@@ -377,9 +398,9 @@ export default function AuctionSection({
               ) : (
                 <>
                   <Text style={styles.bidButtonText}>
-                    BID {formatBidAmount(minimumBid)}
+                    BID {formatBidAmount(safeMinimumBid)}
                   </Text>
-                  <Text style={styles.swipeHint}>Swipe → or Tap</Text>
+                  <Text style={styles.swipeHint}>Swipe right to confirm or tap to bid</Text>
                 </>
               )}
             </View>
@@ -426,7 +447,7 @@ export default function AuctionSection({
         onPress={handleOpenCustom}
         disabled={!canBid || isPlacingBid}
       >
-        <Text style={styles.customBidText}>Custom Bid / Max Bid</Text>
+        <Text style={styles.customBidText}>Custom / Max Bid</Text>
       </TouchableOpacity>
 
       <Modal
@@ -443,7 +464,7 @@ export default function AuctionSection({
 
             <Text style={styles.modalSubtitle}>
               Current: {formatBidAmount(displayBid)} | Min:{" "}
-              {formatBidAmount(minimumBid)}
+              {formatBidAmount(safeMinimumBid)}
             </Text>
 
             <TextInput
@@ -457,9 +478,9 @@ export default function AuctionSection({
 
             <View style={styles.quickAmountButtons}>
               {[
-                minimumBid,
-                minimumBid + bidIncrement,
-                minimumBid + bidIncrement * 2,
+                safeMinimumBid,
+                safeMinimumBid + safeBidIncrement,
+                safeMinimumBid + safeBidIncrement * 2,
               ].map((amt) => (
                 <TouchableOpacity
                   key={amt}
@@ -505,12 +526,13 @@ export default function AuctionSection({
               <TouchableOpacity
                 style={[
                   styles.confirmButton,
-                  (!customAmount || parseFloat(customAmount) < minimumBid) &&
+                  (!customAmount ||
+                    parseFloat(customAmount) < safeMinimumBid) &&
                     styles.confirmButtonDisabled,
                 ]}
                 onPress={handleCustomBid}
                 disabled={
-                  !customAmount || parseFloat(customAmount) < minimumBid
+                  !customAmount || parseFloat(customAmount) < safeMinimumBid
                 }
               >
                 <Text style={styles.confirmButtonText}>
@@ -537,14 +559,72 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.darkBorder,
   },
-  infoRow: {
+  metaRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 12,
+  },
+  liveBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(239, 68, 68, 0.18)",
+    borderWidth: 1,
+    borderColor: "rgba(239, 68, 68, 0.45)",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  liveDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: COLORS.errorRed,
+    marginRight: 6,
+  },
+  liveBadgeText: {
+    color: COLORS.textPrimary,
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.4,
+  },
+  itemRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  itemPreview: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    overflow: "hidden",
+    backgroundColor: COLORS.overlayMedium,
+    borderWidth: 1,
+    borderColor: COLORS.darkBorder,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  itemPreviewImage: {
+    width: "100%",
+    height: "100%",
+  },
+  itemPreviewFallback: {
+    color: COLORS.textSecondary,
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.6,
+  },
+  itemMeta: {
+    flex: 1,
+    marginHorizontal: 10,
+  },
+  bidCountText: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+    marginTop: 2,
   },
   priceSection: {
-    flex: 1,
+    alignItems: "flex-end",
   },
   currentBidLabel: {
     color: COLORS.textSecondary,
@@ -555,20 +635,35 @@ const styles = StyleSheet.create({
   },
   currentBidAmount: {
     color: COLORS.textPrimary,
-    fontSize: 32,
+    fontSize: 26,
     fontWeight: "800",
-    marginVertical: 4,
+    marginTop: 2,
+  },
+  minimumBidRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: COLORS.overlayMedium,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.darkBorder,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
   },
   minimumBidText: {
     color: COLORS.primaryGold,
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  incrementText: {
+    color: COLORS.textSecondary,
     fontSize: 12,
     fontWeight: "600",
   },
   itemTitle: {
     color: COLORS.textPrimary,
-    fontSize: 14,
-    fontWeight: "600",
-    marginTop: 8,
+    fontSize: 15,
+    fontWeight: "700",
   },
   infoFooter: {
     flexDirection: "row",

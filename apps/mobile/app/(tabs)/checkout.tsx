@@ -21,6 +21,7 @@ import { Truck, ChevronLeft } from 'lucide-react-native';
 import { cartService } from '../../lib/api/services/cart';
 import { useRouter } from 'expo-router';
 import { paymentsService } from '../../lib/api/services/payments';
+import { getWalletPaymentSheetParams } from '../../lib/payments/walletConfig';
 import { COLORS } from '../../constants/colors';
 import { useStripe } from '@stripe/stripe-react-native';
 import { useCartStore } from '../../store/cartStore';
@@ -96,6 +97,7 @@ export default function CheckoutScreen() {
                 customerEphemeralKeySecret: paymentSheetParams.ephemeralKey,
                 customerId: paymentSheetParams.customer,
                 merchantDisplayName: "BarterDash",
+                ...getWalletPaymentSheetParams(),
                 returnURL: "barterdash://checkout/success",
                 allowsDelayedPaymentMethods: true,
                 defaultBillingDetails: {
