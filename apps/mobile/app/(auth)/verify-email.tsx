@@ -80,7 +80,15 @@ export default function VerifyEmailScreen() {
   const handleContinue = async () => {
     setIsChecking(true);
     try {
-      // Check if user has verified their email by getting the current session
+      // First, refresh the session to get the latest auth state from Supabase
+      // This ensures email_confirmed_at is updated if user just clicked the link
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.error("Session refresh error:", refreshError);
+        // Continue anyway - session might still be valid
+      }
+
+      // Now check if email is verified with refreshed session
       const {
         data: { session },
         error,
@@ -108,7 +116,7 @@ export default function VerifyEmailScreen() {
         // Email not verified yet
         Alert.alert(
           "Email Not Verified",
-          "Please check your email and click the verification link. If you've already verified, try signing in.",
+          "Please check your email and click the verification link first. Make sure to check your spam folder.",
         );
       }
     } catch (error: any) {
