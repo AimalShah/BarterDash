@@ -108,7 +108,7 @@ export default function SettingsScreen() {
                             <SettingsItem
                                 icon={<HelpCircle size={20} color={COLORS.textPrimary} />}
                                 label="Help & Support"
-                                onPress={() => { }}
+                                onPress={() => router.push('/help-support')}
                             />
                             <SettingsItem
                                 icon={<Info size={20} color={COLORS.textPrimary} />}
