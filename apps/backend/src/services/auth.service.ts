@@ -143,6 +143,59 @@ export class AuthService {
   }
 
   /**
+   * Get email verification status
+   * Checks both database and Supabase for latest status
+   */
+  async getVerificationStatus(userId: string): Promise<
+    AppResult<{
+      emailVerified: boolean;
+      verifiedAt: string | null;
+      isSynced: boolean;
+    }>
+  > {
+    const profileResult = await this.repository.getProfile(userId);
+
+    if (profileResult.isErr()) {
+      return failure(profileResult.error);
+    }
+
+    const profile = profileResult.value;
+    let emailVerified = profile?.emailVerified || false;
+    let verifiedAt = null;
+    let isSynced = true;
+
+    // If not verified in DB, check Supabase directly
+    if (!emailVerified) {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.admin.getUserById(userId);
+
+        if (user?.email_confirmed_at) {
+          // Update database to sync
+          await this.repository.updateProfile(userId, { emailVerified: true });
+          emailVerified = true;
+          verifiedAt = user.email_confirmed_at;
+          isSynced = true;
+        } else {
+          isSynced = false;
+        }
+      } catch (e) {
+        console.error('Error checking Supabase email status:', e);
+        isSynced = false;
+      }
+    } else if (profile?.updatedAt) {
+      verifiedAt = profile.updatedAt.toISOString();
+    }
+
+    return success({
+      emailVerified,
+      verifiedAt,
+      isSynced,
+    });
+  }
+
+  /**
    * Logout - Blacklists the JWT token to prevent reuse
    * @param token - JWT token to invalidate
    */

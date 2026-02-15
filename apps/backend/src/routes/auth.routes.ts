@@ -85,6 +85,29 @@ router.get(
 );
 
 /**
+ * GET /auth/verification-status
+ * Check email verification status
+ * Protected route - requires JWT
+ */
+router.get(
+  '/verification-status',
+  authenticate,
+  asyncHandler(async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.id;
+    const result = await authService.getVerificationStatus(userId);
+
+    if (result.isErr()) {
+      throw result.error;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: result.value,
+    });
+  }),
+);
+
+/**
  * POST /auth/forgot-password
  * Send password reset email
  * Public route

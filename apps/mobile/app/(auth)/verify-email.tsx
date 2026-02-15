@@ -20,6 +20,7 @@ import {
   LogIn,
 } from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
+import apiClient from "@/lib/api/client";
 import { COLORS } from "@/constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuthStore } from "@/store/authStore";
@@ -35,24 +36,25 @@ export default function VerifyEmailScreen() {
   const [isAutoChecking, setIsAutoChecking] = useState(false);
   const { fetchProfile } = useAuthStore();
 
-  // Auto-check for email verification every 3 seconds
+  // Auto-check for email verification every 3 seconds via backend API
   useEffect(() => {
     const checkVerification = async () => {
       try {
         setIsAutoChecking(true);
-        // Refresh session to get latest auth state
-        await supabase.auth.refreshSession();
         
-        const { data: { session } } = await supabase.auth.getSession();
+        // Call backend API to check verification status
+        const response = await apiClient.get('/auth/verification-status');
+        const { emailVerified } = response.data.data;
         
-        if (session?.user?.email_confirmed_at) {
+        if (emailVerified) {
           // Email verified! Auto-redirect to profile setup
-          console.log("✅ Email verified! Auto-redirecting...");
+          console.log("✅ Email verified via backend! Auto-redirecting...");
           await fetchProfile();
           router.replace("/(onboarding)/profile-setup");
         }
       } catch (error) {
         console.error("Auto-check error:", error);
+        // Silently fail - will retry in 3 seconds
       } finally {
         setIsAutoChecking(false);
       }
@@ -113,23 +115,12 @@ export default function VerifyEmailScreen() {
   const handleContinue = async () => {
     setIsChecking(true);
     try {
-      // First, refresh the session to get the latest auth state from Supabase
-      // This ensures email_confirmed_at is updated if user just clicked the link
-      const { error: refreshError } = await supabase.auth.refreshSession();
-      if (refreshError) {
-        console.error("Session refresh error:", refreshError);
-        // Continue anyway - session might still be valid
-      }
+      // Check verification status via backend API
+      // Backend syncs with Supabase and database
+      const response = await apiClient.get('/auth/verification-status');
+      const { emailVerified, verifiedAt } = response.data.data;
 
-      // Now check if email is verified with refreshed session
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession();
-
-      if (error) throw error;
-
-      if (session?.user?.email_confirmed_at) {
+      if (emailVerified) {
         // Email is verified, fetch profile and redirect
         await fetchProfile();
 
