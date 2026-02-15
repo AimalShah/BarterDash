@@ -135,7 +135,7 @@ export default function ProfileScreen() {
 
     const MENU_ITEMS = [
         { icon: <Trophy size={18} color={COLORS.textPrimary} />, label: "MY BIDS", onPress: () => router.push('/(tabs)/my-bids') },
-        { icon: <HelpCircle size={18} color={COLORS.textPrimary} />, label: "HELP CENTER", onPress: () => router.push('/settings') },
+        { icon: <HelpCircle size={18} color={COLORS.textPrimary} />, label: "HELP & SUPPORT", onPress: () => router.push('/help-support') },
         { icon: <Settings size={18} color={COLORS.textPrimary} />, label: "ACCOUNT SETTINGS", onPress: () => router.push('/settings') },
     ];
 
