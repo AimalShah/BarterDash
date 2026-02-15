@@ -33,6 +33,7 @@ import { useStripe } from "@stripe/stripe-react-native";
 import { cartService } from "../../lib/api/services/cart";
 import { paymentsService } from "../../lib/api/services/payments";
 import { getWalletPaymentSheetParams } from "../../lib/payments/walletConfig";
+import { PaymentNotice } from "../../components/ui/PaymentNotice";
 import { PaymentMethod } from "../../types";
 import { COLORS } from "../../constants/colors";
 import { useCartStore } from "../../store/cartStore";
@@ -713,6 +714,9 @@ export default function CartCheckoutScreen() {
                   </VStack>
                 </HStack>
               </Box>
+
+              {/* Payment Method Notice (shows when Apple Pay/Google Pay disabled) */}
+              <PaymentNotice />
 
               <Text color={COLORS.textPrimary} fontWeight="$bold">
                 Payment Methods

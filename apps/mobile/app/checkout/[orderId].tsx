@@ -33,6 +33,7 @@ import {
 import { ordersService } from "../../lib/api/services/orders";
 import { paymentsService, type PaymentMethod } from "../../lib/api/services/payments";
 import { getWalletPaymentSheetParams } from "../../lib/payments/walletConfig";
+import { PaymentNotice } from "../../components/ui/PaymentNotice";
 import { COLORS } from "../../constants/colors";
 
 interface ShippingAddress {
@@ -362,6 +363,9 @@ export default function CheckoutScreen() {
               </VStack>
             </HStack>
           </Box>
+
+          {/* Payment Method Notice (shows when Apple Pay/Google Pay disabled) */}
+          <PaymentNotice />
 
           {/* Order Summary */}
           <Box

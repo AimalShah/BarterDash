@@ -22,6 +22,7 @@ import { View, ActivityIndicator } from "react-native";
 import { COLORS } from "../constants/colors";
 import { useDeepLinkHandler } from "../hooks/useDeepLinkHandler";
 import { usePushNotificationHandler } from "../hooks/usePushNotificationHandler";
+import { logFeatureFlags } from "../lib/config/featureFlags";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +78,9 @@ export default function RootLayout() {
       </View>
     );
   }
+
+  // Log feature flags status on app start (development only)
+  logFeatureFlags();
 
   return (
     <ErrorBoundary>

@@ -1,5 +1,5 @@
-import { InitPaymentSheetParams } from "@stripe/stripe-react-native";
 import { Platform } from "react-native";
+import { isFeatureEnabled } from "../config/featureFlags";
 
 const DEFAULT_MERCHANT_COUNTRY_CODE = "US";
 
@@ -21,24 +21,32 @@ const googlePayTestEnv = parseBooleanEnv(
   __DEV__
 );
 
+interface WalletPaymentSheetParams {
+  applePay?: {
+    merchantCountryCode: string;
+  };
+  googlePay?: {
+    merchantCountryCode: string;
+    testEnv: boolean;
+  };
+}
+
 /**
  * Adds wallet options for Stripe PaymentSheet.
- * Apple Pay is enabled on iOS and Google Pay on Android.
+ * Apple Pay and Google Pay are controlled by feature flags.
  */
-export const getWalletPaymentSheetParams = (): Pick<
-  InitPaymentSheetParams,
-  "applePay" | "googlePay"
-> => {
-  const walletParams: Pick<InitPaymentSheetParams, "applePay" | "googlePay"> =
-    {};
+export const getWalletPaymentSheetParams = (): WalletPaymentSheetParams => {
+  const walletParams: WalletPaymentSheetParams = {};
 
-  if (Platform.OS === "ios") {
+  // Apple Pay - controlled by feature flag (requires Apple Developer account)
+  if (Platform.OS === "ios" && isFeatureEnabled("applePay")) {
     walletParams.applePay = {
       merchantCountryCode,
     };
   }
 
-  if (Platform.OS === "android") {
+  // Google Pay - controlled by feature flag
+  if (Platform.OS === "android" && isFeatureEnabled("googlePay")) {
     walletParams.googlePay = {
       merchantCountryCode,
       testEnv: googlePayTestEnv,
