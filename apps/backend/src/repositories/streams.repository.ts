@@ -5,7 +5,7 @@ import {
   streamSubscriptions,
   products,
 } from '../db/schema';
-import { eq, and, or, desc, asc, sql, count, gt, lt } from 'drizzle-orm';
+import { eq, and, or, desc, asc, sql, count } from 'drizzle-orm';
 import {
   AppResult,
   success,

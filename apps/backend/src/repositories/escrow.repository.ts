@@ -1,9 +1,8 @@
-import { eq, and, lte, sql } from 'drizzle-orm';
+import { eq, and, lte } from 'drizzle-orm';
 import { db } from '../db';
 import {
   escrowTransactions,
   orders,
-  profiles,
   sellerDetails,
 } from '../db/schema';
 import { InferInsertModel, InferSelectModel } from 'drizzle-orm';

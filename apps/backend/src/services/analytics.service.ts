@@ -7,7 +7,7 @@ import {
   sellerApplications,
   profiles,
 } from '../db/schema';
-import { eq, and, gte, lte, sql, desc, count } from 'drizzle-orm';
+import { eq, and, gte, desc } from 'drizzle-orm';
 
 export interface SellerAnalytics {
   overview: {

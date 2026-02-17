@@ -28,7 +28,7 @@ export class SellersRepository {
    */
   async create(
     userId: string,
-    data: { business_name: string; description?: string },
+    _data: { business_name: string; description?: string },
   ): Promise<AppResult<SellerDetails>> {
     try {
       // Check if user is already a seller

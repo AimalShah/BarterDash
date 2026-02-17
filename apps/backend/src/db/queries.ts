@@ -15,13 +15,11 @@ import {
   avg,
   inArray,
   isNull,
-  notInArray,
 } from 'drizzle-orm';
 import {
   profiles,
   sellerDetails,
   sellerApplications,
-  verificationDocuments,
   categories,
   streams,
   products,
@@ -1211,14 +1209,11 @@ export const orderQueries = {
     startDate?: Date,
     endDate?: Date,
   ) => {
-    let whereCondition = eq(orders.sellerId, sellerId);
+    const conditions: any[] = [eq(orders.sellerId, sellerId)];
 
     if (startDate && endDate) {
-      whereCondition = and(
-        whereCondition,
-        gte(orders.createdAt, startDate),
-        lte(orders.createdAt, endDate),
-      );
+      conditions.push(gte(orders.createdAt, startDate));
+      conditions.push(lte(orders.createdAt, endDate));
     }
 
     const [stats] = await db
@@ -1228,7 +1223,7 @@ export const orderQueries = {
         averageOrderValue: avg(orders.total),
       })
       .from(orders)
-      .where(whereCondition);
+      .where(and(...conditions));
 
     return stats;
   },
@@ -2026,14 +2021,11 @@ export const analyticsQueries = {
     startDate?: Date,
     endDate?: Date,
   ) => {
-    let dateCondition = eq(orders.sellerId, sellerId);
+    const dateConditions: any[] = [eq(orders.sellerId, sellerId)];
 
     if (startDate && endDate) {
-      dateCondition = and(
-        dateCondition,
-        gte(orders.createdAt, startDate),
-        lte(orders.createdAt, endDate),
-      );
+      dateConditions.push(gte(orders.createdAt, startDate));
+      dateConditions.push(lte(orders.createdAt, endDate));
     }
 
     const [orderStats] = await db
@@ -2043,7 +2035,7 @@ export const analyticsQueries = {
         averageOrderValue: avg(orders.total),
       })
       .from(orders)
-      .where(and(dateCondition, eq(orders.status, 'delivered')));
+      .where(and(...dateConditions, eq(orders.status, 'delivered')));
 
     const [streamStats] = await db
       .select({

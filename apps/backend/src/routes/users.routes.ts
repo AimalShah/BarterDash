@@ -108,7 +108,7 @@ router.put(
   validate(ageVerificationSchema),
   asyncHandler(async (req: AuthRequest, res: Response) => {
     const userId = req.user!.id;
-    const { dateOfBirth, guardianConsent } = req.body;
+    const { dateOfBirth } = req.body;
 
     const existingProfile = await usersService.getProfile(userId);
     if (existingProfile.isOk() && existingProfile.value?.ageVerified) {
@@ -125,7 +125,7 @@ router.put(
       throw result.error;
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: result.value,
       message: 'Age verified successfully',

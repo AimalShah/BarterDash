@@ -8,7 +8,7 @@ import { UserRole } from '../db/schema';
  * Replaces NestJS RolesGuard
  */
 export const requireRoles = (...allowedRoles: UserRole[]) => {
-  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+  return (req: AuthRequest, _res: Response, next: NextFunction): void => {
     try {
       if (!req.user) {
         throw new UnauthorizedError('Authentication required');
@@ -35,7 +35,7 @@ export const requireRoles = (...allowedRoles: UserRole[]) => {
 export const requireOwnerOrAdmin = (
   getUserIdFn: (req: AuthRequest) => string,
 ) => {
-  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+  return (req: AuthRequest, _res: Response, next: NextFunction): void => {
     try {
       if (!req.user) {
         throw new UnauthorizedError('Authentication required');

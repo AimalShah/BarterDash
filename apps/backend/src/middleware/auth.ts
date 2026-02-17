@@ -6,29 +6,6 @@ import { UserRole } from '../db/schema';
 import { TokenBlacklist } from '../utils/token-blacklist';
 
 /**
- * JWT Payload type
- */
-interface SupabaseJwtPayload {
-  sub?: string;
-  id?: string;
-  userId?: string;
-  role?: string;
-  email?: string;
-  aud?: string;
-  exp?: string;
-  iat?: number;
-  iss?: string;
-
-  app_metadata?: {
-    provider?: string;
-    providers?: string[];
-  };
-
-  user_metadata?: Record<string, any>;
-  session_id?: string;
-}
-
-/**
  * Extended Request type with user information
  */
 export interface AuthRequest extends Request {
@@ -36,6 +13,7 @@ export interface AuthRequest extends Request {
     id: string;
     role: string;
     email?: string;
+    emailConfirmedAt?: string | null;
     metadata?: Record<string, any>;
   };
 }
@@ -91,6 +69,7 @@ export const authenticate = async (
       id: user.id,
       role: appRole,
       email: user.email,
+      emailConfirmedAt: user.email_confirmed_at || null,
       metadata: user.user_metadata,
     };
 
@@ -141,6 +120,7 @@ export const optionalAuth = async (
           id: user.id,
           role: appRole,
           email: user.email,
+          emailConfirmedAt: user.email_confirmed_at || null,
         };
       }
     } catch {

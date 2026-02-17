@@ -146,7 +146,7 @@ router.get(
   '/:id',
   validate(uuidParamSchema),
   asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const result = await streamsService.getStreamById(id);
 
     handleResult(result, res, (data) => ({
@@ -177,6 +177,13 @@ router.post(
       });
     }
 
+    if (!user?.id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated',
+      });
+    }
+
     const result = await streamsService.createStream({
       sellerId: user.id,
       title,
@@ -186,7 +193,7 @@ router.post(
       thumbnailUrl: thumbnail_url,
     });
 
-    handleResult(
+    return handleResult(
       result,
       res,
       (data) => ({
@@ -237,19 +244,18 @@ router.post(
   authenticate,
   validate(uuidParamSchema),
   asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const user = (req as any).user;
 
     const streamResult = await streamsService.getStreamById(id);
     if (streamResult.isErr()) throw streamResult.error;
 
     if (streamResult.value.sellerId !== user.id) {
-      res.status(403).json({ success: false, error: 'Not authorized' });
-      return;
+      return res.status(403).json({ success: false, error: 'Not authorized' });
     }
 
     const result = await streamsService.getStreamVideoToken(id, user.id);
-    handleResult(result, res, (data) => ({
+    return handleResult(result, res, (data) => ({
       success: true,
       data,
     }));
@@ -262,7 +268,7 @@ router.post(
   authenticate,
   validate(uuidParamSchema),
   asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const user = (req as any).user;
 
     const result = await streamsService.getStreamVideoToken(id, user.id);
@@ -296,7 +302,7 @@ router.delete(
   authenticate,
   validate(uuidParamSchema),
   asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const user = (req as any).user;
 
     const result = await streamsService.cancelStream(id, user.id);
@@ -314,7 +320,7 @@ router.post(
   '/:id/join',
   validate(uuidParamSchema),
   asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const result = await streamsService.joinStream(id);
 
@@ -333,7 +339,7 @@ router.post(
   '/:id/leave',
   validate(uuidParamSchema),
   asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const result = await streamsService.leaveStream(id);
 
@@ -350,7 +356,7 @@ router.post(
   authenticate,
   validate(uuidParamSchema),
   asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const user = (req as any).user;
 
     const result = await streamsService.subscribeToStream(id, user.id);
@@ -369,7 +375,7 @@ router.put(
   authenticate,
   validate(updateStreamSchema),
   asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const user = (req as any).user;
     const { title, description, category_id, schedule_start, thumbnail_url } =
       req.body;
@@ -397,7 +403,7 @@ router.get(
   '/:id/products',
   validate(uuidParamSchema),
   asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const result = await streamsService.getStreamProducts(id);
 

@@ -30,7 +30,7 @@ router.get('/seller', authenticate, async (req, res, next) => {
     const analytics = await analyticsService.getSellerAnalytics(userId, period);
     return res.json({ success: true, data: analytics });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
@@ -51,7 +51,7 @@ router.get('/account-health', authenticate, async (req, res, next) => {
     const health = await analyticsService.getAccountHealth(userId);
     return res.json({ success: true, data: health });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
@@ -76,7 +76,7 @@ router.get('/products/:productId', authenticate, async (req, res, next) => {
     );
     return res.json({ success: true, data: metrics });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
