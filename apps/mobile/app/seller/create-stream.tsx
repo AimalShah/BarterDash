@@ -271,5 +271,6 @@ const styles = StyleSheet.create({
     color: COLORS.luxuryBlack,
     fontSize: 16,
     fontWeight: '900',
+    textAlign: 'center',
   },
 });

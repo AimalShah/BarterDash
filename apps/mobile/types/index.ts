@@ -283,6 +283,7 @@ export interface CartItem {
 export interface CartTotal {
   subtotal: number;
   shipping: number;
+  tax: number;
   total: number;
   items: CartItem[];
 }

@@ -75,7 +75,7 @@ export const ProductCard = ({ title, price, image, onBid, onBuy, bidLoading, buy
                             onPress={onBuy}
                             isDisabled={buyLoading}
                         >
-                            {buyLoading ? <Spinner size="small" color={COLORS.textPrimary} /> : <ButtonText size="xs" fontWeight="$bold">BUY</ButtonText>}
+                            {buyLoading ? <Spinner size="small" color={COLORS.textPrimary} /> : <ButtonText size="xs" fontWeight="$bold" textAlign="center">BUY</ButtonText>}
                         </Button>
                     )}
                     <Button
@@ -88,7 +88,7 @@ export const ProductCard = ({ title, price, image, onBid, onBuy, bidLoading, buy
                         onPress={onBid}
                         isDisabled={bidLoading}
                     >
-                        {bidLoading ? <Spinner size="small" color={COLORS.luxuryBlack} /> : <ButtonText size="xs" fontWeight="$bold" color={COLORS.luxuryBlack}>BID +$5</ButtonText>}
+                        {bidLoading ? <Spinner size="small" color={COLORS.luxuryBlack} /> : <ButtonText size="xs" fontWeight="$bold" color={COLORS.luxuryBlack} textAlign="center">BID +$5</ButtonText>}
                     </Button>
                 </VStack>
             </HStack>

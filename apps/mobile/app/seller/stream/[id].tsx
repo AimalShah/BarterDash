@@ -28,8 +28,7 @@ import {
   Package,
   ChevronRight,
 } from 'lucide-react-native';
-import { streamsService, Stream, StreamProduct } from '../../../lib/api/services/streams';
-import { supabase } from '../../../lib/supabase';
+import { streamsService, Stream } from '../../../lib/api/services/streams';
 import { COLORS } from '../../../constants/colors';
 
 export default function StreamManagementScreen() {
@@ -136,16 +135,7 @@ export default function StreamManagementScreen() {
           onPress: async () => {
             setDeleting(true);
             try {
-              // TODO: Replace with actual API call when backend is ready
-              // await streamsService.cancel(streamId);
-
-              // For now, just delete from Supabase directly
-              const { error } = await supabase
-                .from('streams')
-                .delete()
-                .eq('id', streamId);
-
-              if (error) throw error;
+              await streamsService.cancel(streamId);
 
               Alert.alert('Success', 'Stream cancelled successfully');
               router.replace('/seller/dashboard');
@@ -201,7 +191,7 @@ export default function StreamManagementScreen() {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Not scheduled';
     const date = new Date(dateString);
     return date.toLocaleString('en-US', {
@@ -244,7 +234,7 @@ export default function StreamManagementScreen() {
               onPress={() => router.replace('/seller/dashboard')}
               bg={COLORS.primaryGold}
             >
-              <ButtonText color={COLORS.luxuryBlack}>Back to Dashboard</ButtonText>
+              <ButtonText color={COLORS.luxuryBlack} textAlign="center">Back to Dashboard</ButtonText>
             </Button>
           </VStack>
         </Center>

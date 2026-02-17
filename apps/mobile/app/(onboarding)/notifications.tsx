@@ -49,6 +49,8 @@ export default function NotificationsScreen() {
       },
       {
         onSuccess: async () => {
+          useAuthStore.getState().setOnboarded(true);
+
           // Force fresh profile fetch to ensure onboarding status is updated
           await useAuthStore.getState().fetchProfile(true);
           // Small delay to ensure state is propagated

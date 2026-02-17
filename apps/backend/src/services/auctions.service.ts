@@ -43,6 +43,30 @@ export class AuctionsService {
     this.notificationsService = new NotificationsService();
   }
 
+  private async scheduleEndAuctionJob(
+    auctionId: string,
+    endsAt: Date,
+    streamId?: string,
+  ): Promise<void> {
+    const delay = Math.max(0, endsAt.getTime() - Date.now());
+
+    // Keep one canonical end job per auction to avoid duplicate early finalization.
+    const existingJob = await auctionQueue.getJob(auctionId);
+    if (existingJob) {
+      await existingJob.remove();
+    }
+
+    await auctionQueue.add(
+      'end-auction',
+      { auctionId, streamId },
+      {
+        delay,
+        removeOnComplete: true,
+        jobId: auctionId,
+      },
+    );
+  }
+
   /**
    * Create standalone/pre-bidding auction (not tied to a live stream)
    * Can be scheduled to start later or start immediately
@@ -103,12 +127,7 @@ export class AuctionsService {
     const auction = auctionResult.value;
 
     // Schedule auction end job
-    const delay = endsAt.getTime() - Date.now();
-    await auctionQueue.add(
-      'end-auction',
-      { auctionId: auction.id },
-      { delay, removeOnComplete: true },
-    );
+    await this.scheduleEndAuctionJob(auction.id, endsAt);
 
     // If scheduled for later, also schedule the start
     if (isScheduled) {
@@ -116,7 +135,11 @@ export class AuctionsService {
       await auctionQueue.add(
         'start-auction',
         { auctionId: auction.id },
-        { delay: startDelay, removeOnComplete: true },
+        {
+          delay: Math.max(0, startDelay),
+          removeOnComplete: true,
+          jobId: `start-${auction.id}`,
+        },
       );
     }
 
@@ -209,12 +232,7 @@ export class AuctionsService {
     const auction = auctionResult.value;
 
     // Schedule auction end job
-    const delay = data.duration_minutes * 60 * 1000;
-    await auctionQueue.add(
-      'end-auction',
-      { auctionId: auction.id, streamId: data.stream_id },
-      { delay, removeOnComplete: true },
-    );
+    await this.scheduleEndAuctionJob(auction.id, endsAt, data.stream_id);
 
     return success(auction);
   }
@@ -540,12 +558,7 @@ export class AuctionsService {
     }
 
     // Re-schedule the end job
-    const delay = newEndsAt.getTime() - Date.now();
-    await auctionQueue.add(
-      'end-auction',
-      { auctionId: auction.id },
-      { delay, removeOnComplete: true },
-    );
+    await this.scheduleEndAuctionJob(auction.id, newEndsAt, auction.streamId || undefined);
 
     return success({
       ...updateResult.value,

@@ -113,7 +113,7 @@ router.post(
 
 /**
  * POST /sellers/verify/session
- * Create Stripe Identity verification session
+ * Create identity verification session (Stripe or mock mode)
  */
 router.post(
   '/verify/session',

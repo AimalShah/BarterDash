@@ -6,6 +6,11 @@ import { gluestackTokens } from "../constants/theme";
  * Dark Luxury theme with Gold accents
  */
 
+const defaultBorderRadii =
+  (defaultConfig.tokens as any).borderRadii ??
+  (defaultConfig.tokens as any).radii ??
+  {};
+
 export const config = {
   ...defaultConfig,
   tokens: {
@@ -20,7 +25,7 @@ export const config = {
       ...gluestackTokens.space,
     },
     borderRadii: {
-      ...defaultConfig.tokens.borderRadii,
+      ...defaultBorderRadii,
       ...gluestackTokens.borderRadii,
     },
   },
@@ -28,6 +33,13 @@ export const config = {
     ...defaultConfig.components,
     Button: {
       theme: {
+        baseStyle: {
+          justifyContent: "center",
+          alignItems: "center",
+          _text: {
+            textAlign: "center",
+          },
+        },
         variants: {
           solid: {
             bg: "$primary700", // Gold primary

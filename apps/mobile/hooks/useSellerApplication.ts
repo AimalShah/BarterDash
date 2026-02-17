@@ -1,10 +1,13 @@
 import { useState, useCallback } from "react";
 import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { decode } from "base64-arraybuffer";
 import { sellersService } from "../lib/api/services/sellers";
 import { supabase } from "../lib/supabase";
 import { VerificationDocumentType } from "../types";
+
+const FILESYSTEM_BASE64_ENCODING =
+  (FileSystem as any).EncodingType?.Base64 ?? "base64";
 
 export type BusinessType = "individual" | "business";
 
@@ -155,7 +158,7 @@ export function useSellerApplication(): UseSellerApplicationReturn {
       const fileName = `${user.id}/${Date.now()}-${doc.docType}.${fileExt}`;
 
       let fileBase64 = await FileSystem.readAsStringAsync(doc.file.uri, {
-        encoding: FileSystem.EncodingType.Base64,
+        encoding: FILESYSTEM_BASE64_ENCODING as any,
       });
 
       if (fileBase64.includes(";base64,")) {

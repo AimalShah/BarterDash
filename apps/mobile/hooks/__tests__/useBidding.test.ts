@@ -14,12 +14,14 @@ jest.mock('../../lib/supabase', () => ({
   },
 }));
 
+const mockAuthState: any = {
+  profile: { id: 'user-1' },
+  user: { id: 'user-1' },
+  session: { user: { id: 'user-1' } },
+};
+
 jest.mock('../../store/authStore', () => ({
-  useAuthStore: () => ({
-    profile: { id: 'user-1' },
-    user: { id: 'user-1' },
-    session: { user: { id: 'user-1' } },
-  }),
+  useAuthStore: () => mockAuthState,
 }));
 
 jest.mock('react-native', () => ({
@@ -39,6 +41,9 @@ describe('useBidding', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAuthState.profile = { id: 'user-1' };
+    mockAuthState.user = { id: 'user-1' };
+    mockAuthState.session = { user: { id: 'user-1' } };
   });
 
   it('should initialize with auction bid values', () => {
@@ -232,13 +237,9 @@ describe('useBidding', () => {
   });
 
   it('should show alert when user not authenticated', async () => {
-    jest.resetModules();
-    jest.mock('../../store/authStore', () => ({
-      useAuthStore: () => ({
-        profile: null,
-        user: null,
-      }),
-    }));
+    mockAuthState.profile = null;
+    mockAuthState.user = null;
+    mockAuthState.session = null;
 
     const { result } = renderHook(() => useBidding(mockAuction as any));
 

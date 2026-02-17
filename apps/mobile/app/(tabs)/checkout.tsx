@@ -321,15 +321,15 @@ export default function CheckoutScreen() {
                             <VStack space="xs" mt="$2">
                                 <HStack justifyContent="space-between">
                                     <Text color={COLORS.textSecondary} size="xs" fontWeight="$bold" textTransform="uppercase">SUBTOTAL ({cartTotal?.items.length || 0} ITEMS)</Text>
-                                    <Text color={COLORS.textPrimary} size="sm" fontWeight="$black">${cartTotal?.subtotal.toFixed(2)}</Text>
+                                    <Text color={COLORS.textPrimary} size="sm" fontWeight="$black">${(cartTotal?.subtotal ?? 0).toFixed(2)}</Text>
                                 </HStack>
                                 <HStack justifyContent="space-between">
                                     <Text color={COLORS.textSecondary} size="xs" fontWeight="$bold" textTransform="uppercase">SHIPPING</Text>
-                                    <Text color={COLORS.textPrimary} size="sm" fontWeight="$black">${cartTotal?.shipping.toFixed(2)}</Text>
+                                    <Text color={COLORS.textPrimary} size="sm" fontWeight="$black">${(cartTotal?.shipping ?? 0).toFixed(2)}</Text>
                                 </HStack>
                                 <HStack justifyContent="space-between" mt="$4" pt="$4" borderTopWidth={1} borderColor={COLORS.darkBorder}>
                                     <Text color={COLORS.textPrimary} size="lg" fontWeight="$black" textTransform="uppercase">TOTAL</Text>
-                                    <Text color={COLORS.textPrimary} size="lg" fontWeight="$black">${cartTotal?.total.toFixed(2)}</Text>
+                                    <Text color={COLORS.textPrimary} size="lg" fontWeight="$black">${(cartTotal?.total ?? 0).toFixed(2)}</Text>
                                 </HStack>
                             </VStack>
                         </VStack>

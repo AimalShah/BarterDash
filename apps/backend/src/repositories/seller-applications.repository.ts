@@ -40,6 +40,35 @@ export class SellerApplicationsRepository {
       });
 
       if (existing) {
+        const canReuseExisting = ['draft', 'more_info_needed', 'rejected'].includes(
+          existing.status,
+        );
+
+        if (canReuseExisting) {
+          const [updated] = await db
+            .update(sellerApplications)
+            .set({
+              status: 'draft',
+              businessType: data.businessType,
+              businessName: data.businessName,
+              taxId: data.taxId,
+              rejectionReason: null,
+              adminNotes: null,
+              reviewerId: null,
+              submittedAt: null,
+              reviewedAt: null,
+              updatedAt: new Date(),
+            })
+            .where(eq(sellerApplications.id, existing.id))
+            .returning();
+
+          if (!updated) {
+            return failure(new NotFoundError('Seller application'));
+          }
+
+          return success(updated);
+        }
+
         return failure(
           new ConflictError('User already has a seller application'),
         );

@@ -70,7 +70,15 @@ export type GoLiveInput = z.infer<typeof goLiveSchema>;
 export const auctionFiltersSchema = z.object({
   query: z.object({
     status: z
-      .enum(['draft', 'scheduled', 'live', 'ended', 'cancelled'])
+      .enum([
+        'draft',
+        'scheduled',
+        'pending',
+        'live',
+        'active',
+        'ended',
+        'cancelled',
+      ])
       .optional(),
     category: z.string().optional(),
     search: z.string().optional(),
@@ -85,5 +93,14 @@ export type AuctionFilters = z.infer<typeof auctionFiltersSchema>['query'];
 export const uuidParamSchema = z.object({
   params: z.object({
     id: z.string().uuid(),
+  }),
+});
+
+export const extendAuctionSchema = z.object({
+  params: z.object({
+    id: z.string().uuid(),
+  }),
+  body: z.object({
+    extension_seconds: z.coerce.number().int().positive().max(120).default(30),
   }),
 });

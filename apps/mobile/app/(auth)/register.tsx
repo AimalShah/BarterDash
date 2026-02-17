@@ -7,7 +7,6 @@ import {
   ScrollView,
 } from "react-native";
 import { router } from "expo-router";
-import { makeRedirectUri } from "expo-auth-session";
 import {
   Box,
   Heading,
@@ -26,6 +25,7 @@ import {
 import { supabase } from "../../lib/supabase";
 import { COLORS } from "../../constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getEmailVerificationRedirectUri } from "../../lib/auth/emailVerification";
 
 export default function RegisterScreen() {
   const insets = useSafeAreaInsets();
@@ -42,10 +42,7 @@ export default function RegisterScreen() {
     setLoading(true);
     try {
       // Create redirect URI for email verification
-      const redirectTo = makeRedirectUri({
-        scheme: 'barterdash',
-        path: 'auth/confirm'
-      });
+      const redirectTo = getEmailVerificationRedirectUri();
 
       console.log('Registering with redirectTo:', redirectTo);
 

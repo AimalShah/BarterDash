@@ -144,7 +144,7 @@ export default function UserProfileScreen() {
                         px="$8"
                         onPress={() => router.back()}
                     >
-                        <ButtonText color={COLORS.luxuryBlack}>Go Back</ButtonText>
+                        <ButtonText color={COLORS.luxuryBlack} textAlign="center">Go Back</ButtonText>
                     </Button>
                 </Box>
             </SafeAreaView>

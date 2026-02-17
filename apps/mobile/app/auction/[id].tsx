@@ -5,6 +5,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { COLORS } from '../../constants/colors';
 import { ArrowLeft, Gavel, Users, ShoppingBag, Clock, Check } from 'lucide-react-native';
+import { auctionsService } from '../../lib/api/services/auctions';
+import { bidsService } from '../../lib/api/services/bids';
+import { productsService } from '../../lib/api/services/products';
 
 export default function AuctionDetailScreen() {
   const router = useRouter();
@@ -23,14 +26,15 @@ export default function AuctionDetailScreen() {
   const fetchAuctionDetails = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/auctions/${auctionId}`);
-      const data = await response.json();
-      if (data.success) {
-        setAuction(data.data);
-        setBids(data.data.bids || []);
-      }
+      const [auctionData, bidHistory] = await Promise.all([
+        auctionsService.findById(auctionId as string),
+        bidsService.getAuctionBids(auctionId as string).catch(() => []),
+      ]);
+      setAuction(auctionData);
+      setBids(bidHistory || []);
     } catch (error) {
       console.error('Error fetching auction:', error);
+      Alert.alert('Error', 'Failed to load auction details');
     } finally {
       setLoading(false);
     }
@@ -46,67 +50,54 @@ export default function AuctionDetailScreen() {
     
     setPlacingBid(true);
     try {
-      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/bids`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        'Authorization': `Bearer ${globalThis?.localStorage?.getItem?.('token') || ''}`,
-        },
-        body: JSON.stringify({
-          auctionId: auctionId,
-          amount: bidValue,
-        }),
+      await bidsService.placeBid({
+        auction_id: auctionId as string,
+        amount: bidValue,
       });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        Alert.alert('Bid Placed!', 'Your bid has been placed successfully');
-        setBidAmount('');
-        fetchAuctionDetails();
-      } else {
-        Alert.alert('Error', data.message || 'Failed to place bid');
-      }
+      Alert.alert('Bid Placed!', 'Your bid has been placed successfully');
+      setBidAmount('');
+      fetchAuctionDetails();
     } catch (error) {
       console.error('Error placing bid:', error);
-      Alert.alert('Error', 'Failed to place bid');
+      const message =
+        (error as any)?.response?.data?.error?.message ||
+        (error as any)?.response?.data?.message ||
+        (error as any)?.message ||
+        'Failed to place bid';
+      Alert.alert('Error', message);
     } finally {
       setPlacingBid(false);
     }
   };
   
-  const handleBuyNow = () => {
-    Alert.alert(
-      'Buy Now',
-      `Purchase ${auction?.title} for ${auction?.buyNowPrice || '0'}`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Proceed to Checkout',
-          onPress: () => router.push(`/checkout?auctionId=${auctionId}`),
-        }
-      ]
-    );
+  const handleBuyNow = async () => {
+    const productId = auction?.productId || auction?.product_id || auction?.product?.id;
+    if (!productId) {
+      Alert.alert('Unavailable', 'Buy now is not available for this auction item.');
+      return;
+    }
+
+    try {
+      const result = await productsService.buyNow(productId);
+      router.push(`/checkout/${result.order.id}`);
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.error?.message ||
+        error?.response?.data?.message ||
+        error?.message ||
+        'Failed to process buy now';
+      Alert.alert('Error', message);
+    }
   };
   
   const handleCheckout = () => {
-    Alert.alert(
-      'Checkout',
-      'Proceed to checkout to complete your purchase.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Proceed',
-          onPress: () => router.push(`/checkout?auctionId=${auctionId}`),
-        },
-      ]
-    );
+    router.push('/(tabs)/my-bids');
   };
   
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" />
+        <StatusBar style="light" />
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={COLORS.primaryGold} />
           <Text style={styles.loadingText}>Loading auction...</Text>
@@ -118,12 +109,12 @@ export default function AuctionDetailScreen() {
   if (!auction) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" />
+        <StatusBar style="light" />
         <View style={styles.centerContainer}>
           <Gavel size={48} color={COLORS.textMuted} />
           <Text style={styles.errorText}>Auction not found</Text>
           <TouchableOpacity
-            style={styles.backButton}
+            style={styles.homeButton}
             onPress={() => router.replace('/(tabs)')}
           >
             <ArrowLeft size={24} color={COLORS.primaryGold} />
@@ -136,10 +127,15 @@ export default function AuctionDetailScreen() {
   
   const hasEnded = auction.status === 'ended';
   const timeLeft = auction.ends_at ? new Date(auction.ends_at).getTime() - new Date().getTime() : 0;
+  const buyNowAmount =
+    auction.buyNowPrice ||
+    auction.buyout_price ||
+    auction.product?.buyNowPrice ||
+    null;
   
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar style="light" />
       
       <View style={styles.header}>
         <TouchableOpacity
@@ -272,9 +268,9 @@ export default function AuctionDetailScreen() {
             </View>
           )}
           
-          {auction.buyNowPrice && (
+          {buyNowAmount && (
             <View style={styles.buyNowSection}>
-              <Text style={styles.buyNowPrice}>Buy Now: {auction.buyNowPrice || '0'}</Text>
+              <Text style={styles.buyNowPrice}>Buy Now: {buyNowAmount}</Text>
               <TouchableOpacity
                 style={styles.buyNowButton}
                 onPress={handleBuyNow}
@@ -351,7 +347,19 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 16,
   },
-  backButton: {
+  homeButton: {
+    marginTop: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.cardBackground,
+    borderWidth: 1,
+    borderColor: COLORS.darkBorder,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  headerBack: {
     width: 44,
     height: 44,
     borderRadius: 12,
@@ -365,7 +373,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 20,
     paddingBottom: 16,
-    },
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   headerInfo: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -566,6 +577,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 32,
     paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   placeBidButtonDisabled: {
     opacity: 0.5,
@@ -574,6 +587,7 @@ const styles = StyleSheet.create({
     color: COLORS.luxuryBlack,
     fontSize: 16,
     fontWeight: '700',
+    textAlign: 'center',
   },
   quickBidButtons: {
     flexDirection: 'row',
@@ -611,11 +625,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 24,
     paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buyNowText: {
     color: COLORS.luxuryBlack,
     fontSize: 16,
     fontWeight: '700',
+    textAlign: 'center',
   },
   checkoutSection: {
     padding: 24,
@@ -631,6 +648,7 @@ const styles = StyleSheet.create({
     color: COLORS.luxuryBlack,
     fontSize: 16,
     fontWeight: '700',
+    textAlign: 'center',
   },
   bidsSection: {
     padding: 24,

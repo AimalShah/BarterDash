@@ -1,5 +1,6 @@
 import { ProductsRepository } from '../repositories/products.repository';
-import { OrdersRepository } from '../repositories/orders.repository';
+import { db, products, orders } from '../db';
+import { and, eq, sql } from 'drizzle-orm';
 import {
   AppResult,
   success,
@@ -13,11 +14,9 @@ import { randomUUID } from 'crypto';
 
 export class ProductsService {
   private repository: ProductsRepository;
-  private ordersRepository: OrdersRepository;
 
   constructor() {
     this.repository = new ProductsRepository();
-    this.ordersRepository = new OrdersRepository();
   }
 
   async getProduct(id: string): Promise<AppResult<Product>> {
@@ -97,7 +96,18 @@ export class ProductsService {
       return failure(new ForbiddenError('You cannot buy your own product'));
     }
 
-    if (product.quantity !== null && product.quantity < 1) {
+    if (product.status !== 'active') {
+      return failure(
+        new ValidationError('Product is not available for purchase'),
+      );
+    }
+
+    const availableStock =
+      product.quantity !== null
+        ? product.quantity - (product.soldQuantity || 0)
+        : 0;
+
+    if (availableStock < 1) {
       return failure(new ValidationError('Product is out of stock'));
     }
 
@@ -111,28 +121,63 @@ export class ProductsService {
       parseFloat(tax)
     ).toFixed(2);
 
-    const orderResult = await this.ordersRepository.create({
-      orderNumber,
-      buyerId,
-      sellerId: product.sellerId,
-      productId: product.id,
-      status: 'pending',
-      itemPrice: price,
-      shippingCost,
-      tax,
-      total,
-    });
+    try {
+      const order = await db.transaction(async (tx) => {
+        const [reservedProduct] = await tx
+          .update(products)
+          .set({
+            soldQuantity: sql`${products.soldQuantity} + 1`,
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(products.id, productId),
+              eq(products.status, 'active'),
+              sql`${products.quantity} - ${products.soldQuantity} >= 1`,
+            ),
+          )
+          .returning();
 
-    if (orderResult.isErr()) {
-      return failure(orderResult.error);
-    }
+        if (!reservedProduct) {
+          return null;
+        }
 
-    if (product.quantity !== null) {
-      await this.repository.update(productId, {
-        quantity: product.quantity - 1,
+        const [newOrder] = await tx
+          .insert(orders)
+          .values({
+            orderNumber,
+            buyerId,
+            sellerId: product.sellerId,
+            productId: product.id,
+            orderType: 'buy_now',
+            status: 'pending',
+            itemPrice: price,
+            shippingCost,
+            tax,
+            total,
+          })
+          .returning();
+
+        if (reservedProduct.soldQuantity >= reservedProduct.quantity) {
+          await tx
+            .update(products)
+            .set({
+              status: 'sold',
+              updatedAt: new Date(),
+            })
+            .where(eq(products.id, productId));
+        }
+
+        return newOrder;
       });
-    }
 
-    return success({ order: orderResult.value });
+      if (!order) {
+        return failure(new ValidationError('Product is out of stock'));
+      }
+
+      return success({ order });
+    } catch (error) {
+      return failure(new ValidationError('Failed to create buy now order'));
+    }
   }
 }

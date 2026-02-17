@@ -218,7 +218,7 @@ export default function StripeSetupScreen() {
                             isDisabled={connecting}
                         >
                             {connecting && <ButtonSpinner mr="$2" color={COLORS.luxuryBlack} />}
-                            <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold">Connect with Stripe</ButtonText>
+                            <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">Connect with Stripe</ButtonText>
                         </Button>
                     </VStack>
                 )}
@@ -276,7 +276,7 @@ export default function StripeSetupScreen() {
                             isDisabled={connecting}
                         >
                             {connecting && <ButtonSpinner mr="$2" color={COLORS.luxuryBlack} />}
-                            <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold">Continue Setup</ButtonText>
+                            <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">Continue Setup</ButtonText>
                             <ExternalLink size={18} color={COLORS.luxuryBlack} style={{ marginLeft: 8 }} />
                         </Button>
                     </VStack>
@@ -335,7 +335,7 @@ export default function StripeSetupScreen() {
                             isDisabled={connecting}
                         >
                             {connecting && <ButtonSpinner mr="$2" color={COLORS.luxuryBlack} />}
-                            <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold">Open Stripe Dashboard</ButtonText>
+                            <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">Open Stripe Dashboard</ButtonText>
                             <ExternalLink size={18} color={COLORS.luxuryBlack} style={{ marginLeft: 8 }} />
                         </Button>
 

@@ -20,8 +20,6 @@ router.post(
   validate(registerSellerSchema),
   asyncHandler(async (req: AuthRequest, res: Response) => {
     const userId = req.user!.id;
-    console.log('USER ID :', userId);
-    console.log('SELLER REQUEST BODY : ', req.body);
     const result = await sellersService.register(userId, req.body);
 
     if (result.isErr()) {
@@ -31,7 +29,7 @@ router.post(
     res.status(201).json({
       success: true,
       data: result.value,
-      message: 'Seller profile created and role updated',
+      message: 'Seller profile is active',
     });
   }),
 );

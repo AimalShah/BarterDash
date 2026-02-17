@@ -15,7 +15,10 @@ jest.mock('./orders.service');
 jest.mock('./email.service');
 jest.mock('./notifications.service');
 jest.mock('../jobs/auction.processor', () => ({
-  auctionQueue: { add: jest.fn().mockImplementation(async () => undefined) },
+  auctionQueue: {
+    add: jest.fn().mockImplementation(async () => undefined),
+    getJob: jest.fn().mockImplementation(async () => null),
+  },
 }));
 jest.mock('../utils/supabase', () => ({
   supabase: { auth: { admin: { getUserById: jest.fn() } } },

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, StatusBar, ActivityIndicator, Alert } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import {
@@ -14,16 +14,15 @@ import {
 } from "@gluestack-ui/themed";
 import {
   Mail,
-  RefreshCw,
   ArrowLeft,
   CheckCircle2,
-  LogIn,
 } from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
 import apiClient from "@/lib/api/client";
 import { COLORS } from "@/constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuthStore } from "@/store/authStore";
+import { getEmailVerificationRedirectUri } from "@/lib/auth/emailVerification";
 
 export default function VerifyEmailScreen() {
   const insets = useSafeAreaInsets();
@@ -35,17 +34,28 @@ export default function VerifyEmailScreen() {
   const [canResend, setCanResend] = useState(false);
   const [isAutoChecking, setIsAutoChecking] = useState(false);
   const { fetchProfile } = useAuthStore();
+  const getActiveSession = useCallback(async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    return session;
+  }, []);
 
   // Auto-check for email verification every 3 seconds via backend API
   useEffect(() => {
     const checkVerification = async () => {
       try {
+        const session = await getActiveSession();
+        if (!session?.access_token) {
+          return;
+        }
+
         setIsAutoChecking(true);
-        
+
         // Call backend API to check verification status
         const response = await apiClient.get('/auth/verification-status');
         const { emailVerified } = response.data.data;
-        
+
         if (emailVerified) {
           // Email verified! Auto-redirect to profile setup
           console.log("✅ Email verified via backend! Auto-redirecting...");
@@ -67,7 +77,7 @@ export default function VerifyEmailScreen() {
     const interval = setInterval(checkVerification, 3000);
 
     return () => clearInterval(interval);
-  }, [fetchProfile, router]);
+  }, [fetchProfile, getActiveSession, router]);
 
   useEffect(() => {
     if (countdown > 0 && !canResend) {
@@ -88,6 +98,9 @@ export default function VerifyEmailScreen() {
       const { error } = await supabase.auth.resend({
         type: "signup",
         email: email,
+        options: {
+          emailRedirectTo: getEmailVerificationRedirectUri(),
+        },
       });
 
       if (error) throw error;
@@ -115,10 +128,26 @@ export default function VerifyEmailScreen() {
   const handleContinue = async () => {
     setIsChecking(true);
     try {
+      const session = await getActiveSession();
+      if (!session?.access_token) {
+        Alert.alert(
+          "Sign In Required",
+          "After verifying your email, sign in to continue onboarding.",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Go to Login",
+              onPress: () => router.replace("/(auth)/login"),
+            },
+          ],
+        );
+        return;
+      }
+
       // Check verification status via backend API
       // Backend syncs with Supabase and database
       const response = await apiClient.get('/auth/verification-status');
-      const { emailVerified, verifiedAt } = response.data.data;
+      const { emailVerified } = response.data.data;
 
       if (emailVerified) {
         // Email is verified, fetch profile and redirect
@@ -162,7 +191,7 @@ export default function VerifyEmailScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: COLORS.luxuryBlack }}>
       <StatusBar barStyle="light-content" />
-      <Box safeAreaTop />
+      <View style={{ height: insets.top }} />
 
       <Box flex={1} px="$8" justifyContent="center">
         <VStack space="xl" alignItems="center">

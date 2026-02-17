@@ -69,11 +69,11 @@ export default function SellerApplicationScreen() {
     if (!validateStep(step)) return;
 
     if (step === 0) {
-      try {
-        setLoading(true);
-        await startApplication();
-        setStep(step + 1);
-      } catch (error: any) {
+	      try {
+	        setLoading(true);
+	        await startApplication();
+	        setStep(step + 1);
+	      } catch (error: any) {
         const message = getApiErrorMessage(error);
         const code = getApiErrorCode(error);
         if (
@@ -81,17 +81,17 @@ export default function SellerApplicationScreen() {
           (typeof message === "string" &&
             message.toLowerCase().includes("already has a seller application"))
         ) {
-          try {
-            const statusResponse = await sellersService.getApplicationStatus();
-            const status = statusResponse?.application?.status;
-            if (status && !["draft", "more_info_needed"].includes(status)) {
-              Alert.alert(
-                "Application In Progress",
-                `Your application status is "${status.replace(/_/g, " ")}". You can continue once it's back in draft.`
-              );
-              return;
-            }
-          } catch (statusError) {
+	          try {
+	            const statusResponse = await sellersService.getApplicationStatus();
+	            const status = statusResponse?.application?.status;
+	            if (status && !["draft", "more_info_needed", "rejected"].includes(status)) {
+	              Alert.alert(
+	                "Application In Progress",
+	                `Your application status is "${status.replace(/_/g, " ")}". You can continue when updates are allowed.`
+	              );
+	              return;
+	            }
+	          } catch (statusError) {
             console.warn("Failed to load application status:", statusError);
           }
           setApplicationStarted(true);
@@ -262,8 +262,12 @@ export default function SellerApplicationScreen() {
                 rounded="$full"
                 borderColor={COLORS.darkBorder}
                 bg="transparent"
+                justifyContent="center"
+                alignItems="center"
               >
-                <ButtonText color={COLORS.textPrimary}>Back</ButtonText>
+                <ButtonText color={COLORS.textPrimary} textAlign="center">
+                  Back
+                </ButtonText>
               </Button>
             )}
             <Button
@@ -276,6 +280,8 @@ export default function SellerApplicationScreen() {
               bg={step === STEPS.length - 1 ? COLORS.primaryGold : COLORS.luxuryBlackLight}
               h={56}
               rounded="$full"
+              justifyContent="center"
+              alignItems="center"
             >
               {loading ? (
                 <Spinner color={step === STEPS.length - 1 ? COLORS.luxuryBlack : COLORS.textPrimary} />
@@ -283,6 +289,7 @@ export default function SellerApplicationScreen() {
                 <ButtonText
                   fontWeight="$bold"
                   color={step === STEPS.length - 1 ? COLORS.luxuryBlack : COLORS.textPrimary}
+                  textAlign="center"
                 >
                   {step === STEPS.length - 1 ? "Submit Application" : "Continue"}
                 </ButtonText>

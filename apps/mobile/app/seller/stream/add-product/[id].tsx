@@ -294,7 +294,7 @@ export default function AddProductToStreamScreen() {
               bg={COLORS.primaryGold}
               mt="$4"
             >
-              <ButtonText color={COLORS.luxuryBlack}>Create New Product</ButtonText>
+              <ButtonText color={COLORS.luxuryBlack} textAlign="center">Create New Product</ButtonText>
             </Button>
           </VStack>
         </Box>
@@ -324,7 +324,7 @@ export default function AddProductToStreamScreen() {
               h={56}
               isDisabled={selectedCount === 0 || adding}
             >
-              <ButtonText fontWeight="$black" size="md" color={COLORS.luxuryBlack}>
+              <ButtonText fontWeight="$black" size="md" color={COLORS.luxuryBlack} textAlign="center">
                 {adding 
                   ? 'Adding...' 
                   : `Add ${selectedCount > 0 ? `${selectedCount} ` : ''}Product${selectedCount !== 1 ? 's' : ''}`

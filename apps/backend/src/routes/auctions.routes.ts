@@ -8,6 +8,7 @@ import {
   startStreamAuctionSchema,
   auctionFiltersSchema,
   uuidParamSchema,
+  extendAuctionSchema,
 } from '../schemas/auctions.schemas';
 import { AuctionsService } from '../services/auctions.service';
 
@@ -174,7 +175,7 @@ router.post(
   '/:id/extend',
   authenticate,
   requireRoles('SELLER'),
-  validate(uuidParamSchema),
+  validate(extendAuctionSchema),
   asyncHandler(async (req: AuthRequest, res: Response) => {
     const userId = req.user!.id;
     const auctionId = req.params.id as string;

@@ -3,8 +3,10 @@ import { Bid, ApiResponse } from '../../../types';
 
 export interface PlaceBidPayload {
   auction_id: string;
+  auctionId?: string;
   amount: number;
   is_max_bid?: boolean;
+  isMaxBid?: boolean;
 }
 
 export interface PlaceBidResponse extends Bid {
@@ -16,17 +18,52 @@ export interface PlaceBidResponse extends Bid {
 
 export interface MaxBidPayload {
   auction_id: string;
+  auctionId?: string;
   max_amount: number;
+  maxAmount?: number;
 }
 
 export const bidsService = {
   placeBid: async (payload: PlaceBidPayload): Promise<PlaceBidResponse> => {
-    const response = await apiClient.post<ApiResponse<PlaceBidResponse>>('/bids', payload);
+    const auctionId = payload.auction_id ?? payload.auctionId;
+    if (!auctionId) {
+      throw new Error('Missing auction_id');
+    }
+
+    const normalizedPayload: PlaceBidPayload = {
+      auction_id: auctionId,
+      amount: Number(payload.amount),
+      ...(typeof (payload.is_max_bid ?? payload.isMaxBid) === 'boolean'
+        ? { is_max_bid: Boolean(payload.is_max_bid ?? payload.isMaxBid) }
+        : {}),
+    };
+
+    const response = await apiClient.post<ApiResponse<PlaceBidResponse>>(
+      '/bids',
+      normalizedPayload,
+    );
     return response.data.data;
   },
 
   placeMaxBid: async (payload: MaxBidPayload): Promise<PlaceBidResponse> => {
-    const response = await apiClient.post<ApiResponse<PlaceBidResponse>>('/bids/max', payload);
+    const auctionId = payload.auction_id ?? payload.auctionId;
+    const maxAmount = payload.max_amount ?? payload.maxAmount;
+
+    if (!auctionId) {
+      throw new Error('Missing auction_id');
+    }
+
+    if (maxAmount === undefined || maxAmount === null) {
+      throw new Error('Missing max_amount');
+    }
+
+    const response = await apiClient.post<ApiResponse<PlaceBidResponse>>(
+      '/bids/max',
+      {
+        auction_id: auctionId,
+        max_amount: Number(maxAmount),
+      },
+    );
     return response.data.data;
   },
 

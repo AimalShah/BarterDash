@@ -17,21 +17,28 @@ import { COLORS } from "../../constants/colors";
 
 interface MyBid {
   id: string;
-  amount: number;
-  auctionId: string;
+  amount: number | string;
+  auctionId?: string;
+  auction_id?: string;
+  isWinning?: boolean;
+  is_winning?: boolean;
+  createdAt?: string;
+  created_at?: string;
   auction?: {
     id: string;
-    title: string;
+    streamId?: string;
+    stream_id?: string;
+    title?: string;
     product?: {
-      title: string;
+      title?: string;
       images?: string[];
     };
-    status: string;
-    currentPrice: number;
-    endTime: string;
+    status?: string;
+    currentBid?: number | string;
+    current_bid?: number | string;
+    endsAt?: string;
+    ends_at?: string;
   };
-  status: string;
-  createdAt: string;
 }
 
 export default function MyBidsScreen() {
@@ -59,9 +66,11 @@ export default function MyBidsScreen() {
     fetchBids();
   }, []);
 
-  const getBidStatus = (bid: Bid) => {
+  const getBidStatus = (bid: MyBid) => {
+    const isWinning = Boolean(bid.isWinning ?? bid.is_winning);
+
     if (bid.auction?.status === "ended") {
-      if (bid.status === "winning") {
+      if (isWinning) {
         return { text: "WON", color: COLORS.successGreen, icon: Trophy };
       } else {
         return { text: "LOST", color: COLORS.errorRed, icon: XCircle };
@@ -73,13 +82,23 @@ export default function MyBidsScreen() {
     return { text: "ACTIVE", color: COLORS.primaryGold, icon: Clock };
   };
 
-  const renderBidItem = ({ item }: { item: Bid }) => {
+  const renderBidItem = ({ item }: { item: MyBid }) => {
     const status = getBidStatus(item);
     const StatusIcon = status.icon;
+    const auctionId = item.auctionId || item.auction_id || item.auction?.id;
+    const createdAt = item.createdAt || item.created_at;
+    const currentPrice = Number(
+      item.auction?.currentBid ?? item.auction?.current_bid ?? 0,
+    );
+    const bidAmount = Number(item.amount || 0);
 
     return (
       <TouchableOpacity
-        onPress={() => router.push(`/stream/${item.auctionId}`)}
+        onPress={() => {
+          if (auctionId) {
+            router.push(`/auction/${auctionId}`);
+          }
+        }}
         style={{
           backgroundColor: COLORS.cardBackground,
           borderRadius: 12,
@@ -114,7 +133,7 @@ export default function MyBidsScreen() {
                 marginBottom: 8,
               }}
             >
-              {format(new Date(item.createdAt), "MMM d, h:mm a")}
+              {createdAt ? format(new Date(createdAt), "MMM d, h:mm a") : "-"}
             </Text>
           </View>
 
@@ -157,7 +176,7 @@ export default function MyBidsScreen() {
               Your Bid
             </Text>
             <Text style={{ fontSize: 18, fontWeight: "700", color: COLORS.primaryGold }}>
-              ${item.amount.toFixed(2)}
+              ${bidAmount.toFixed(2)}
             </Text>
           </View>
 
@@ -166,7 +185,7 @@ export default function MyBidsScreen() {
               Current Price
             </Text>
             <Text style={{ fontSize: 14, fontWeight: "600", color: COLORS.textPrimary }}>
-              ${(item.auction?.currentPrice || 0).toFixed(2)}
+              ${currentPrice.toFixed(2)}
             </Text>
           </View>
         </View>

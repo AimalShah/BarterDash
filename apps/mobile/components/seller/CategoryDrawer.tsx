@@ -210,5 +210,6 @@ const styles = StyleSheet.create({
         color: COLORS.luxuryBlack,
         fontSize: 16,
         fontWeight: "bold",
+        textAlign: "center",
     },
 });

@@ -123,7 +123,7 @@ export default function LoginScreen() {
                 onPress={handleLogin}
                 style={styles.signInButton}
               >
-                <ButtonText style={styles.signInText}>
+                <ButtonText style={styles.signInText} textAlign="center">
                   {loading ? "Signing in..." : "Sign In"}
                 </ButtonText>
               </Button>

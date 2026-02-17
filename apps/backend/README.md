@@ -68,6 +68,9 @@ SUPABASE_WEBHOOK_SECRET=your-random-webhook-shared-secret
 # Optional
 SENTRY_DSN=https://...
 FRONTEND_URL=https://barterdash.app  # Required for Stripe Checkout Session redirects
+IDENTITY_RETURN_URL=barterdash://seller/verification
+IDENTITY_VERIFICATION_MODE=stripe  # set to mock for TestFlight
+IDENTITY_MOCK_AUTO_APPROVE_DELAY_MS=1500
 ```
 
 ## 🗄️ Database Setup

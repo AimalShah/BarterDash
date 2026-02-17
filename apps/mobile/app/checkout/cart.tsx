@@ -470,19 +470,19 @@ export default function CartCheckoutScreen() {
                   <HStack justifyContent="space-between">
                     <Text color={COLORS.textMuted}>Subtotal</Text>
                     <Text fontWeight="$bold" color={COLORS.textPrimary}>
-                      ${cartTotal?.subtotal.toFixed(2)}
+                      ${(cartTotal?.subtotal ?? 0).toFixed(2)}
                     </Text>
                   </HStack>
                   <HStack justifyContent="space-between">
                     <Text color={COLORS.textMuted}>Shipping</Text>
                     <Text fontWeight="$bold" color={COLORS.textPrimary}>
-                      ${cartTotal?.shipping.toFixed(2)}
+                      ${(cartTotal?.shipping ?? 0).toFixed(2)}
                     </Text>
                   </HStack>
                   <HStack justifyContent="space-between">
                     <Text color={COLORS.textMuted}>Tax</Text>
                     <Text fontWeight="$bold" color={COLORS.textPrimary}>
-                      ${cartTotal?.tax.toFixed(2)}
+                      ${(cartTotal?.tax ?? 0).toFixed(2)}
                     </Text>
                   </HStack>
                   <Box h={1} bg={COLORS.darkBorder} my="$2" />
@@ -491,7 +491,7 @@ export default function CartCheckoutScreen() {
                       Total
                     </Text>
                     <Text fontWeight="$black" color={COLORS.primaryGold} size="lg">
-                      ${cartTotal?.total.toFixed(2)}
+                      ${(cartTotal?.total ?? 0).toFixed(2)}
                     </Text>
                   </HStack>
                 </VStack>
@@ -674,7 +674,7 @@ export default function CartCheckoutScreen() {
                   <CreditCard size={20} color={COLORS.luxuryBlack} style={{ marginRight: 8 }} />
                 )}
                 <ButtonText fontWeight="$bold" color={COLORS.luxuryBlack} textAlign="center">
-                  {processing ? "Creating Order..." : `Pay $${cartTotal?.total.toFixed(2)}`}
+                  {processing ? "Creating Order..." : `Pay $${(cartTotal?.total ?? 0).toFixed(2)}`}
                 </ButtonText>
               </Button>
             </>
@@ -825,7 +825,7 @@ export default function CartCheckoutScreen() {
                         <CreditCard size={20} color={COLORS.luxuryBlack} style={{ marginRight: 8 }} />
                       )}
                       <ButtonText fontWeight="$bold" color={COLORS.luxuryBlack} textAlign="center">
-                        {processing ? "Processing..." : `Pay $${cartTotal?.total.toFixed(2)}`}
+                        {processing ? "Processing..." : `Pay $${(cartTotal?.total ?? 0).toFixed(2)}`}
                       </ButtonText>
                     </Button>
                   )}

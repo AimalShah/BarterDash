@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   ScrollView,
@@ -8,9 +8,9 @@ import {
   Linking,
   Image,
   TouchableOpacity,
-} from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+} from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Box,
   Text,
@@ -52,24 +52,24 @@ import {
   Upload,
   X,
   Check,
-} from '@gluestack-ui/themed';
-import { useSellerApplication } from '@/hooks/useSellerApplication';
-import { sellersService } from '@/lib/api/services/sellers';
-import { useAuthStore } from '@/store/authStore';
-import { COLORS } from '@/constants/colors';
+} from "@gluestack-ui/themed";
+import { useSellerApplication } from "@/hooks/useSellerApplication";
+import { sellersService } from "@/lib/api/services/sellers";
+import { useAuthStore } from "@/store/authStore";
+import { COLORS } from "@/constants/colors";
 
 const STEPS = [
-  { id: 'business', label: 'Business Info', icon: Building2 },
-  { id: 'documents', label: 'Documents', icon: FileText },
-  { id: 'verification', label: 'Verification', icon: User },
-  { id: 'review', label: 'Review', icon: CheckCircle },
+  { id: "business", label: "Business Info", icon: Building2 },
+  { id: "documents", label: "Documents", icon: FileText },
+  { id: "verification", label: "Verification", icon: User },
+  { id: "review", label: "Review", icon: CheckCircle },
 ];
 
 const DOCUMENT_TYPES = [
-  { value: 'id_front', label: 'ID Front (Required)' },
-  { value: 'id_back', label: 'ID Back (Required)' },
-  { value: 'business_license', label: 'Business License (Optional)' },
-  { value: 'tax_form', label: 'Tax Form (Optional)' },
+  { value: "id_front", label: "ID Front (Required)" },
+  { value: "id_back", label: "ID Back (Required)" },
+  { value: "business_license", label: "Business License (Optional)" },
+  { value: "tax_form", label: "Tax Form (Optional)" },
 ];
 
 export default function SellerOnboardingScreen() {
@@ -104,23 +104,23 @@ export default function SellerOnboardingScreen() {
 
   // Handle return from Stripe Identity verification
   useEffect(() => {
-    if (status === 'verified') {
+    if (status === "verified") {
       Alert.alert(
-        'Verification Complete',
-        'Your identity has been verified. Your application is now under review.',
-        [{ text: 'OK', onPress: () => router.replace('/seller/dashboard') }]
+        "Verification Complete",
+        "Your identity has been verified. Your application is now under review.",
+        [{ text: "OK", onPress: () => router.replace("/seller/dashboard") }],
       );
-    } else if (status === 'requires_input') {
+    } else if (status === "requires_input") {
       Alert.alert(
-        'Additional Information Needed',
-        'Please provide additional information to complete your verification.',
-        [{ text: 'Continue', onPress: () => setCurrentStep(2) }]
+        "Additional Information Needed",
+        "Please provide additional information to complete your verification.",
+        [{ text: "Continue", onPress: () => setCurrentStep(2) }],
       );
-    } else if (status === 'canceled') {
+    } else if (status === "canceled") {
       Alert.alert(
-        'Verification Canceled',
-        'You can restart the verification process when ready.',
-        [{ text: 'OK' }]
+        "Verification Canceled",
+        "You can restart the verification process when ready.",
+        [{ text: "OK" }],
       );
     }
   }, [status]);
@@ -131,39 +131,59 @@ export default function SellerOnboardingScreen() {
       if (applicationStatus?.application) {
         setExistingApplication(applicationStatus.application);
         // Skip to appropriate step based on status
-        if (applicationStatus.application.status === 'draft') {
+        if (applicationStatus.application.status === "draft") {
           setCurrentStep(0);
           setApplicationStarted(true);
-        } else if (applicationStatus.application.status === 'submitted') {
+        } else if (applicationStatus.application.status === "submitted") {
           setCurrentStep(2); // Go to verification step
-        } else if (applicationStatus.application.status === 'in_review') {
+        } else if (applicationStatus.application.status === "in_review") {
           Alert.alert(
-            'Application Under Review',
-            'Your application is being reviewed. We\'ll notify you once it\'s approved.',
-            [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
+            "Application Under Review",
+            "Your application is being reviewed. We'll notify you once it's approved.",
+            [{ text: "OK", onPress: () => router.replace("/(tabs)") }],
           );
-        } else if (applicationStatus.application.status === 'approved') {
+        } else if (applicationStatus.application.status === "approved") {
           Alert.alert(
-            'Application Approved',
-            'Congratulations! You are now a verified seller.',
-            [{ text: 'Go to Dashboard', onPress: () => router.replace('/seller/dashboard') }]
+            "Application Approved",
+            "Congratulations! You are now a verified seller.",
+            [
+              {
+                text: "Go to Dashboard",
+                onPress: () => router.replace("/seller/dashboard"),
+              },
+            ],
           );
-        } else if (applicationStatus.application.status === 'rejected') {
+        } else if (applicationStatus.application.status === "rejected") {
           Alert.alert(
-            'Application Rejected',
-            applicationStatus.application.rejectionReason || 'Your application was not approved. Please contact support for more information.',
-            [{ text: 'OK' }]
+            "Application Rejected",
+            `${applicationStatus.application.rejectionReason || "Your application was not approved."} You can start a new application now.`,
+            [
+              {
+                text: "Start New Application",
+                onPress: () => {
+                  setApplicationStarted(false);
+                  setCurrentStep(0);
+                },
+              },
+              {
+                text: "Later",
+                style: "cancel",
+                onPress: () => router.replace("/(tabs)"),
+              },
+            ],
           );
-        } else if (applicationStatus.application.status === 'more_info_needed') {
+        } else if (
+          applicationStatus.application.status === "more_info_needed"
+        ) {
           Alert.alert(
-            'More Information Needed',
-            'Please upload additional documents to complete your application.',
-            [{ text: 'Continue', onPress: () => setCurrentStep(1) }]
+            "More Information Needed",
+            "Please upload additional documents to complete your application.",
+            [{ text: "Continue", onPress: () => setCurrentStep(1) }],
           );
         }
       }
     } catch (error) {
-      console.error('Error checking application status:', error);
+      console.error("Error checking application status:", error);
     } finally {
       setCheckingStatus(false);
     }
@@ -173,19 +193,19 @@ export default function SellerOnboardingScreen() {
   useEffect(() => {
     if (!checkingStatus && !isOnboarded()) {
       Alert.alert(
-        'Complete Setup First',
-        'Please finish setting up your profile before becoming a seller.',
+        "Complete Setup First",
+        "Please finish setting up your profile before becoming a seller.",
         [
           {
-            text: 'Continue Setup',
-            onPress: () => router.replace('/(onboarding)/profile-setup'),
+            text: "Continue Setup",
+            onPress: () => router.replace("/(onboarding)/profile-setup"),
           },
           {
-            text: 'Go Home',
-            onPress: () => router.replace('/(tabs)'),
-            style: 'cancel',
+            text: "Go Home",
+            onPress: () => router.replace("/(tabs)"),
+            style: "cancel",
           },
-        ]
+        ],
       );
     }
   }, [checkingStatus, isOnboarded]);
@@ -199,15 +219,15 @@ export default function SellerOnboardingScreen() {
         await startApplication();
         setCurrentStep(1);
       } catch (error: any) {
-        Alert.alert('Error', error.message || 'Failed to start application');
+        Alert.alert("Error", error.message || "Failed to start application");
       }
     } else if (currentStep === 1) {
       // Check required documents
       const missingDocs = getMissingRequiredDocs();
       if (missingDocs.length > 0) {
         Alert.alert(
-          'Missing Required Documents',
-          `Please upload: ${missingDocs.map(d => DOCUMENT_TYPES.find(dt => dt.value === d)?.label).join(', ')}`
+          "Missing Required Documents",
+          `Please upload: ${missingDocs.map((d) => DOCUMENT_TYPES.find((dt) => dt.value === d)?.label).join(", ")}`,
         );
         return;
       }
@@ -215,12 +235,12 @@ export default function SellerOnboardingScreen() {
       try {
         await submitApplication();
         Alert.alert(
-          'Application Submitted',
-          'Your documents have been uploaded. Now let\'s verify your identity.',
-          [{ text: 'Continue', onPress: () => setCurrentStep(2) }]
+          "Application Submitted",
+          "Your documents have been uploaded. Now let's verify your identity.",
+          [{ text: "Continue", onPress: () => setCurrentStep(2) }],
         );
       } catch (error: any) {
-        Alert.alert('Error', error.message || 'Failed to submit application');
+        Alert.alert("Error", error.message || "Failed to submit application");
       }
     } else if (currentStep === 2) {
       // Start Stripe Identity verification
@@ -231,10 +251,10 @@ export default function SellerOnboardingScreen() {
         if (supported) {
           await Linking.openURL(verificationUrl);
         } else {
-          Alert.alert('Error', 'Cannot open verification URL');
+          Alert.alert("Error", "Cannot open verification URL");
         }
       } catch (error: any) {
-        Alert.alert('Error', error.message || 'Failed to start verification');
+        Alert.alert("Error", error.message || "Failed to start verification");
       }
     } else {
       setCurrentStep(currentStep + 1);
@@ -246,7 +266,7 @@ export default function SellerOnboardingScreen() {
       setCurrentStep(currentStep - 1);
     } else {
       // Exit onboarding and go to dashboard
-      router.replace('/seller/dashboard');
+      router.replace("/seller/dashboard");
     }
   };
 
@@ -254,7 +274,7 @@ export default function SellerOnboardingScreen() {
     try {
       await pickDocument();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to pick document');
+      Alert.alert("Error", error.message || "Failed to pick document");
     }
   };
 
@@ -288,23 +308,19 @@ export default function SellerOnboardingScreen() {
                 isCompleted
                   ? COLORS.successGreen
                   : isCurrent
-                  ? COLORS.primaryGold
-                  : COLORS.luxuryBlackLight
+                    ? COLORS.primaryGold
+                    : COLORS.luxuryBlackLight
               }
               alignItems="center"
               justifyContent="center"
               borderWidth={2}
-              borderColor={
-                isCurrent ? COLORS.primaryGold : COLORS.darkBorder
-              }
+              borderColor={isCurrent ? COLORS.primaryGold : COLORS.darkBorder}
             >
               {isCompleted ? (
                 <Check color={COLORS.luxuryBlack} size={24} />
               ) : (
                 <Icon
-                  color={
-                    isCurrent ? COLORS.luxuryBlack : COLORS.textMuted
-                  }
+                  color={isCurrent ? COLORS.luxuryBlack : COLORS.textMuted}
                   size={24}
                 />
               )}
@@ -312,12 +328,10 @@ export default function SellerOnboardingScreen() {
             <Text
               size="xs"
               color={
-                isCurrent || isCompleted
-                  ? COLORS.textPrimary
-                  : COLORS.textMuted
+                isCurrent || isCompleted ? COLORS.textPrimary : COLORS.textMuted
               }
               mt="$2"
-              fontWeight={isCurrent ? '$bold' : '$normal'}
+              fontWeight={isCurrent ? "$bold" : "$normal"}
             >
               {s.label}
             </Text>
@@ -358,7 +372,7 @@ export default function SellerOnboardingScreen() {
             placeholder="Your business or display name"
             placeholderTextColor={COLORS.textMuted}
             value={formData.businessName}
-            onChangeText={(text) => updateField('businessName', text)}
+            onChangeText={(text) => updateField("businessName", text)}
           />
         </Input>
         {errors.businessName && (
@@ -387,7 +401,7 @@ export default function SellerOnboardingScreen() {
             placeholder="XXX-XX-XXXX"
             placeholderTextColor={COLORS.textMuted}
             value={formData.taxId}
-            onChangeText={(text) => updateField('taxId', text)}
+            onChangeText={(text) => updateField("taxId", text)}
             secureTextEntry
           />
         </Input>
@@ -408,7 +422,7 @@ export default function SellerOnboardingScreen() {
         </FormControlLabel>
         <RadioGroup
           value={formData.businessType}
-          onChange={(value) => updateField('businessType', value as any)}
+          onChange={(value) => updateField("businessType", value as any)}
         >
           <HStack space="md">
             <Radio value="individual">
@@ -432,7 +446,8 @@ export default function SellerOnboardingScreen() {
   const renderDocumentsStep = () => (
     <VStack space="md">
       <Text color={COLORS.textSecondary} size="sm">
-        Please upload the required documents for verification. All documents are securely stored and encrypted.
+        Please upload the required documents for verification. All documents are
+        securely stored and encrypted.
       </Text>
 
       <FormControl>
@@ -441,8 +456,15 @@ export default function SellerOnboardingScreen() {
             Document Type
           </FormControlLabelText>
         </FormControlLabel>
-        <Select selectedValue={selectedDocType} onValueChange={(value) => setSelectedDocType(value as any)}>
-          <SelectTrigger variant="outline" size="md" borderColor={COLORS.darkBorder}>
+        <Select
+          selectedValue={selectedDocType}
+          onValueChange={(value) => setSelectedDocType(value as any)}
+        >
+          <SelectTrigger
+            variant="outline"
+            size="md"
+            borderColor={COLORS.darkBorder}
+          >
             <SelectInput
               color={COLORS.textPrimary}
               placeholder="Select document type"
@@ -456,7 +478,11 @@ export default function SellerOnboardingScreen() {
                 <SelectDragIndicator />
               </SelectDragIndicatorWrapper>
               {DOCUMENT_TYPES.map((doc) => (
-                <SelectItem key={doc.value} label={doc.label} value={doc.value} />
+                <SelectItem
+                  key={doc.value}
+                  label={doc.label}
+                  value={doc.value}
+                />
               ))}
             </SelectContent>
           </SelectPortal>
@@ -473,7 +499,13 @@ export default function SellerOnboardingScreen() {
         px="$6"
       >
         <Icon as={Upload} color={COLORS.textSecondary} mr="$2" />
-        <ButtonText color={COLORS.textSecondary} fontWeight="$bold" textAlign="center">Upload Document</ButtonText>
+        <ButtonText
+          color={COLORS.textSecondary}
+          fontWeight="$bold"
+          textAlign="center"
+        >
+          Upload Document
+        </ButtonText>
       </Button>
 
       {/* Show uploaded documents */}
@@ -495,7 +527,10 @@ export default function SellerOnboardingScreen() {
                 <Icon as={FileText} color={COLORS.primaryGold} />
                 <VStack>
                   <Text color={COLORS.textPrimary} size="sm">
-                    {DOCUMENT_TYPES.find((dt) => dt.value === doc.docType)?.label}
+                    {
+                      DOCUMENT_TYPES.find((dt) => dt.value === doc.docType)
+                        ?.label
+                    }
                   </Text>
                   <Text color={COLORS.textMuted} size="xs">
                     {doc.file.name}
@@ -520,10 +555,10 @@ export default function SellerOnboardingScreen() {
           borderColor={COLORS.warningAmber}
         >
           <Text color={COLORS.warningAmber} size="sm">
-            Required documents missing:{' '}
+            Required documents missing:{" "}
             {getMissingRequiredDocs()
               .map((d) => DOCUMENT_TYPES.find((dt) => dt.value === d)?.label)
-              .join(', ')}
+              .join(", ")}
           </Text>
         </Box>
       )}
@@ -543,12 +578,18 @@ export default function SellerOnboardingScreen() {
         <Icon as={User} color={COLORS.primaryGold} size={48} />
       </Box>
 
-      <Text color={COLORS.textPrimary} size="lg" fontWeight="$bold" textAlign="center">
+      <Text
+        color={COLORS.textPrimary}
+        size="lg"
+        fontWeight="$bold"
+        textAlign="center"
+      >
         Identity Verification
       </Text>
 
       <Text color={COLORS.textSecondary} textAlign="center">
-        To ensure the safety of our marketplace, we need to verify your identity using Stripe Identity. This is a quick and secure process.
+        To ensure the safety of our marketplace, we need to verify your identity
+        using Stripe Identity. This is a quick and secure process.
       </Text>
 
       <VStack space="sm" w="$full" mt="$4">
@@ -573,7 +614,8 @@ export default function SellerOnboardingScreen() {
       </VStack>
 
       <Text color={COLORS.textMuted} size="xs" textAlign="center" mt="$4">
-        By continuing, you agree to Stripe's Identity Verification Terms and Privacy Policy.
+        By continuing, you agree to Stripe's Identity Verification Terms and
+        Privacy Policy.
       </Text>
     </VStack>
   );
@@ -593,7 +635,8 @@ export default function SellerOnboardingScreen() {
           Application Submitted!
         </Text>
         <Text color={COLORS.textSecondary} textAlign="center" mt="$2">
-          Your application has been submitted and is now under review. We'll notify you once it's approved.
+          Your application has been submitted and is now under review. We'll
+          notify you once it's approved.
         </Text>
       </Box>
 
@@ -609,12 +652,16 @@ export default function SellerOnboardingScreen() {
           <HStack justifyContent="space-between">
             <Text color={COLORS.textMuted}>Business Type</Text>
             <Text color={COLORS.textPrimary}>
-              {formData.businessType === 'individual' ? 'Individual' : 'Business'}
+              {formData.businessType === "individual"
+                ? "Individual"
+                : "Business"}
             </Text>
           </HStack>
           <HStack justifyContent="space-between">
             <Text color={COLORS.textMuted}>Documents</Text>
-            <Text color={COLORS.textPrimary}>{formData.documents.length} uploaded</Text>
+            <Text color={COLORS.textPrimary}>
+              {formData.documents.length} uploaded
+            </Text>
           </HStack>
         </VStack>
       </Box>
@@ -628,7 +675,12 @@ export default function SellerOnboardingScreen() {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <HStack px="$4" py="$4" alignItems="center" justifyContent="space-between">
+      <HStack
+        px="$4"
+        py="$4"
+        alignItems="center"
+        justifyContent="space-between"
+      >
         <Pressable onPress={handleBack} p="$2">
           <Icon as={ChevronLeft} color={COLORS.textPrimary} size={28} />
         </Pressable>
@@ -640,7 +692,10 @@ export default function SellerOnboardingScreen() {
 
       <StepIndicator />
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+      >
         <Box px="$4" py="$4">
           {currentStep === 0 && renderBusinessStep()}
           {currentStep === 1 && renderDocumentsStep()}
@@ -650,17 +705,26 @@ export default function SellerOnboardingScreen() {
       </ScrollView>
 
       {/* Footer Buttons */}
-      <Box px="$4" py="$4" borderTopWidth={1} borderTopColor={COLORS.darkBorder}>
+      <Box
+        px="$4"
+        py="$4"
+        borderTopWidth={1}
+        borderTopColor={COLORS.darkBorder}
+      >
         {currentStep === 3 ? (
           <Button
             size="xl"
             backgroundColor={COLORS.primaryGold}
-            onPress={() => router.replace('/(tabs)')}
+            onPress={() => router.replace("/(tabs)")}
             rounded="$full"
             h={56}
             px="$6"
           >
-            <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
+            <ButtonText
+              color={COLORS.luxuryBlack}
+              fontWeight="$bold"
+              textAlign="center"
+            >
               Go Home
             </ButtonText>
           </Button>
@@ -677,13 +741,21 @@ export default function SellerOnboardingScreen() {
                 h={56}
                 px="$4"
               >
-                <ButtonText color={COLORS.textSecondary} fontWeight="$bold" textAlign="center">Back</ButtonText>
+                <ButtonText
+                  color={COLORS.textSecondary}
+                  fontWeight="$bold"
+                  textAlign="center"
+                >
+                  Back
+                </ButtonText>
               </Button>
             )}
             <Button
               flex={currentStep > 0 ? 1 : undefined}
               size="xl"
               backgroundColor={COLORS.primaryGold}
+              alignItems="center"
+              justifyContent="center"
               onPress={handleNext}
               isDisabled={loading}
               rounded="$full"
@@ -693,8 +765,12 @@ export default function SellerOnboardingScreen() {
               {loading ? (
                 <ActivityIndicator color={COLORS.luxuryBlack} />
               ) : (
-                <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
-                  {currentStep === 2 ? 'Start Verification' : 'Continue'}
+                <ButtonText
+                  color={COLORS.luxuryBlack}
+                  fontWeight="$bold"
+                  textAlign="center"
+                >
+                  {currentStep === 2 ? "Start Verification" : "Continue"}
                 </ButtonText>
               )}
             </Button>
@@ -712,8 +788,8 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: COLORS.luxuryBlack,
   },
   content: {

@@ -77,7 +77,7 @@ export default function MenuScreen() {
                         h={56}
                         sx={{ ":active": { opacity: 0.8 } }}
                     >
-                        <ButtonText color={COLORS.errorRed} fontWeight="$bold" size="md">Log Out</ButtonText>
+                        <ButtonText color={COLORS.errorRed} fontWeight="$bold" size="md" textAlign="center">Log Out</ButtonText>
                     </Button>
                 </Box>
             </ScrollView>

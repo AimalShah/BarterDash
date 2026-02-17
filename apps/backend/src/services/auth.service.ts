@@ -146,7 +146,10 @@ export class AuthService {
    * Get email verification status
    * Checks both database and Supabase for latest status
    */
-  async getVerificationStatus(userId: string): Promise<
+  async getVerificationStatus(
+    userId: string,
+    options?: { emailConfirmedAt?: string | null },
+  ): Promise<
     AppResult<{
       emailVerified: boolean;
       verifiedAt: string | null;
@@ -161,10 +164,48 @@ export class AuthService {
 
     const profile = profileResult.value;
     let emailVerified = profile?.emailVerified || false;
-    let verifiedAt = null;
-    let isSynced = true;
+    let verifiedAt: string | null = null;
+    let isSynced = !!profile;
 
-    // If not verified in DB, check Supabase directly
+    const syncProfileIfNeeded = async (): Promise<{ synced: boolean }> => {
+      if (!profile) {
+        return { synced: false };
+      }
+
+      if (profile.emailVerified) {
+        return { synced: true };
+      }
+
+      const updateResult = await this.repository.updateProfile(userId, {
+        emailVerified: true,
+      });
+
+      if (updateResult.isErr()) {
+        console.error(
+          'Failed to sync email verification status to profile:',
+          updateResult.error,
+        );
+        return { synced: false };
+      }
+
+      return { synced: true };
+    };
+
+    const tokenConfirmedAt = options?.emailConfirmedAt || null;
+    if (tokenConfirmedAt) {
+      const { synced } = await syncProfileIfNeeded();
+      emailVerified = true;
+      verifiedAt = tokenConfirmedAt;
+      isSynced = synced;
+
+      return success({
+        emailVerified,
+        verifiedAt,
+        isSynced,
+      });
+    }
+
+    // If not verified in DB, check Supabase admin directly as fallback
     if (!emailVerified) {
       try {
         const {
@@ -172,13 +213,10 @@ export class AuthService {
         } = await supabase.auth.admin.getUserById(userId);
 
         if (user?.email_confirmed_at) {
-          // Update database to sync
-          await this.repository.updateProfile(userId, { emailVerified: true });
+          const { synced } = await syncProfileIfNeeded();
           emailVerified = true;
           verifiedAt = user.email_confirmed_at;
-          isSynced = true;
-        } else {
-          isSynced = false;
+          isSynced = synced;
         }
       } catch (e) {
         console.error('Error checking Supabase email status:', e);

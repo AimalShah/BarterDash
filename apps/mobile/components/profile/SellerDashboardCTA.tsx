@@ -59,6 +59,7 @@ const styles = StyleSheet.create({
         fontWeight: '900',
         textTransform: 'uppercase',
         letterSpacing: 0.5,
+        textAlign: 'center',
     },
     outlineButton: {
         backgroundColor: 'transparent',
@@ -75,5 +76,6 @@ const styles = StyleSheet.create({
         fontWeight: '900',
         textTransform: 'uppercase',
         letterSpacing: 0.5,
+        textAlign: 'center',
     },
 });

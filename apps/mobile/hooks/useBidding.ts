@@ -43,7 +43,7 @@ export function useBidding(
   onBidPlaced?: (result: { amount: number; timerExtended: boolean }) => void
 ): UseBiddingReturn {
   const { profile, user } = useAuthStore();
-  const userId = profile?.id || user?.id;
+  const authenticatedUserId = user?.id;
 
   const [currentBid, setCurrentBid] = useState<number>(0);
   const [isPlacingBid, setIsPlacingBid] = useState(false);
@@ -138,10 +138,10 @@ export function useBidding(
   const bidIncrement = auctionIncrement > 0 ? auctionIncrement : computedIncrement;
   const minimumBid = currentBid + bidIncrement;
 
-  const canBid = Boolean(activeAuction?.id && userId && profile);
+  const canBid = Boolean(activeAuction?.id && authenticatedUserId && profile);
   const cannotBidReason = !activeAuction?.id
     ? 'No active auction'
-    : !userId
+    : !authenticatedUserId
     ? 'Please sign in to bid'
     : !profile
     ? 'Please complete your profile'
@@ -156,7 +156,7 @@ export function useBidding(
         return false;
       }
 
-      if (!userId) {
+      if (!authenticatedUserId) {
         setLastBidError('Please sign in to bid');
         Alert.alert('Sign In Required', 'Please sign in to place a bid.');
         return false;
@@ -242,7 +242,7 @@ export function useBidding(
         setIsPlacingBid(false);
       }
     },
-    [currentBid, bidIncrement, userId, profile, onBidPlaced]
+    [currentBid, bidIncrement, authenticatedUserId, profile, onBidPlaced]
   );
 
   const placeBid = useCallback(async (): Promise<boolean> => {

@@ -301,7 +301,7 @@ export default function InventoryScreen() {
                                         mt="$4"
                                         onPress={() => router.push('/seller/add-product')}
                                     >
-                                        <ButtonText color={COLORS.luxuryBlack}>Add Product</ButtonText>
+                                        <ButtonText color={COLORS.luxuryBlack} textAlign="center">Add Product</ButtonText>
                                     </Button>
                                 </Box>
                             ) : (
@@ -449,7 +449,7 @@ export default function InventoryScreen() {
                                                 >
                                                     <HStack space="xs" alignItems="center">
                                                         <Truck size={16} color={COLORS.luxuryBlack} />
-                                                        <ButtonText color={COLORS.luxuryBlack}>Mark as Shipped</ButtonText>
+                                                        <ButtonText color={COLORS.luxuryBlack} textAlign="center">Mark as Shipped</ButtonText>
                                                     </HStack>
                                                 </Button>
                                             )}
@@ -462,7 +462,7 @@ export default function InventoryScreen() {
                                                 >
                                                     <HStack space="xs" alignItems="center">
                                                         <CheckCircle size={16} color={COLORS.luxuryBlack} />
-                                                        <ButtonText color={COLORS.luxuryBlack}>Mark as Completed</ButtonText>
+                                                        <ButtonText color={COLORS.luxuryBlack} textAlign="center">Mark as Completed</ButtonText>
                                                     </HStack>
                                                 </Button>
                                             )}

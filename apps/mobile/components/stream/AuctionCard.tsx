@@ -177,6 +177,7 @@ const styles = StyleSheet.create({
         color: COLORS.textPrimary,
         fontWeight: '600',
         fontSize: 12,
+        textAlign: 'center',
     },
     sellerInfo: {
         flexDirection: 'row',

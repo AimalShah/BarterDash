@@ -143,7 +143,7 @@ export default function SellerStreamControls({
           </Text>
         </HStack>
         <Button size="sm" bg={COLORS.primaryGold} rounded="$lg" onPress={onAddProduct}>
-          <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold">
+          <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
             Add Products
           </ButtonText>
         </Button>
@@ -163,7 +163,7 @@ export default function SellerStreamControls({
             rounded="$xl"
             onPress={onAddProduct}
           >
-            <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold">
+            <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
               Add First Product
             </ButtonText>
           </Button>
@@ -251,7 +251,7 @@ export default function SellerStreamControls({
             mt="$2"
             onPress={() => setActiveTab('start')}
           >
-            <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold">
+            <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
               Start New Auction
             </ButtonText>
           </Button>
@@ -372,7 +372,7 @@ export default function SellerStreamControls({
             >
               <HStack space="xs" alignItems="center">
                 <Clock size={16} color={activeAuction.mode === 'sudden_death' ? COLORS.textMuted : COLORS.primaryGold} />
-                <ButtonText color={activeAuction.mode === 'sudden_death' ? COLORS.textMuted : COLORS.primaryGold} fontWeight="$bold">+15s</ButtonText>
+                <ButtonText color={activeAuction.mode === 'sudden_death' ? COLORS.textMuted : COLORS.primaryGold} fontWeight="$bold" textAlign="center">+15s</ButtonText>
               </HStack>
             </Button>
             <Button
@@ -383,7 +383,7 @@ export default function SellerStreamControls({
             >
               <HStack space="xs" alignItems="center">
                 <CheckCircle size={16} color="white" />
-                <ButtonText color="white" fontWeight="$bold">Mark Sold</ButtonText>
+                <ButtonText color="white" fontWeight="$bold" textAlign="center">Mark Sold</ButtonText>
               </HStack>
             </Button>
           </HStack>
@@ -397,7 +397,7 @@ export default function SellerStreamControls({
           >
             <HStack space="xs" alignItems="center">
               <X size={16} color={COLORS.errorRed} />
-              <ButtonText color={COLORS.errorRed} fontWeight="$bold">End Auction Early</ButtonText>
+              <ButtonText color={COLORS.errorRed} fontWeight="$bold" textAlign="center">End Auction Early</ButtonText>
             </HStack>
           </Button>
         </VStack>
@@ -434,7 +434,7 @@ export default function SellerStreamControls({
               rounded="$xl"
               onPress={onAddProduct}
             >
-              <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold">
+              <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
                 Add Products
               </ButtonText>
             </Button>
@@ -597,7 +597,7 @@ export default function SellerStreamControls({
               >
                 <HStack space="sm" alignItems="center">
                   <Play size={20} color={selectedProduct ? 'white' : COLORS.textMuted} />
-                  <ButtonText color={selectedProduct ? 'white' : COLORS.textMuted} fontWeight="$bold" size="md">
+                  <ButtonText color={selectedProduct ? 'white' : COLORS.textMuted} fontWeight="$bold" size="md" textAlign="center">
                     START AUCTION
                   </ButtonText>
                 </HStack>
@@ -614,7 +614,7 @@ export default function SellerStreamControls({
                 Dev Tools
               </Text>
               <Button bg={COLORS.primaryGold} rounded="$xl" onPress={onMockAuctionWin}>
-                <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold">
+                <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
                   Mock Auction Win
                 </ButtonText>
               </Button>

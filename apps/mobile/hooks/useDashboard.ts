@@ -107,7 +107,9 @@ export function useDashboard(): UseDashboardReturn {
     totalRevenue: orders
       .filter((o: any) => o.status === "delivered")
       .reduce((sum: number, o: any) => sum + parseFloat(o.total || "0"), 0),
-    activeAuctions: auctions.filter((a: any) => a.status === "active").length,
+    activeAuctions: auctions.filter(
+      (a: any) => a.status === "active" || a.status === "live",
+    ).length,
   };
 
   return {

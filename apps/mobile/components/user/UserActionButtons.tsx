@@ -33,7 +33,7 @@ export const UserActionButtons = ({
                 }}
             >
                 <HStack space="xs" alignItems="center">
-                    <ButtonText fontWeight="$bold" color={isFollowing ? COLORS.primaryGold : COLORS.luxuryBlack}>
+                    <ButtonText fontWeight="$bold" color={isFollowing ? COLORS.primaryGold : COLORS.luxuryBlack} textAlign="center">
                         {followLoading ? "..." : (isFollowing ? "Following" : "Follow")}
                     </ButtonText>
                 </HStack>

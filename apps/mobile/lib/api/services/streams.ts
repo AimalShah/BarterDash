@@ -30,6 +30,10 @@ export interface Stream {
       rating: number;
     };
   };
+  category?: {
+    id: string;
+    name: string;
+  } | null;
   products?: any[];
 }
 
@@ -168,6 +172,16 @@ export const streamsService = {
       console.error('[StreamsService] Error details:', error?.response?.data || error);
       throw error;
     }
+  },
+
+  /**
+   * Cancel a scheduled stream
+   */
+  cancel: async (streamId: string): Promise<Stream> => {
+    const response = await apiClient.delete<ApiResponse<Stream>>(
+      `/stream/${streamId}`,
+    );
+    return response.data.data;
   },
 
   /**

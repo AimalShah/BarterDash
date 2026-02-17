@@ -53,6 +53,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '800',
     textTransform: 'uppercase',
+    textAlign: 'center',
   },
   loadingContainer: {
     backgroundColor: COLORS.luxuryBlackLight,

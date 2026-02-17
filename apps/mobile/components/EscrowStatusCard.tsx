@@ -203,7 +203,7 @@ export default function EscrowStatusCard({
                             isDisabled={loading}
                         >
                             <CheckCircle size={18} color={COLORS.textPrimary} style={{ marginRight: 8 }} />
-                            <ButtonText>Confirm Delivery</ButtonText>
+                            <ButtonText textAlign="center">Confirm Delivery</ButtonText>
                         </Button>
                     )}
                     {showRefundButton && onRequestRefund && (

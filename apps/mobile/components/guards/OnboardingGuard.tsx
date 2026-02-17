@@ -45,6 +45,9 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
                     case 'interests':
                         router.replace('/(onboarding)/interests');
                         break;
+                    case 'age_verification':
+                        router.replace('/(onboarding)/age-verification');
+                        break;
                     case 'notifications':
                         router.replace('/(onboarding)/notifications');
                         break;

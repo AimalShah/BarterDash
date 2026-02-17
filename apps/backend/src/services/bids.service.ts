@@ -1,5 +1,6 @@
 import { BidsRepository } from '../repositories/bids.repository';
 import { AutoBidsRepository } from '../repositories/auto-bids.repository';
+import { AutoBidsService } from './auto-bids.service';
 import { AuthService } from './auth.service';
 import { AppResult, success, failure } from '../utils/result';
 import { Bid } from '../db/schema';
@@ -9,11 +10,13 @@ import { ValidationError, NotFoundError } from '../utils/result';
 export class BidsService {
   private repository: BidsRepository;
   private autoBidsRepository: AutoBidsRepository;
+  private autoBidsService: AutoBidsService;
   private authService: AuthService;
 
   constructor() {
     this.repository = new BidsRepository();
     this.autoBidsRepository = new AutoBidsRepository();
+    this.autoBidsService = new AutoBidsService();
     this.authService = new AuthService();
   }
 
@@ -25,12 +28,33 @@ export class BidsService {
 
     const result = await this.repository.placeBid(userId, data);
 
-    if (result.isOk() && data.is_max_bid) {
-      await this.autoBidsRepository.createOrUpdate({
+    if (result.isErr()) {
+      return result;
+    }
+
+    if (data.is_max_bid) {
+      const autoBidConfigResult = await this.autoBidsRepository.createOrUpdate({
         auction_id: data.auction_id,
         bidder_id: userId,
         max_amount: data.amount,
       });
+
+      if (autoBidConfigResult.isErr()) {
+        console.error(
+          '[BidsService] Failed to store max bid configuration:',
+          autoBidConfigResult.error.message,
+        );
+      }
+    }
+
+    try {
+      await this.autoBidsService.processAutoBids(
+        data.auction_id,
+        userId,
+        data.amount,
+      );
+    } catch (error) {
+      console.error('[BidsService] Failed to process auto bids:', error);
     }
 
     return result;

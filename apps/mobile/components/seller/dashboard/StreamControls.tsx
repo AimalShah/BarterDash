@@ -79,7 +79,7 @@ export const StreamControls = ({
                     onPress={onGoLive}
                 >
                     <ButtonIcon as={Play} mr="$3" color={isLive ? COLORS.textPrimary : COLORS.luxuryBlack} />
-                    <ButtonText fontWeight="$black" color={isLive ? COLORS.textPrimary : COLORS.luxuryBlack} textTransform="uppercase">{isLive ? "END STREAM" : "GO LIVE"}</ButtonText>
+                    <ButtonText fontWeight="$black" color={isLive ? COLORS.textPrimary : COLORS.luxuryBlack} textTransform="uppercase" textAlign="center">{isLive ? "END STREAM" : "GO LIVE"}</ButtonText>
                 </Button>
             </VStack>
         </Box>

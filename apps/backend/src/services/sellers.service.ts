@@ -1,5 +1,12 @@
 import { SellersRepository } from '../repositories/sellers.repository';
-import { AppResult, success, failure, ValidationError } from '../utils/result';
+import { SellerApplicationsRepository } from '../repositories/seller-applications.repository';
+import {
+  AppResult,
+  success,
+  failure,
+  ValidationError,
+  ForbiddenError,
+} from '../utils/result';
 import { SellerDetails } from '../db/schema';
 import { RegisterSellerInput } from '../schemas/sellers.schemas';
 
@@ -9,9 +16,11 @@ import { RegisterSellerInput } from '../schemas/sellers.schemas';
  */
 export class SellersService {
   private repository: SellersRepository;
+  private applicationsRepository: SellerApplicationsRepository;
 
   constructor() {
     this.repository = new SellersRepository();
+    this.applicationsRepository = new SellerApplicationsRepository();
   }
 
   /**
@@ -19,9 +28,58 @@ export class SellersService {
    */
   async register(
     userId: string,
-    data: RegisterSellerInput,
+    _data: RegisterSellerInput,
   ): Promise<AppResult<SellerDetails>> {
-    return await this.repository.create(userId, data);
+    const sellerDetailsResult =
+      await this.applicationsRepository.getSellerDetailsByUserId(userId);
+
+    if (sellerDetailsResult.isErr()) {
+      return failure(sellerDetailsResult.error);
+    }
+
+    if (sellerDetailsResult.value) {
+      if (sellerDetailsResult.value.identityVerified) {
+        return success(sellerDetailsResult.value);
+      }
+
+      const verifyExistingResult = await this.applicationsRepository.setIdentityVerified(
+        userId,
+        true,
+      );
+      if (verifyExistingResult.isErr()) {
+        return failure(verifyExistingResult.error);
+      }
+      return success(verifyExistingResult.value);
+    }
+
+    const applicationResult = await this.applicationsRepository.findByUserId(userId);
+    if (applicationResult.isErr()) {
+      return failure(applicationResult.error);
+    }
+
+    if (!applicationResult.value || applicationResult.value.status !== 'approved') {
+      return failure(
+        new ForbiddenError(
+          'Complete seller application approval before registering as a seller',
+        ),
+      );
+    }
+
+    const createSellerResult =
+      await this.applicationsRepository.createSellerDetails(userId);
+    if (createSellerResult.isErr()) {
+      return failure(createSellerResult.error);
+    }
+
+    const verifyResult = await this.applicationsRepository.setIdentityVerified(
+      userId,
+      true,
+    );
+    if (verifyResult.isErr()) {
+      return failure(verifyResult.error);
+    }
+
+    return success(verifyResult.value);
   }
 
   /**

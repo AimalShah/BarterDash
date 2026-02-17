@@ -45,7 +45,7 @@ export default function ProductsScreen() {
             // Fetch products and streams with their respective category filter parameter names
             const [productsData, streamsData] = await Promise.all([
                 productsService.findAll({ ...query, category: category }),
-                auctionsService.findAll({ ...query, category_id: category, status: 'live' })
+                auctionsService.findAll({ ...query, category: category, status: 'live' })
             ]);
 
             setProducts(productsData || []);

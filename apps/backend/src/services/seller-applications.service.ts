@@ -14,6 +14,41 @@ import {
   UploadDocumentInput,
 } from '../schemas/seller-applications.schemas';
 
+const DEFAULT_IDENTITY_RETURN_URL = 'barterdash://seller/verification';
+const DEFAULT_MOCK_APPROVAL_DELAY_MS = 1500;
+
+type IdentityVerificationMode = 'stripe' | 'mock';
+
+const getIdentityVerificationMode = (): IdentityVerificationMode => {
+  return process.env.IDENTITY_VERIFICATION_MODE === 'mock' ? 'mock' : 'stripe';
+};
+
+const getIdentityReturnUrl = (): string => {
+  return process.env.IDENTITY_RETURN_URL || DEFAULT_IDENTITY_RETURN_URL;
+};
+
+const getMockAutoApproveDelayMs = (): number => {
+  const parsed = Number.parseInt(
+    process.env.IDENTITY_MOCK_AUTO_APPROVE_DELAY_MS ||
+      `${DEFAULT_MOCK_APPROVAL_DELAY_MS}`,
+    10,
+  );
+
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return DEFAULT_MOCK_APPROVAL_DELAY_MS;
+  }
+
+  return parsed;
+};
+
+const appendQueryParams = (
+  baseUrl: string,
+  params: Record<string, string>,
+): string => {
+  const separator = baseUrl.includes('?') ? '&' : '?';
+  return `${baseUrl}${separator}${new URLSearchParams(params).toString()}`;
+};
+
 /**
  * Seller Applications Service
  * Business logic for seller applications and Stripe Identity verification
@@ -23,6 +58,66 @@ export class SellerApplicationsService {
 
   constructor() {
     this.repository = new SellerApplicationsRepository();
+  }
+
+  private async approveApplicationFromIdentity(params: {
+    applicationId: string;
+    userId: string;
+    sessionId: string;
+    source: 'stripe' | 'mock';
+  }): Promise<AppResult<void>> {
+    const notePrefix =
+      params.source === 'mock'
+        ? 'Auto-approved via mock identity verification'
+        : 'Auto-approved via Stripe Identity';
+
+    const updateResult = await this.repository.updateStatus(
+      params.applicationId,
+      'approved',
+      {
+        adminNotes: `${notePrefix}. Session: ${params.sessionId}`,
+      },
+    );
+    if (updateResult.isErr()) return failure(updateResult.error);
+
+    const createResult = await this.repository.createSellerDetails(params.userId);
+    if (createResult.isErr()) return failure(createResult.error);
+
+    const verifyResult = await this.repository.setIdentityVerified(
+      params.userId,
+      true,
+    );
+    if (verifyResult.isErr()) return failure(verifyResult.error);
+
+    console.log(
+      `✅ Seller application approved (${params.source}): ${params.applicationId}`,
+    );
+    return success(undefined);
+  }
+
+  private scheduleMockApproval(params: {
+    applicationId: string;
+    userId: string;
+    sessionId: string;
+    delayMs: number;
+  }): void {
+    setTimeout(() => {
+      void (async () => {
+        const result = await this.approveApplicationFromIdentity({
+          applicationId: params.applicationId,
+          userId: params.userId,
+          sessionId: params.sessionId,
+          source: 'mock',
+        });
+
+        if (result.isErr()) {
+          console.error(
+            'Error auto-approving mock identity verification:',
+            result.error,
+          );
+        }
+      })();
+    }, params.delayMs);
   }
 
   /**
@@ -146,7 +241,7 @@ export class SellerApplicationsService {
   }
 
   /**
-   * Create a Stripe Identity verification session
+   * Create an identity verification session (Stripe or mock mode)
    */
   async createVerificationSession(userId: string): Promise<
     AppResult<{
@@ -170,11 +265,43 @@ export class SellerApplicationsService {
       );
     }
 
-    try {
-      // Get the return URL from environment or use default
-      const returnUrl =
-        process.env.IDENTITY_RETURN_URL || 'barterdash://seller/verification';
+    const verificationMode = getIdentityVerificationMode();
+    const returnUrl = getIdentityReturnUrl();
 
+    if (verificationMode === 'mock') {
+      const inReviewResult = await this.repository.updateStatus(
+        appResult.value.id,
+        'in_review',
+      );
+      if (inReviewResult.isErr()) return failure(inReviewResult.error);
+
+      const sessionId = `mock_vs_${Date.now()}_${Math.random()
+        .toString(36)
+        .slice(2, 10)}`;
+      const clientSecret = `mock_secret_${Math.random()
+        .toString(36)
+        .slice(2, 16)}`;
+      const delayMs = getMockAutoApproveDelayMs();
+
+      this.scheduleMockApproval({
+        applicationId: appResult.value.id,
+        userId,
+        sessionId,
+        delayMs,
+      });
+
+      return success({
+        sessionId,
+        clientSecret,
+        url: appendQueryParams(returnUrl, {
+          status: 'verified',
+          mode: 'mock',
+          session_id: sessionId,
+        }),
+      });
+    }
+
+    try {
       // Create Stripe Identity verification session
       const session = await stripe.identity.verificationSessions.create({
         type: 'document',
@@ -192,7 +319,11 @@ export class SellerApplicationsService {
       });
 
       // Update application status to in_review
-      await this.repository.updateStatus(appResult.value.id, 'in_review');
+      const inReviewResult = await this.repository.updateStatus(
+        appResult.value.id,
+        'in_review',
+      );
+      if (inReviewResult.isErr()) return failure(inReviewResult.error);
 
       return success({
         sessionId: session.id,
@@ -223,23 +354,13 @@ export class SellerApplicationsService {
             return success(undefined);
           }
 
-          // Approve the application
-          await this.repository.updateStatus(applicationId, 'approved', {
-            adminNotes: `Auto-approved via Stripe Identity. Session: ${session.id}`,
-          });
-
-          // Create seller details
-          const createResult =
-            await this.repository.createSellerDetails(userId);
-          if (createResult.isErr()) return failure(createResult.error);
-
-          const verifyResult = await this.repository.setIdentityVerified(
+          const approveResult = await this.approveApplicationFromIdentity({
+            applicationId,
             userId,
-            true,
-          );
-          if (verifyResult.isErr()) return failure(verifyResult.error);
-
-          console.log(`✅ Seller application approved: ${applicationId}`);
+            sessionId: session.id,
+            source: 'stripe',
+          });
+          if (approveResult.isErr()) return failure(approveResult.error);
           break;
         }
 
@@ -267,11 +388,11 @@ export class SellerApplicationsService {
           const applicationId = session.metadata?.application_id;
 
           if (applicationId) {
-            await this.repository.updateStatus(applicationId, 'rejected', {
-              rejectionReason: 'Verification was canceled',
+            await this.repository.updateStatus(applicationId, 'more_info_needed', {
+              adminNotes: `Verification was canceled by user. Session: ${session.id}`,
             });
             console.log(
-              `❌ Seller application rejected (canceled): ${applicationId}`,
+              `⚠️ Seller verification canceled, requires input: ${applicationId}`,
             );
           }
           break;

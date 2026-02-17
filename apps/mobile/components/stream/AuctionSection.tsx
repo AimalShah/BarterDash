@@ -772,12 +772,14 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "900",
     letterSpacing: 1,
+    textAlign: "center",
   },
   bidButtonTextPreview: {
     color: COLORS.luxuryBlack,
     fontSize: 28,
     fontWeight: "900",
     letterSpacing: 1,
+    textAlign: "center",
   },
   swipeHint: {
     color: COLORS.luxuryBlack,
@@ -977,6 +979,7 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 16,
     fontWeight: "700",
+    textAlign: "center",
   },
   confirmButton: {
     flex: 1,
@@ -992,5 +995,6 @@ const styles = StyleSheet.create({
     color: COLORS.luxuryBlack,
     fontSize: 16,
     fontWeight: "800",
+    textAlign: "center",
   },
 });

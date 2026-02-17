@@ -7,8 +7,8 @@ import {
   ValidationError,
   ForbiddenError,
 } from '../utils/result';
-import { db, products, orders, Order } from '../db';
-import { eq, sql } from 'drizzle-orm';
+import { db, products, orders, cartItems, Order } from '../db';
+import { and, eq, sql } from 'drizzle-orm';
 
 export class CartService {
   private repository: CartRepository;
@@ -34,6 +34,13 @@ export class CartService {
     productId: string,
     quantity: number = 1,
   ): Promise<AppResult<any>> {
+    const normalizedQuantity = Number(quantity);
+    if (!Number.isInteger(normalizedQuantity) || normalizedQuantity <= 0) {
+      return failure(
+        new ValidationError('Quantity must be a positive whole number'),
+      );
+    }
+
     // Validate product exists and is available
     const productResult = await db.query.products.findFirst({
       where: eq(products.id, productId),
@@ -53,13 +60,26 @@ export class CartService {
       return failure(new ForbiddenError('You cannot buy your own product'));
     }
 
-    if (quantity > productResult.quantity - productResult.soldQuantity) {
+    const availableStock = productResult.quantity - productResult.soldQuantity;
+    if (availableStock < 1) {
+      return failure(new ValidationError('Product is out of stock'));
+    }
+
+    const existingItem = await db.query.cartItems.findFirst({
+      where: and(
+        eq(cartItems.userId, userId),
+        eq(cartItems.productId, productId),
+      ),
+    });
+    const currentCartQuantity = existingItem?.quantity ?? 0;
+
+    if (currentCartQuantity + normalizedQuantity > availableStock) {
       return failure(
         new ValidationError('Requested quantity exceeds available stock'),
       );
     }
 
-    return await this.repository.addItem(userId, productId, quantity);
+    return await this.repository.addItem(userId, productId, normalizedQuantity);
   }
 
   async updateQuantity(
@@ -118,6 +138,7 @@ export class CartService {
     AppResult<{
       subtotal: number;
       shipping: number;
+      tax: number;
       total: number;
       items: any[];
     }>
@@ -163,11 +184,13 @@ export class CartService {
         });
       }
 
-      const total = subtotal + shipping;
+      const tax = subtotal * 0.08;
+      const total = subtotal + shipping + tax;
 
       return success({
         subtotal,
         shipping,
+        tax,
         total,
         items: validItems,
       });
@@ -197,11 +220,22 @@ export class CartService {
         return failure(new ForbiddenError('You cannot buy your own product'));
       }
 
+      const sellerIds = new Set(
+        validItems.map((item: any) => item.product?.sellerId).filter(Boolean),
+      );
+      if (sellerIds.size > 1) {
+        return failure(
+          new ValidationError(
+            'Multi-seller checkout is not supported yet. Please checkout one seller at a time.',
+          ),
+        );
+      }
+
       // Calculate totals
       const totalsResult = await this.calculateCartTotal(userId);
       if (totalsResult.isErr()) return failure(totalsResult.error);
 
-      const { subtotal, shipping, total } = totalsResult.value;
+      const { subtotal, shipping, tax, total } = totalsResult.value;
 
       // Create order
       const orderData = {
@@ -211,7 +245,7 @@ export class CartService {
         orderType: 'buy_now' as const,
         itemPrice: subtotal.toString(),
         shippingCost: shipping.toString(),
-        tax: '0', // Could be calculated based on shipping address
+        tax: tax.toFixed(2),
         platformFee: '0', // Could be calculated as percentage
         total: total.toString(),
         status: 'pending' as const,

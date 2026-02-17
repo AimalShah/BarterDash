@@ -609,6 +609,7 @@ const styles = StyleSheet.create({
         fontWeight: "900",
         textTransform: "uppercase",
         letterSpacing: 1,
+        textAlign: "center",
     },
     checkoutButtonText: {
         color: COLORS.luxuryBlack,
@@ -616,5 +617,6 @@ const styles = StyleSheet.create({
         fontWeight: "900",
         textTransform: "uppercase",
         letterSpacing: 1,
+        textAlign: "center",
     },
 });

@@ -114,5 +114,6 @@ const styles = StyleSheet.create({
   },
   reactionButtonText: {
     fontSize: 20,
+    textAlign: "center",
   },
 });

@@ -48,7 +48,7 @@ export default function SellerActionButtons({
           ) : (
             <HStack space="xs" alignItems="center">
               <Users size={16} color={isFollowing ? COLORS.textPrimary : COLORS.luxuryBlack} />
-              <ButtonText color={isFollowing ? COLORS.textPrimary : COLORS.luxuryBlack}>
+              <ButtonText color={isFollowing ? COLORS.textPrimary : COLORS.luxuryBlack} textAlign="center">
                 {isFollowing ? "Following" : "Follow"}
               </ButtonText>
             </HStack>
@@ -65,7 +65,7 @@ export default function SellerActionButtons({
       >
         <HStack space="xs" alignItems="center">
           <ExternalLink size={16} color={COLORS.textPrimary} />
-          <ButtonText color={COLORS.textPrimary}>View Profile</ButtonText>
+          <ButtonText color={COLORS.textPrimary} textAlign="center">View Profile</ButtonText>
         </HStack>
       </Button>
     </HStack>

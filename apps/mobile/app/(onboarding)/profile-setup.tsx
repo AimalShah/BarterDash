@@ -251,6 +251,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "900",
     color: COLORS.luxuryBlack,
+    textAlign: "center",
   },
   skipText: {
     fontSize: 14,

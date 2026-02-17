@@ -1,7 +1,14 @@
 import { Router, Response } from 'express';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { asyncHandler } from '../middleware/error-handler';
+import { validate } from '../middleware/validate';
 import { CartService } from '../services/cart.service';
+import {
+  addCartItemSchema,
+  cartItemParamSchema,
+  updateCartItemSchema,
+  checkoutCartSchema,
+} from '../schemas/cart.schemas';
 
 const router = Router();
 const cartService = new CartService();
@@ -21,6 +28,7 @@ router.get(
 router.post(
   '/',
   authenticate,
+  validate(addCartItemSchema),
   asyncHandler(async (req: AuthRequest, res: Response) => {
     const { productId, quantity } = req.body;
     const result = await cartService.addItem(req.user!.id, productId, quantity);
@@ -33,6 +41,7 @@ router.post(
 router.put(
   '/:cartItemId',
   authenticate,
+  validate(updateCartItemSchema),
   asyncHandler(async (req: AuthRequest, res: Response) => {
     const cartItemId = req.params.cartItemId as string;
     const { quantity } = req.body;
@@ -50,6 +59,7 @@ router.put(
 router.delete(
   '/:cartItemId',
   authenticate,
+  validate(cartItemParamSchema),
   asyncHandler(async (req: AuthRequest, res: Response) => {
     const cartItemId = req.params.cartItemId as string;
     const result = await cartService.removeItem(req.user!.id, cartItemId);
@@ -106,6 +116,7 @@ router.get(
 router.post(
   '/checkout',
   authenticate,
+  validate(checkoutCartSchema),
   asyncHandler(async (req: AuthRequest, res: Response) => {
     const { shippingAddress } = req.body;
     const result = await cartService.createOrderFromCart(

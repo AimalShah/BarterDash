@@ -359,6 +359,7 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '900',
         textTransform: 'uppercase',
+        textAlign: 'center',
     },
     fab: {
         position: 'absolute',

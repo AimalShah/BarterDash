@@ -20,18 +20,22 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
     const isApproved = profile?.sellerStatus === 'approved' || profile?.seller_status === 'approved' || isSeller;
     const isPending = profile?.sellerStatus === 'pending' || profile?.seller_status === 'pending';
     const isSuspended = profile?.accountStatus === 'suspended' || profile?.account_status === 'suspended';
-    const stripeComplete = profile?.stripeAccountStatus === 'complete';
-    const isRegistering = segments[segments.length - 1] === 'register';
+    const stripeComplete = profile?.stripeAccountStatus === 'complete' || profile?.stripe_account_status === 'complete';
+
+    const inSellerSection = segments.includes('seller');
+    const isRegistering = inSellerSection && segments.includes('register');
+    const isOnboarding = inSellerSection && segments.includes('onboarding');
+    const isEntryScreen = isRegistering || isOnboarding;
 
     useEffect(() => {
         if (isLoading || loading || isFetchingProfile || !profile) return;
 
-        if (!isSeller && !isPending && !isRegistering) {
-            router.replace('/seller/register');
-        } else if (isApproved && isRegistering) {
+        if (!isSeller && !isPending && !isEntryScreen) {
+            router.replace('/seller/onboarding');
+        } else if (isApproved && isEntryScreen) {
             router.replace('/seller/dashboard');
         }
-    }, [profile, loading, isFetchingProfile, segments, isLoading, isSeller, isPending, isApproved, isRegistering]);
+    }, [profile, loading, isFetchingProfile, segments, isLoading, isSeller, isPending, isApproved, isEntryScreen]);
 
     if (isLoading || loading || isFetchingProfile) {
         return (
@@ -52,7 +56,7 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
                         Your seller account has been suspended. Please contact support for more information.
                     </Text>
                     <Button onPress={() => signOut()} variant="outline" borderColor={COLORS.errorRed}>
-                        <ButtonText color={COLORS.errorRed}>Sign Out</ButtonText>
+                        <ButtonText color={COLORS.errorRed} textAlign="center">Sign Out</ButtonText>
                     </Button>
                 </VStack>
             </Center>
@@ -73,20 +77,20 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
                         </Text>
                     </VStack>
                     <Button onPress={() => router.replace('/(tabs)')} variant="link">
-                        <ButtonText color={COLORS.textPrimary}>Back to Marketplace</ButtonText>
+                        <ButtonText color={COLORS.textPrimary} textAlign="center">Back to Marketplace</ButtonText>
                     </Button>
                 </VStack>
             </Center>
         );
     }
 
-    if (isSeller && !stripeComplete && !isRegistering && segments[segments.length - 1] !== 'stripe-setup') {
+    if (isSeller && !stripeComplete && !isEntryScreen && segments[segments.length - 1] !== 'stripe-setup') {
         // Option to redirect to stripe setup if not complete
         // For now, we'll let the dashboard handle it or redirect here
         // router.replace('/seller/stripe-setup');
     }
 
-    if (!isSeller && !isRegistering) {
+    if (!isSeller && !isEntryScreen) {
         return null; // Redirecting
     }
 

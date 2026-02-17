@@ -102,10 +102,49 @@ export function useDeepLinkHandler() {
   const handleDeepLink = useCallback(async (url: string) => {
     console.log('Deep link received:', url);
 
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(url);
+    } catch (error) {
+      console.error('Invalid deep link URL:', error);
+      return;
+    }
+
     // Parse the URL
-    const parsedUrl = new URL(url);
-    const path = parsedUrl.pathname;
+    const host = parsedUrl.hostname.toLowerCase();
+    const path = parsedUrl.pathname.toLowerCase();
     const params = parsedUrl.searchParams;
+    const route = `${host}${path}`;
+
+    // Handle Stripe Identity verification callbacks
+    // e.g. barterdash://seller/verification?status=verified
+    if (route.includes('seller/verification')) {
+      const status = params.get('status') || params.get('redirect_status');
+
+      if (status === 'verified') {
+        showToast('Identity verified successfully!', 'success');
+        router.push({
+          pathname: '/seller/onboarding',
+          params: { status: 'verified' }
+        });
+      } else if (status === 'requires_input') {
+        showToast('Additional information needed', 'warning');
+        router.push({
+          pathname: '/seller/onboarding',
+          params: { status: 'requires_input' }
+        });
+      } else if (status === 'canceled') {
+        showToast('Verification was canceled', 'info');
+        router.push({
+          pathname: '/seller/onboarding',
+          params: { status: 'canceled' }
+        });
+      } else {
+        showToast('Verification complete. Checking your seller status.', 'info');
+        router.push('/seller/onboarding');
+      }
+      return;
+    }
 
     // Handle auth confirmation URLs (Supabase sends these in emails)
     // URL format: barterdash://auth/confirm?token_hash=xxx&type=signup
@@ -165,32 +204,6 @@ export function useDeepLinkHandler() {
           showToast('Email verified! Please sign in.', 'success');
           router.replace('/(auth)/login');
         }
-      }
-      return;
-    }
-
-    // Handle Stripe Identity verification callbacks
-    if (path.includes('seller/verification')) {
-      const status = params.get('status');
-      
-      if (status === 'verified') {
-        showToast('Identity verified successfully!', 'success');
-        router.push({
-          pathname: '/seller/onboarding',
-          params: { status: 'verified' }
-        });
-      } else if (status === 'requires_input') {
-        showToast('Additional information needed', 'warning');
-        router.push({
-          pathname: '/seller/onboarding',
-          params: { status: 'requires_input' }
-        });
-      } else if (status === 'canceled') {
-        showToast('Verification was canceled', 'info');
-        router.push({
-          pathname: '/seller/onboarding',
-          params: { status: 'canceled' }
-        });
       }
       return;
     }

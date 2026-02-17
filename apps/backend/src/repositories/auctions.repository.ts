@@ -13,6 +13,13 @@ import {
  * Database operations for auctions
  */
 export class AuctionsRepository {
+  private normalizeStatusFilter(status?: string): string | undefined {
+    if (!status) return undefined;
+    if (status === 'live') return 'active';
+    if (status === 'scheduled' || status === 'draft') return 'pending';
+    return status;
+  }
+
   /**
    * Find auction by ID with relations (product, seller, currentBidder)
    * Returns auction with joined product and seller data
@@ -52,55 +59,56 @@ export class AuctionsRepository {
     try {
       const limit = filters.limit || 50;
       const offset = filters.offset || 0;
+      const normalizedStatus = this.normalizeStatusFilter(filters.status);
+
+      const whereBuilder = (auction: any, { and, eq, exists, or, ilike }: any) => {
+        const auctionConditions = [];
+
+        if (normalizedStatus) {
+          auctionConditions.push(eq(auction.status, normalizedStatus as any));
+        }
+
+        if (filters.search) {
+          // Support searching through product title or description
+          auctionConditions.push(
+            exists(
+              db
+                .select()
+                .from(products)
+                .where(
+                  and(
+                    eq(products.id, auction.productId),
+                    or(
+                      ilike(products.title, `%${filters.search}%`),
+                      ilike(products.description, `%${filters.search}%`),
+                    ),
+                  ),
+                ),
+            ),
+          );
+        }
+
+        if (filters.category) {
+          auctionConditions.push(
+            exists(
+              db
+                .select()
+                .from(products)
+                .where(
+                  and(
+                    eq(products.id, auction.productId),
+                    eq(products.categoryId, filters.category),
+                  ),
+                ),
+            ),
+          );
+        }
+
+        return auctionConditions.length > 0 ? and(...auctionConditions) : undefined;
+      };
 
       const items = await db.query.auctions.findMany({
-        where: (auction, { and, eq, exists, or, ilike }) => {
-          const auctionConditions = [];
-
-          if (filters.status) {
-            auctionConditions.push(eq(auction.status, filters.status as any));
-          }
-
-          if (filters.search) {
-            // Support searching through product title or description
-            auctionConditions.push(
-              exists(
-                db
-                  .select()
-                  .from(products)
-                  .where(
-                    and(
-                      eq(products.id, auction.productId),
-                      or(
-                        ilike(products.title, `%${filters.search}%`),
-                        ilike(products.description, `%${filters.search}%`),
-                      ),
-                    ),
-                  ),
-              ),
-            );
-          }
-
-          if (filters.category) {
-            auctionConditions.push(
-              exists(
-                db
-                  .select()
-                  .from(products)
-                  .where(
-                    and(
-                      eq(products.id, auction.productId),
-                      eq(products.categoryId, filters.category),
-                    ),
-                  ),
-              ),
-            );
-          }
-
-          return auctionConditions.length > 0
-            ? and(...auctionConditions)
-            : undefined;
-        },
+        where: whereBuilder,
         orderBy: desc(auctions.createdAt),
         limit,
         offset,
@@ -115,12 +123,8 @@ export class AuctionsRepository {
         },
       });
 
-      // Simple implementation for total count - ideally should be a consistent query
-      // but for many small apps this is acceptable if data is not massive
       const itemsCountResult = await db.query.auctions.findMany({
-        // Repeat where logic or use a count query
-        // For now, returning total based on fetched items length as a placeholder if count is not easily available
-        // Better: Perform a real count
+        where: whereBuilder,
       });
       const totalCount = itemsCountResult.length;
 

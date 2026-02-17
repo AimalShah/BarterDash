@@ -540,6 +540,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    textAlign: 'center',
   },
   secondaryButton: {
     flex: 1,
@@ -556,6 +557,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    textAlign: 'center',
   },
   emptyState: {
     backgroundColor: COLORS.luxuryBlackLight,

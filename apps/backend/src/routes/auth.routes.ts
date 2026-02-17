@@ -94,7 +94,9 @@ router.get(
   authenticate,
   asyncHandler(async (req: AuthRequest, res: Response) => {
     const userId = req.user!.id;
-    const result = await authService.getVerificationStatus(userId);
+    const result = await authService.getVerificationStatus(userId, {
+      emailConfirmedAt: req.user?.emailConfirmedAt || null,
+    });
 
     if (result.isErr()) {
       throw result.error;

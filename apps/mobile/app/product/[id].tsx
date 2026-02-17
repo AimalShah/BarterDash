@@ -22,6 +22,18 @@ import { Product } from '@/types';
 import { Spinner } from '@gluestack-ui/themed';
 import { COLORS } from '../../constants/colors';
 
+const getApiErrorMessage = (
+    error: any,
+    fallback: string,
+): string => {
+    return (
+        error?.response?.data?.error?.message ||
+        error?.response?.data?.message ||
+        error?.message ||
+        fallback
+    );
+};
+
 export default function ProductDetailScreen() {
     const { id } = useLocalSearchParams();
     const { profile } = useAuthStore();
@@ -47,8 +59,39 @@ export default function ProductDetailScreen() {
         }
     };
 
+    const getPurchaseBlockReason = (target: Product | null): string | null => {
+        if (!target) return 'Product not found.';
+
+        const sellerId = (target as any).seller_id || (target as any).sellerId;
+        if (profile?.id && sellerId && profile.id === sellerId) {
+            return 'You cannot buy your own product.';
+        }
+
+        const status = (target as any).status;
+        if (status && status !== 'active') {
+            return 'This item is not currently available for purchase.';
+        }
+
+        const quantity = (target as any).quantity;
+        const soldQuantity = (target as any).soldQuantity ?? (target as any).sold_quantity ?? 0;
+        if (quantity !== null && quantity !== undefined) {
+            const remaining = Number(quantity) - Number(soldQuantity);
+            if (!Number.isNaN(remaining) && remaining < 1) {
+                return 'This item is out of stock.';
+            }
+        }
+
+        return null;
+    };
+
     const handleAddToBag = async () => {
         if (!product) return;
+        const blockedReason = getPurchaseBlockReason(product);
+        if (blockedReason) {
+            Alert.alert('Unavailable', blockedReason);
+            return;
+        }
+
         try {
             setActionLoading('cart');
             await cartService.addItem(product.id);
@@ -58,7 +101,10 @@ export default function ProductDetailScreen() {
             ]);
         } catch (error: any) {
             console.error('Error adding to bag:', error);
-            Alert.alert('Error', error.message || 'Failed to add item to bag');
+            Alert.alert(
+                'Unable to Add to Bag',
+                getApiErrorMessage(error, 'Failed to add item to bag'),
+            );
         } finally {
             setActionLoading(null);
         }
@@ -66,13 +112,22 @@ export default function ProductDetailScreen() {
 
     const handleBuyNow = async () => {
         if (!product) return;
+        const blockedReason = getPurchaseBlockReason(product);
+        if (blockedReason) {
+            Alert.alert('Unavailable', blockedReason);
+            return;
+        }
+
         try {
             setActionLoading('buy');
             const result = await productsService.buyNow(product.id);
             router.push(`/checkout/${result.order.id}`);
         } catch (error: any) {
             console.error('Error with buy now:', error);
-            Alert.alert('Error', error.message || 'Failed to process purchase');
+            Alert.alert(
+                'Unable to Buy Now',
+                getApiErrorMessage(error, 'Failed to process purchase'),
+            );
         } finally {
             setActionLoading(null);
         }
@@ -123,6 +178,8 @@ export default function ProductDetailScreen() {
 
     const sellerName = (product as any).seller?.username || (product as any).seller_name || 'Verified Seller';
     const isOwner = profile?.id === (product.seller_id || (product as any).sellerId);
+    const purchaseBlockReason = getPurchaseBlockReason(product);
+    const canPurchase = !purchaseBlockReason;
 
     return (
         <Box flex={1} bg={COLORS.luxuryBlack}>
@@ -264,7 +321,7 @@ export default function ProductDetailScreen() {
             </ScrollView>
 
             {/* Bottom Action Bar */}
-            <Box bg={COLORS.luxuryBlack} borderTopWidth={1} borderColor={COLORS.darkBorder} px="$8" py="$4" safeAreaBottom>
+            <Box bg={COLORS.luxuryBlack} borderTopWidth={1} borderColor={COLORS.darkBorder} px="$8" py="$4">
                 {isOwner ? (
                     <HStack space="md" alignItems="center">
                         <VStack flex={1}>
@@ -332,6 +389,11 @@ export default function ProductDetailScreen() {
                                 TOTAL
                             </Text>
                             <Text color={COLORS.primaryGold} size="2xl" fontWeight="$black">${product.price || '0.00'}</Text>
+                            {!canPurchase && (
+                                <Text color={COLORS.warningAmber} size="2xs" mt="$1">
+                                    {purchaseBlockReason}
+                                </Text>
+                            )}
                         </VStack>
                         <Button
                             onPress={handleAddToBag}
@@ -342,12 +404,12 @@ export default function ProductDetailScreen() {
                             borderWidth={2}
                             rounded="$full"
                             px="$2"
-                            isDisabled={actionLoading !== null}
+                            isDisabled={actionLoading !== null || !canPurchase}
                         >
                             {actionLoading === 'cart' ? (
                                 <ActivityIndicator color={COLORS.primaryGold} />
                             ) : (
-                                <HStack alignItems="center" space="xs">
+                                <HStack alignItems="center" justifyContent="center" space="xs">
                                     <ShoppingCart size={16} color={COLORS.primaryGold} />
                                     <ButtonText color={COLORS.primaryGold} fontWeight="$black" textTransform="uppercase" textAlign="center">Add to Bag</ButtonText>
                                 </HStack>
@@ -360,12 +422,12 @@ export default function ProductDetailScreen() {
                             bg={COLORS.primaryGold}
                             rounded="$full"
                             px="$2"
-                            isDisabled={actionLoading !== null}
+                            isDisabled={actionLoading !== null || !canPurchase}
                         >
                             {actionLoading === 'buy' ? (
                                 <ActivityIndicator color={COLORS.luxuryBlack} />
                             ) : (
-                                <HStack alignItems="center" space="xs">
+                                <HStack alignItems="center" justifyContent="center" space="xs">
                                     <Zap size={16} color={COLORS.luxuryBlack} />
                                     <ButtonText color={COLORS.luxuryBlack} fontWeight="$black" textTransform="uppercase" textAlign="center">Buy Now</ButtonText>
                                 </HStack>

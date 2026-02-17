@@ -156,6 +156,7 @@ const styles = StyleSheet.create({
     color: COLORS.luxuryBlack,
     textTransform: "uppercase",
     letterSpacing: 2,
+    textAlign: "center",
   },
   secondaryButton: {
     backgroundColor: COLORS.cardBackground,
@@ -172,6 +173,7 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
     textTransform: "uppercase",
     letterSpacing: 2,
+    textAlign: "center",
   },
   termsContainer: {
     marginTop: 48,
