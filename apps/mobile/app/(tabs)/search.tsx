@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ScrollView, FlatList, ActivityIndicator, Dimensions } from "react-native";
+import { ScrollView, FlatList } from "react-native";
 import { useRouter } from "expo-router";
 import {
     Box,
@@ -22,16 +22,19 @@ import { categoriesService } from "@/lib/api/services/categories";
 import StreamCard from "@/components/stream/StreamCard";
 import { Auction, Category } from "@/types";
 import { COLORS } from '../../constants/colors';
-
-const { width } = Dimensions.get("window");
+import { useResponsiveLayout } from "../../hooks/useResponsiveLayout";
 
 export default function SearchScreen() {
     const router = useRouter();
+    const { width, isTablet, horizontalPadding, cardGap } = useResponsiveLayout();
     const [query, setQuery] = useState("");
     const [results, setResults] = useState<Auction[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [activeCategory, setActiveCategory] = useState<string>("all");
     const [loading, setLoading] = useState(false);
+    const columns = isTablet ? (width >= 1040 ? 4 : 3) : 2;
+    const itemWidth =
+        (width - horizontalPadding * 2 - cardGap * (columns - 1)) / columns;
 
     useEffect(() => {
         fetchCategories();
@@ -85,8 +88,14 @@ export default function SearchScreen() {
         }
     };
 
-    const renderResultItem = ({ item }: { item: Auction }) => (
-        <Box px="$2" mb="$6" w={width / 2 - 12}>
+    const renderResultItem = ({ item, index }: { item: Auction; index: number }) => (
+        <Box
+            mb="$6"
+            style={{
+                width: itemWidth,
+                marginRight: (index + 1) % columns === 0 ? 0 : cardGap,
+            }}
+        >
             <StreamCard stream={item} isLive={item.status === "live"} />
         </Box>
     );
@@ -94,7 +103,13 @@ export default function SearchScreen() {
     return (
         <Box flex={1} bg={COLORS.luxuryBlack}>
             <Box safeAreaTop />
-            <Box px="$6" pt="$8" pb="$6" borderBottomWidth={1} borderColor={COLORS.darkBorder}>
+            <Box
+                pt="$8"
+                pb="$6"
+                borderBottomWidth={1}
+                borderColor={COLORS.darkBorder}
+                style={{ paddingHorizontal: horizontalPadding }}
+            >
                 <HStack alignItems="center" space="md">
                     <Input
                         variant="outline"
@@ -137,7 +152,7 @@ export default function SearchScreen() {
                 <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ paddingHorizontal: 24 }}
+                    contentContainerStyle={{ paddingHorizontal: horizontalPadding }}
                 >
                     {categories &&
                         categories.length > 0 &&
@@ -180,16 +195,17 @@ export default function SearchScreen() {
                     </Center>
                 ) : results && results.length > 0 ? (
                     <FlatList
+                        key={`search-grid-${columns}`}
                         data={results}
                         renderItem={renderResultItem}
                         keyExtractor={(item) => item.id}
-                        numColumns={2}
-                        columnWrapperStyle={{
-                            paddingHorizontal: 16,
+                        numColumns={columns}
+                        columnWrapperStyle={columns > 1 ? { justifyContent: "flex-start" } : undefined}
+                        contentContainerStyle={{
                             paddingTop: 24,
-                            justifyContent: "space-between"
+                            paddingHorizontal: horizontalPadding,
+                            paddingBottom: 100,
                         }}
-                        contentContainerStyle={{ paddingBottom: 100 }}
                     />
                 ) : (
                     <Center flex={1} px="$10">

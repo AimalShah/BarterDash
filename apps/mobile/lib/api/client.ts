@@ -5,11 +5,14 @@ import axios, {
 } from "axios";
 import { supabase } from "../supabase";
 
-// API Base URL - Use environment variable with fallback for development
-// For Android emulator: use 10.0.2.2 to reach host machine
-// For iOS simulator: use localhost
-// For physical device: use your computer's local IP (e.g., http://192.168.1.xxx:3000/api/v1)
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://10.0.2.2:3000/api/v1";
+const DEFAULT_DEV_API_URL = "http://localhost:3000/api/v1";
+const DEFAULT_PROD_API_URL = "https://barter-dash.vercel.app/api/v1";
+const isDevelopment = process.env.NODE_ENV !== "production";
+
+// API Base URL - use localhost during development if env var is missing
+const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ||
+  (isDevelopment ? DEFAULT_DEV_API_URL : DEFAULT_PROD_API_URL);
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({

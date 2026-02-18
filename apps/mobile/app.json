@@ -9,17 +9,23 @@
     "scheme": "barterdash",
     "splash": {
       "image": "./assets/splash-icon.png",
-      "resizeMode": "cover",
+      "resizeMode": "contain",
       "backgroundColor": "#0f0f0f",
-      "imageWidth": 1024
+      "imageWidth": 280
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.barterdash.mobile"
+      "icon": "./assets/icon.png",
+      "bundleIdentifier": "com.barterdash.mobile",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "icon": "./assets/icon.png",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
+        "monochromeImage": "./assets/adaptive-icon-monochrome.png",
         "backgroundColor": "#0B0B0B"
       },
       "package": "com.barterdash.mobile",
@@ -87,7 +93,9 @@
         {
           "icon": "./assets/notification-icon.png",
           "color": "#FFD700",
-          "sounds": ["./assets/notification-sound.wav"],
+          "sounds": [
+            "./assets/notification_sound.wav"
+          ],
           "enableBackgroundRemoteNotifications": true
         }
       ],

@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { StatusBar, ScrollView, RefreshControl, StyleSheet, View, Text, TouchableOpacity, Image, ActivityIndicator, Dimensions } from 'react-native';
+import { StatusBar, ScrollView, RefreshControl, StyleSheet, View, Text, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     ChevronLeft,
     Gavel,
     DollarSign,
-    Calendar,
     Clock,
     Users,
 } from 'lucide-react-native';
@@ -14,13 +13,15 @@ import { COLORS } from '../../constants/colors';
 import { auctionsService } from '../../lib/api/services/auctions';
 import { Auction } from '../../types';
 import { format } from 'date-fns';
-
-const { width } = Dimensions.get('window');
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 
 export default function AuctionsScreen() {
+    const { horizontalPadding, isTablet, scaledFont } = useResponsiveLayout();
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [auctions, setAuctions] = useState<Auction[]>([]);
+    const imageSize = isTablet ? 120 : 100;
+    const fabSize = isTablet ? 64 : 56;
 
     useEffect(() => {
         fetchAuctions();
@@ -70,7 +71,7 @@ export default function AuctionsScreen() {
             <StatusBar barStyle="light-content" />
             
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingHorizontal: horizontalPadding, paddingTop: 12 }]}>
                 <TouchableOpacity
                     onPress={() => router.back()}
                     style={styles.backButton}
@@ -78,7 +79,9 @@ export default function AuctionsScreen() {
                     <ChevronLeft size={22} color={COLORS.textPrimary} />
                 </TouchableOpacity>
                 <View style={styles.headerTextContainer}>
-                    <Text style={styles.headerTitle}>My Auctions</Text>
+                    <Text style={[styles.headerTitle, { fontSize: scaledFont(24, 0.9, 1.15) }]}>
+                        My Auctions
+                    </Text>
                     <Text style={styles.headerSubtitle}>
                         {auctions.length} active auctions
                     </Text>
@@ -114,7 +117,7 @@ export default function AuctionsScreen() {
                         </TouchableOpacity>
                     </View>
                 ) : (
-                    <View style={styles.auctionsList}>
+                    <View style={[styles.auctionsList, { paddingHorizontal: horizontalPadding }]}>
                         {auctions.map((auction) => (
                             <TouchableOpacity
                                 key={auction.id}
@@ -122,7 +125,12 @@ export default function AuctionsScreen() {
                                 style={styles.auctionCard}
                                 activeOpacity={0.9}
                             >
-                                <View style={styles.auctionImageContainer}>
+                                <View
+                                    style={[
+                                        styles.auctionImageContainer,
+                                        { width: imageSize, height: imageSize },
+                                    ]}
+                                >
                                     {auction.images && auction.images[0] ? (
                                         <Image
                                             source={{ uri: auction.images[0] }}
@@ -179,7 +187,15 @@ export default function AuctionsScreen() {
 
             {/* Floating Action Button */}
             <TouchableOpacity
-                style={styles.fab}
+                style={[
+                    styles.fab,
+                    {
+                        width: fabSize,
+                        height: fabSize,
+                        borderRadius: fabSize / 2,
+                        right: horizontalPadding,
+                    },
+                ]}
                 onPress={() => router.push('/seller/create-auction')}
             >
                 <Gavel size={24} color={COLORS.luxuryBlack} />
@@ -199,8 +215,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     header: {
-        paddingHorizontal: 24,
-        paddingTop: 20,
         paddingBottom: 16,
         flexDirection: 'row',
         alignItems: 'center',
@@ -236,7 +250,6 @@ const styles = StyleSheet.create({
         paddingBottom: 100,
     },
     auctionsList: {
-        paddingHorizontal: 24,
         marginTop: 12,
     },
     auctionCard: {
@@ -249,8 +262,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
     },
     auctionImageContainer: {
-        width: 100,
-        height: 100,
         backgroundColor: COLORS.darkSurface,
     },
     auctionImage: {
@@ -364,10 +375,6 @@ const styles = StyleSheet.create({
     fab: {
         position: 'absolute',
         bottom: 24,
-        right: 24,
-        width: 56,
-        height: 56,
-        borderRadius: 28,
         backgroundColor: COLORS.primaryGold,
         justifyContent: 'center',
         alignItems: 'center',

@@ -8,6 +8,7 @@ import {
   createApplicationSchema,
   uploadDocumentSchema,
   submitApplicationSchema,
+  listAdminApplicationsSchema,
 } from '../schemas/seller-applications.schemas';
 import { SellerApplicationsService } from '../services/seller-applications.service';
 import { stripe } from '../utils/stripe';
@@ -185,6 +186,36 @@ router.post(
 /**
  * ADMIN ROUTES
  */
+
+/**
+ * GET /sellers/applications
+ * Admin: List applications with pagination
+ */
+router.get(
+  '/applications',
+  authenticate,
+  requireRoles('ADMIN'),
+  validate(listAdminApplicationsSchema),
+  asyncHandler(async (req: AuthRequest, res: Response) => {
+    const parsed = listAdminApplicationsSchema.parse({ query: req.query });
+    const { page, limit, statuses } = parsed.query;
+
+    const result = await applicationsService.listAdminApplications({
+      page,
+      limit,
+      statuses,
+    });
+
+    if (result.isErr()) {
+      throw result.error;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: result.value,
+    });
+  }),
+);
 
 /**
  * GET /sellers/applications/:id/identity

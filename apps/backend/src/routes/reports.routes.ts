@@ -27,6 +27,46 @@ const resolveReportSchema = z.object({
   }),
 });
 
+const adminListReportsSchema = z.object({
+  query: z.object({
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(20),
+    statuses: z
+      .preprocess((value) => {
+        if (typeof value !== 'string') return undefined;
+        return value
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }, z.array(z.enum(['pending', 'reviewing', 'resolved', 'dismissed'])).optional())
+      .optional(),
+  }),
+});
+
+router.get(
+  '/',
+  authenticate,
+  requireRoles('ADMIN'),
+  validate(adminListReportsSchema),
+  asyncHandler(async (req: AuthRequest, res: Response) => {
+    const parsed = adminListReportsSchema.parse({ query: req.query });
+    const { page, limit, statuses } = parsed.query;
+
+    const result = await reportsService.listAdminReports({
+      page,
+      limit,
+      statuses,
+    });
+
+    if (result.isErr()) throw result.error;
+
+    res.json({
+      success: true,
+      data: result.value,
+    });
+  }),
+);
+
 router.post(
   '/',
   authenticate,

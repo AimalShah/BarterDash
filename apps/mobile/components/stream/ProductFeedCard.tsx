@@ -4,15 +4,12 @@ import {
     Text,
     TouchableOpacity,
     Image,
-    Dimensions,
     ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { formatDistanceToNow } from "date-fns";
 import { getProductImage, isValidImageUrl } from "@/lib/utils/imageUtils";
 import { COLORS } from "@/constants/colors";
-
-const { width } = Dimensions.get("window");
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 interface ProductFeedCardProps {
     product: any;
@@ -20,6 +17,7 @@ interface ProductFeedCardProps {
 
 const ProductFeedCard = memo(({ product }: ProductFeedCardProps) => {
     const router = useRouter();
+    const { scaledFont } = useResponsiveLayout();
     const [imageLoading, setImageLoading] = useState(true);
     const [imageError, setImageError] = useState(false);
 
@@ -131,7 +129,7 @@ const ProductFeedCard = memo(({ product }: ProductFeedCardProps) => {
                     numberOfLines={1}
                     style={{
                         color: COLORS.textPrimary,
-                        fontSize: 14,
+                        fontSize: scaledFont(14, 0.95, 1.1),
                         fontWeight: '900',
                         textTransform: 'uppercase',
                         marginBottom: 2,
@@ -149,7 +147,7 @@ const ProductFeedCard = memo(({ product }: ProductFeedCardProps) => {
                         numberOfLines={1}
                         style={{
                             color: COLORS.textSecondary,
-                            fontSize: 11,
+                            fontSize: scaledFont(11, 0.95, 1.1),
                             fontWeight: '500',
                         }}
                     >
@@ -170,7 +168,7 @@ const ProductFeedCard = memo(({ product }: ProductFeedCardProps) => {
                     <Text
                         style={{
                             color: COLORS.textPrimary,
-                            fontSize: 10,
+                            fontSize: scaledFont(10, 0.95, 1.1),
                             fontWeight: '700',
                             marginTop: 8,
                             textTransform: 'uppercase',

@@ -25,7 +25,6 @@ import {
 import { supabase } from "../../lib/supabase";
 import { COLORS } from "../../constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { getEmailVerificationRedirectUri } from "../../lib/auth/emailVerification";
 
 export default function RegisterScreen() {
   const insets = useSafeAreaInsets();
@@ -41,27 +40,35 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
-      // Create redirect URI for email verification
-      const redirectTo = getEmailVerificationRedirectUri();
-
-      console.log('Registering with redirectTo:', redirectTo);
-
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: redirectTo,
-        },
       });
 
       if (error) throw error;
 
-      // Always redirect to email verification screen
-      // User must verify email before they can log in
-      router.replace({
-        pathname: "/(auth)/verify-email",
-        params: { email: email },
-      });
+      if (data.session) {
+        router.replace("/(onboarding)/profile-setup");
+        return;
+      }
+
+      // If session is not returned, try immediate login (email verification disabled flow)
+      const { data: signInData, error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+      if (signInError || !signInData.session) {
+        Alert.alert(
+          "Account Created",
+          "Your account was created. Please sign in to continue.",
+          [{ text: "OK", onPress: () => router.replace("/(auth)/login") }],
+        );
+        return;
+      }
+
+      router.replace("/(onboarding)/profile-setup");
     } catch (error: any) {
       Alert.alert("Registration Error", error.message);
     } finally {

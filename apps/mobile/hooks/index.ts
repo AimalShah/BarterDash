@@ -3,3 +3,4 @@ export { useRealtimeViewerCount } from './useRealtimeViewerCount';
 export { useRealtimeFeed } from './useRealtimeFeed';
 
 export { useChat } from './useChat';
+export { useResponsiveLayout } from './useResponsiveLayout';

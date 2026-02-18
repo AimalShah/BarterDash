@@ -509,6 +509,67 @@ export class SellerApplicationsService {
   }
 
   /**
+   * Admin: List applications with pagination
+   */
+  async listAdminApplications(params: {
+    page: number;
+    limit: number;
+    statuses?: Array<
+      | 'draft'
+      | 'submitted'
+      | 'in_review'
+      | 'approved'
+      | 'rejected'
+      | 'more_info_needed'
+    >;
+  }): Promise<
+    AppResult<{
+      items: Array<
+        SellerApplication & {
+          user: {
+            id: string;
+            username: string;
+            fullName: string | null;
+            isSeller: boolean;
+            isAdmin: boolean;
+          } | null;
+        }
+      >;
+      pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+        hasNextPage: boolean;
+      };
+    }>
+  > {
+    const offset = (params.page - 1) * params.limit;
+
+    const [itemsResult, countResult] = await Promise.all([
+      this.repository.listForAdmin(params.limit, offset, params.statuses),
+      this.repository.countForAdmin(params.statuses),
+    ]);
+
+    if (itemsResult.isErr()) return failure(itemsResult.error);
+    if (countResult.isErr()) return failure(countResult.error);
+
+    const total = countResult.value;
+    const totalPages = Math.max(1, Math.ceil(total / params.limit));
+
+    return success({
+      items: itemsResult.value,
+      pagination: {
+        page: params.page,
+        limit: params.limit,
+        total,
+        totalPages,
+        hasNextPage: params.page < totalPages,
+      },
+    });
+  }
+
+  /**
    * Admin: Get identity verification status for an application
    */
   async adminGetIdentityStatus(applicationId: string): Promise<

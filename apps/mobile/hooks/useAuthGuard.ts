@@ -65,10 +65,11 @@ export const useAuthGuard = () => {
 export const useSellerGuard = () => {
   const router = useRouter();
   const { profile, canAccessSellerFeatures } = useAuthStore();
+  const legacyProfile = profile as any;
 
   useEffect(() => {
     if (profile && !canAccessSellerFeatures()) {
-      if (profile.isSeller) {
+      if (profile.is_seller || legacyProfile?.isSeller || profile.role === "SELLER") {
         // Redirect to onboarding
         router.replace("/(onboarding)/profile-setup");
       } else {

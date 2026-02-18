@@ -6,18 +6,19 @@ import {
   Modal,
   FlatList,
   StyleSheet,
-  Dimensions,
 } from 'react-native';
 import { Bell, X, Check, CheckCheck } from 'lucide-react-native';
 import { useNotifications } from '../../hooks/useNotifications';
 import { Notification } from '../../lib/api/services/notifications';
 import { COLORS } from '@/constants/colors';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 interface NotificationBellProps {
   userId: string | undefined;
 }
 
 export function NotificationBell({ userId }: NotificationBellProps) {
+  const { isTablet, horizontalPadding } = useResponsiveLayout();
   const [modalVisible, setModalVisible] = useState(false);
   const {
     notifications,
@@ -108,7 +109,19 @@ export function NotificationBell({ userId }: NotificationBellProps) {
         onRequestClose={handleClose}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View
+            style={[
+              styles.modalContent,
+              isTablet
+                ? {
+                    width: '100%',
+                    maxWidth: 700,
+                    alignSelf: 'center',
+                    marginBottom: 12,
+                  }
+                : { marginHorizontal: horizontalPadding / 2 },
+            ]}
+          >
             {/* Header */}
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Notifications</Text>
@@ -169,8 +182,6 @@ export function NotificationBell({ userId }: NotificationBellProps) {
     </>
   );
 }
-
-const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   bellContainer: {

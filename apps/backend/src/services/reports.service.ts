@@ -81,4 +81,47 @@ export class ReportsService {
   async getReports(targetId: string): Promise<AppResult<Report[]>> {
     return this.repository.getByUserTarget(targetId);
   }
+
+  /**
+   * List reports for admin moderation with pagination
+   */
+  async listAdminReports(params: {
+    page: number;
+    limit: number;
+    statuses?: Array<'pending' | 'reviewing' | 'resolved' | 'dismissed'>;
+  }): Promise<
+    AppResult<{
+      items: Report[];
+      pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+        hasNextPage: boolean;
+      };
+    }>
+  > {
+    const offset = (params.page - 1) * params.limit;
+    const [itemsResult, countResult] = await Promise.all([
+      this.repository.listForAdmin(params.limit, offset, params.statuses),
+      this.repository.countForAdmin(params.statuses),
+    ]);
+
+    if (itemsResult.isErr()) return failure(itemsResult.error);
+    if (countResult.isErr()) return failure(countResult.error);
+
+    const total = countResult.value;
+    const totalPages = Math.max(1, Math.ceil(total / params.limit));
+
+    return success({
+      items: itemsResult.value,
+      pagination: {
+        page: params.page,
+        limit: params.limit,
+        total,
+        totalPages,
+        hasNextPage: params.page < totalPages,
+      },
+    });
+  }
 }

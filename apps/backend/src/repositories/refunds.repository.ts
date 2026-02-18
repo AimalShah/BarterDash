@@ -1,4 +1,4 @@
-import { eq, desc } from 'drizzle-orm';
+import { count, desc, eq, inArray } from 'drizzle-orm';
 import { db, refunds, Refund, NewRefund } from '../db';
 import {
   AppResult,
@@ -98,6 +98,56 @@ export class RefundsRepository {
       return success(updated);
     } catch (error) {
       return failure(new ValidationError('Failed to update refund status'));
+    }
+  }
+
+  /**
+   * List refunds for admin review
+   */
+  async listForAdmin(
+    limit: number,
+    offset: number,
+    statuses?: Array<
+      'pending' | 'approved' | 'rejected' | 'processing' | 'completed'
+    >,
+  ): Promise<AppResult<Refund[]>> {
+    try {
+      const whereClause =
+        statuses && statuses.length > 0
+          ? inArray(refunds.status, statuses)
+          : undefined;
+
+      const results = await db.query.refunds.findMany({
+        where: whereClause,
+        orderBy: [desc(refunds.updatedAt)],
+        limit,
+        offset,
+      });
+      return success(results);
+    } catch (error) {
+      return failure(new ValidationError('Failed to list refunds'));
+    }
+  }
+
+  /**
+   * Count refunds for admin review
+   */
+  async countForAdmin(
+    statuses?: Array<
+      'pending' | 'approved' | 'rejected' | 'processing' | 'completed'
+    >,
+  ): Promise<AppResult<number>> {
+    try {
+      const whereClause =
+        statuses && statuses.length > 0
+          ? inArray(refunds.status, statuses)
+          : undefined;
+
+      const query = db.select({ total: count() }).from(refunds);
+      const [result] = whereClause ? await query.where(whereClause) : await query;
+      return success(Number(result?.total || 0));
+    } catch (error) {
+      return failure(new ValidationError('Failed to count refunds'));
     }
   }
 }

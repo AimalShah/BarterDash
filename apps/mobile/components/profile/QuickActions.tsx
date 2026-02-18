@@ -7,13 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { COLORS } from "../../constants/colors";
-
-interface QuickActionProps {
-  icon: any;
-  label: string;
-  color: string;
-  onPress: () => void;
-}
+import { useResponsiveLayout } from "../../hooks/useResponsiveLayout";
 
 interface QuickActionsProps {
   isSeller: boolean;
@@ -26,32 +20,62 @@ interface QuickActionsProps {
 }
 
 export const QuickActions = ({ isSeller, actions }: QuickActionsProps) => {
+  const { horizontalPadding, isTablet, scaledFont } = useResponsiveLayout();
   if (!isSeller) return null;
+  const cardSize = isTablet ? 124 : 110;
+  const iconSize = isTablet ? 52 : 48;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>SELLER TOOLS</Text>
+      <Text
+        style={[
+          styles.sectionTitle,
+          {
+            paddingHorizontal: horizontalPadding,
+            fontSize: scaledFont(12, 0.95, 1.1),
+          },
+        ]}
+      >
+        SELLER TOOLS
+      </Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingHorizontal: horizontalPadding },
+        ]}
       >
         {actions.map((action, index) => (
           <TouchableOpacity
             key={index}
             onPress={action.onPress}
             activeOpacity={0.8}
-            style={styles.actionCard}
+            style={[
+              styles.actionCard,
+              { width: cardSize, height: cardSize },
+            ]}
           >
             <View
               style={[
                 styles.iconContainer,
+                {
+                  width: iconSize,
+                  height: iconSize,
+                  borderRadius: isTablet ? 14 : 12,
+                },
                 { backgroundColor: action.color || COLORS.primaryGold },
               ]}
             >
               {action.icon}
             </View>
-            <Text style={styles.actionLabel} numberOfLines={1}>
+            <Text
+              style={[
+                styles.actionLabel,
+                { fontSize: scaledFont(12, 0.95, 1.1) },
+              ]}
+              numberOfLines={1}
+            >
               {action.label}
             </Text>
           </TouchableOpacity>
@@ -66,21 +90,16 @@ const styles = StyleSheet.create({
     marginTop: 32,
   },
   sectionTitle: {
-    paddingHorizontal: 24,
     color: COLORS.textSecondary,
-    fontSize: 12,
     fontWeight: "800",
     textTransform: "uppercase",
     letterSpacing: 1.5,
     marginBottom: 16,
   },
   scrollContent: {
-    paddingHorizontal: 24,
     paddingBottom: 10, // For shadow
   },
   actionCard: {
-    width: 110,
-    height: 110,
     backgroundColor: COLORS.luxuryBlackLight,
     borderRadius: 16,
     alignItems: "center",
@@ -96,9 +115,6 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 12,

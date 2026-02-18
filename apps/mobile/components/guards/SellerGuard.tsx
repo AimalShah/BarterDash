@@ -9,6 +9,7 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const { profile, loading, isFetchingProfile, signOut } = useAuthStore();
     const [isLoading, setIsLoading] = useState(true);
+    const legacyProfile = profile as any;
 
     useEffect(() => {
         if (!loading && !isFetchingProfile) {
@@ -16,11 +17,13 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
         }
     }, [loading, isFetchingProfile]);
 
-    const isSeller = profile?.is_seller || profile?.isSeller || profile?.role === 'SELLER';
-    const isApproved = profile?.sellerStatus === 'approved' || profile?.seller_status === 'approved' || isSeller;
-    const isPending = profile?.sellerStatus === 'pending' || profile?.seller_status === 'pending';
-    const isSuspended = profile?.accountStatus === 'suspended' || profile?.account_status === 'suspended';
-    const stripeComplete = profile?.stripeAccountStatus === 'complete' || profile?.stripe_account_status === 'complete';
+    const isSeller = profile?.is_seller || legacyProfile?.isSeller || profile?.role === 'SELLER';
+    const rawSellerStatus = legacyProfile?.sellerStatus || profile?.seller_status;
+    const sellerStatus = typeof rawSellerStatus === 'string' ? rawSellerStatus.toLowerCase() : '';
+    const isApproved = sellerStatus === 'approved' || isSeller;
+    const isPending = sellerStatus === 'pending' || sellerStatus === 'in_review' || sellerStatus === 'submitted';
+    const isSuspended = legacyProfile?.accountStatus === 'suspended' || profile?.account_status === 'suspended';
+    const stripeComplete = legacyProfile?.stripeAccountStatus === 'complete' || profile?.stripe_account_status === 'complete';
 
     const inSellerSection = segments.includes('seller');
     const isRegistering = inSellerSection && segments.includes('register');
@@ -30,7 +33,7 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if (isLoading || loading || isFetchingProfile || !profile) return;
 
-        if (!isSeller && !isPending && !isEntryScreen) {
+        if (!isSeller && !isPending && !isApproved && !isEntryScreen) {
             router.replace('/seller/onboarding');
         } else if (isApproved && isEntryScreen) {
             router.replace('/seller/dashboard');
@@ -90,7 +93,7 @@ export function SellerGuard({ children }: { children: React.ReactNode }) {
         // router.replace('/seller/stripe-setup');
     }
 
-    if (!isSeller && !isEntryScreen) {
+    if (!isSeller && !isApproved && !isEntryScreen) {
         return null; // Redirecting
     }
 

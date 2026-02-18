@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal, ScrollView, Dimensions } from "react-native";
+import { Modal, ScrollView } from "react-native";
 import {
   Box,
   VStack,
@@ -17,8 +17,7 @@ import SellerProfileHeader from "./profile/SellerProfileHeader";
 import SellerStats from "./profile/SellerStats";
 import SellerActionButtons from "./profile/SellerActionButtons";
 import SellerProductsGrid from "./profile/SellerProductsGrid";
-
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 interface SellerProfileModalProps {
   visible: boolean;
@@ -35,6 +34,7 @@ export default function SellerProfileModal({
   sellerName,
   sellerAvatar,
 }: SellerProfileModalProps) {
+  const { height, isTablet, horizontalPadding } = useResponsiveLayout();
   const {
     seller,
     stats,
@@ -55,7 +55,7 @@ export default function SellerProfileModal({
           bg={COLORS.luxuryBlack}
           borderTopLeftRadius={24}
           borderTopRightRadius={24}
-          maxHeight={SCREEN_HEIGHT * 0.85}
+          maxHeight={height * (isTablet ? 0.9 : 0.85)}
           overflow="hidden"
         >
           {/* Handle bar */}
@@ -86,7 +86,7 @@ export default function SellerProfileModal({
             </Center>
           ) : (
             <ScrollView showsVerticalScrollIndicator={false}>
-              <VStack px="$6" pb="$8">
+              <VStack px="$6" pb="$8" style={{ paddingHorizontal: horizontalPadding }}>
                 <SellerProfileHeader
                   seller={seller}
                   sellerName={sellerName}

@@ -76,8 +76,7 @@ export default function SellerOnboardingScreen() {
   const { status } = useLocalSearchParams<{ status?: string }>();
   const [currentStep, setCurrentStep] = useState(0);
   const [checkingStatus, setCheckingStatus] = useState(true);
-  const [existingApplication, setExistingApplication] = useState<any>(null);
-  const { profile, isOnboarded } = useAuthStore();
+  const { isOnboarded, setSellerStatus } = useAuthStore();
 
   const {
     formData,
@@ -97,6 +96,12 @@ export default function SellerOnboardingScreen() {
     setApplicationStarted,
   } = useSellerApplication();
 
+  const syncSellerAndGoToDashboard = () => {
+    // Avoid guard redirect loops while backend profile flags catch up.
+    setSellerStatus(true);
+    router.replace("/seller/dashboard");
+  };
+
   // Check for existing application and handle return from Stripe Identity
   useEffect(() => {
     checkExistingApplication();
@@ -108,7 +113,7 @@ export default function SellerOnboardingScreen() {
       Alert.alert(
         "Verification Complete",
         "Your identity has been verified. Your application is now under review.",
-        [{ text: "OK", onPress: () => router.replace("/seller/dashboard") }],
+        [{ text: "OK", onPress: () => router.replace("/(tabs)") }],
       );
     } else if (status === "requires_input") {
       Alert.alert(
@@ -129,7 +134,6 @@ export default function SellerOnboardingScreen() {
     try {
       const applicationStatus = await sellersService.getApplicationStatus();
       if (applicationStatus?.application) {
-        setExistingApplication(applicationStatus.application);
         // Skip to appropriate step based on status
         if (applicationStatus.application.status === "draft") {
           setCurrentStep(0);
@@ -149,7 +153,7 @@ export default function SellerOnboardingScreen() {
             [
               {
                 text: "Go to Dashboard",
-                onPress: () => router.replace("/seller/dashboard"),
+                onPress: syncSellerAndGoToDashboard,
               },
             ],
           );

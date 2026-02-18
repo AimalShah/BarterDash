@@ -24,6 +24,51 @@ const processRefundSchema = z.object({
   }),
 });
 
+const adminListRefundsSchema = z.object({
+  query: z.object({
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(20),
+    statuses: z
+      .preprocess((value) => {
+        if (typeof value !== 'string') return undefined;
+        return value
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean);
+      },
+      z
+        .array(
+          z.enum(['pending', 'approved', 'rejected', 'processing', 'completed']),
+        )
+        .optional())
+      .optional(),
+  }),
+});
+
+router.get(
+  '/',
+  authenticate,
+  requireRoles('ADMIN'),
+  validate(adminListRefundsSchema),
+  asyncHandler(async (req: AuthRequest, res: Response) => {
+    const parsed = adminListRefundsSchema.parse({ query: req.query });
+    const { page, limit, statuses } = parsed.query;
+
+    const result = await refundsService.listAdminRefunds({
+      page,
+      limit,
+      statuses,
+    });
+
+    if (result.isErr()) throw result.error;
+
+    res.json({
+      success: true,
+      data: result.value,
+    });
+  }),
+);
+
 router.post(
   '/',
   authenticate,

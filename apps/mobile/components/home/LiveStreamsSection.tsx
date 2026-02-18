@@ -1,11 +1,9 @@
 import React from "react";
 import { Box, HStack, Heading, Text, FlatList } from "@gluestack-ui/themed";
-import { Zap } from "lucide-react-native";
-import { Animated, Dimensions } from "react-native";
+import { Animated } from "react-native";
 import StreamCard from "../stream/StreamCard";
 import { COLORS } from "@/constants/colors";
-
-const { width } = Dimensions.get("window");
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 interface LiveStreamsSectionProps {
     liveStreams: any[];
@@ -18,10 +16,12 @@ export const LiveStreamsSection = ({
     fadeAnim,
     slideAnim,
 }: LiveStreamsSectionProps) => {
+    const { width, isTablet, horizontalPadding } = useResponsiveLayout();
     if (!liveStreams || liveStreams.length === 0) return null;
+    const cardWidth = isTablet ? Math.min(width * 0.5, 360) : width * 0.75;
 
     const renderLiveItem = ({ item }: { item: any }) => (
-        <Box px="$2" w={width * 0.75}>
+        <Box w={cardWidth} mr="$3">
             <Animated.View
                 style={{
                     opacity: fadeAnim,
@@ -35,7 +35,12 @@ export const LiveStreamsSection = ({
 
     return (
         <Box mt="$6" mb="$8">
-            <HStack px="$6" mb="$4" justifyContent="space-between" alignItems="center">
+            <HStack
+                mb="$4"
+                justifyContent="space-between"
+                alignItems="center"
+                style={{ paddingHorizontal: horizontalPadding }}
+            >
                 <HStack alignItems="center">
                     <Box
                         height={8}
@@ -55,9 +60,9 @@ export const LiveStreamsSection = ({
                 renderItem={renderLiveItem}
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                snapToInterval={width * 0.75}
+                snapToInterval={cardWidth + 12}
                 decelerationRate="fast"
-                contentContainerStyle={{ paddingHorizontal: 16 }}
+                contentContainerStyle={{ paddingHorizontal: horizontalPadding }}
             />
         </Box>
     );

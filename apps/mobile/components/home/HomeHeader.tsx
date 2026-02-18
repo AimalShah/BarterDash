@@ -11,9 +11,13 @@ import { COLORS } from "@/constants/colors";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { useAuth } from "@/hooks/useAuth";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 export const HomeHeader = () => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { horizontalPadding, isTablet, scaledFont } = useResponsiveLayout();
   const { user } = useAuth();
   const { unreadCount } = useNotifications(user?.id);
   const { unreadMessagesCount } = useUnreadMessages(user?.id);
@@ -27,19 +31,37 @@ export const HomeHeader = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {
+          paddingHorizontal: horizontalPadding,
+          paddingTop: Math.max(insets.top + 8, 16),
+          paddingBottom: isTablet ? 20 : 16,
+        },
+      ]}
+    >
       <View style={styles.leftSection}>
-        <Text style={styles.title}>BarterDash</Text>
+        <Text style={[styles.title, { fontSize: scaledFont(26, 0.95, 1.15) }]}>
+          BarterDash
+        </Text>
       </View>
 
       <View style={styles.buttonsContainer}>
         {/* Messages Button */}
         <TouchableOpacity
           onPress={handleMessagesPress}
-          style={styles.button}
+          style={[
+            styles.button,
+            {
+              width: isTablet ? 52 : 48,
+              height: isTablet ? 52 : 48,
+              borderRadius: isTablet ? 18 : 16,
+            },
+          ]}
           activeOpacity={0.8}
         >
-          <MessageCircle size={24} color={COLORS.textPrimary} />
+          <MessageCircle size={isTablet ? 26 : 24} color={COLORS.textPrimary} />
           {unreadMessagesCount > 0 && (
             <View style={styles.badge}>
               <View style={styles.badgeDot} />
@@ -50,10 +72,17 @@ export const HomeHeader = () => {
         {/* Notifications Button */}
         <TouchableOpacity
           onPress={handleNotificationsPress}
-          style={styles.button}
+          style={[
+            styles.button,
+            {
+              width: isTablet ? 52 : 48,
+              height: isTablet ? 52 : 48,
+              borderRadius: isTablet ? 18 : 16,
+            },
+          ]}
           activeOpacity={0.8}
         >
-          <Bell size={24} color={COLORS.textPrimary} />
+          <Bell size={isTablet ? 26 : 24} color={COLORS.textPrimary} />
           {unreadCount > 0 && (
             <View style={styles.badge}>
               <View style={styles.badgeDot} />
@@ -70,9 +99,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 24,
     backgroundColor: COLORS.luxuryBlack,
   },
   leftSection: {
@@ -96,9 +122,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   button: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
     backgroundColor: COLORS.cardBackground,
     borderWidth: 1,
     borderColor: COLORS.darkBorderLight,

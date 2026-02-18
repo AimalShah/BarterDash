@@ -1,5 +1,6 @@
 import { Platform, View, Text } from "react-native";
 import { Tabs, router } from "expo-router";
+import type { ReactNode } from "react";
 import {
   Home,
   Grid3X3,
@@ -13,25 +14,37 @@ import { useAuthStore } from "../../store/authStore";
 import { useCartStore } from "../../store/cartStore";
 import { COLORS } from "../../constants/colors";
 import { useEffect } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useResponsiveLayout } from "../../hooks/useResponsiveLayout";
 
-const CustomTabBarButton = ({ children, onPress }: any) => (
+const CustomTabBarButton = ({
+  children,
+  onPress,
+  lift,
+  size,
+}: {
+  children: ReactNode;
+  onPress?: () => void;
+  lift: number;
+  size: number;
+}) => (
   <Pressable
     onPress={onPress}
     style={{
-      top: Platform.OS === "ios" ? -20 : -30,
+      top: -lift,
       justifyContent: "center",
       alignItems: "center",
     }}
     sx={{ ":active": { opacity: 0.8 } }}
   >
     <Center
-      w="$16"
-      h="$16"
-      rounded="$full"
       bg={COLORS.primaryGold}
       alignItems="center"
       justifyContent="center"
       style={{
+        width: size,
+        height: size,
+        borderRadius: size / 2,
         shadowColor: COLORS.luxuryBlack,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.4,
@@ -88,7 +101,13 @@ const CartIconWithBadge = ({ color, size }: { color: string; size: number }) => 
 
 export default function TabLayout() {
   const { profile } = useAuthStore();
-  const isSeller = profile?.role === "SELLER" || profile?.isSeller;
+  const insets = useSafeAreaInsets();
+  const { isSmallPhone, isTablet } = useResponsiveLayout();
+  const legacyProfile = profile as any;
+  const isSeller =
+    profile?.role === "SELLER" ||
+    profile?.is_seller === true ||
+    legacyProfile?.isSeller === true;
 
   const handleSellerAction = () => {
     if (!profile) {
@@ -103,6 +122,15 @@ export default function TabLayout() {
     }
   };
 
+  const tabBarHeight = (isTablet ? 76 : 64) + Math.max(insets.bottom, 8);
+  const tabBarPaddingBottom = Math.max(insets.bottom, isTablet ? 14 : 10);
+  const tabBarPaddingTop = isTablet ? 10 : 8;
+  const tabLabelSize = isSmallPhone ? 9 : 10;
+  const floatingButtonSize = isTablet ? 68 : 60;
+  const floatingButtonLift =
+    (Platform.OS === "ios" ? 18 : 22) + Math.max(insets.bottom - 6, 0) * 0.35;
+  const iconSize = isTablet ? 24 : 22;
+
   return (
     <Tabs
       screenOptions={{
@@ -114,12 +142,12 @@ export default function TabLayout() {
           backgroundColor: COLORS.navBackground,
           borderTopWidth: 1,
           borderTopColor: COLORS.darkBorder,
-          height: Platform.OS === "ios" ? 88 : 68,
-          paddingTop: 8,
-          paddingBottom: Platform.OS === "ios" ? 28 : 12,
+          height: tabBarHeight,
+          paddingTop: tabBarPaddingTop,
+          paddingBottom: tabBarPaddingBottom,
         },
         tabBarLabelStyle: {
-          fontSize: 10,
+          fontSize: tabLabelSize,
           fontWeight: "600",
           marginTop: 4,
         },
@@ -129,14 +157,14 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
+          tabBarIcon: ({ color }) => <Home size={iconSize} color={color} />,
         }}
       />
       <Tabs.Screen
         name="categories"
         options={{
           title: "Discover",
-          tabBarIcon: ({ color, size }) => <Grid3X3 size={size} color={color} />,
+          tabBarIcon: ({ color }) => <Grid3X3 size={iconSize} color={color} />,
         }}
       />
 
@@ -146,10 +174,20 @@ export default function TabLayout() {
         options={{
           title: "",
           tabBarButton: (props) => (
-            <CustomTabBarButton {...props} onPress={handleSellerAction}>
-              <Box height={24} width={24} alignItems="center" justifyContent="center">
-                <Box height={2.5} width={18} bg="$white" position="absolute" />
-                <Box height={18} width={2.5} bg="$white" position="absolute" />
+            <CustomTabBarButton
+              {...props}
+              onPress={handleSellerAction}
+              lift={floatingButtonLift}
+              size={floatingButtonSize}
+            >
+              <Box
+                height={iconSize}
+                width={iconSize}
+                alignItems="center"
+                justifyContent="center"
+              >
+                <Box height={2.5} width={iconSize - 4} bg="$white" position="absolute" />
+                <Box height={iconSize - 4} width={2.5} bg="$white" position="absolute" />
               </Box>
             </CustomTabBarButton>
           ),
@@ -160,14 +198,14 @@ export default function TabLayout() {
         name="cart"
         options={{
           title: "Cart",
-          tabBarIcon: ({ color, size }) => <CartIconWithBadge color={color} size={size} />,
+          tabBarIcon: ({ color }) => <CartIconWithBadge color={color} size={iconSize} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
+          tabBarIcon: ({ color }) => <User size={iconSize} color={color} />,
         }}
       />
       {/* Hidden screens */}

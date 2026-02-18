@@ -8,7 +8,6 @@ import {
   ScrollView,
   RefreshControl,
   StatusBar,
-  Dimensions,
   ActivityIndicator,
   StyleSheet,
   FlatList,
@@ -16,21 +15,27 @@ import {
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import Animated, { FadeInUp, FadeIn } from "react-native-reanimated";
+import Animated, { FadeInUp } from "react-native-reanimated";
 import { supabase } from "../../lib/supabase";
 import { streamsService } from "../../lib/api/services/streams";
 import { productsService } from "../../lib/api/services/products";
 import { categoriesService } from "../../lib/api/services/categories";
-import { useAuth } from "../../hooks/useAuth";
-import { useNotifications } from "../../hooks/useNotifications";
 import { COLORS } from "../../constants/colors";
 import HomeHeader from "@/components/home/HomeHeader";
-
-const { width } = Dimensions.get("window");
+import { useResponsiveLayout } from "../../hooks/useResponsiveLayout";
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { width, isTablet, horizontalPadding, cardGap, scaledFont } =
+    useResponsiveLayout();
+  const columnCount = isTablet ? (width >= 1040 ? 4 : 3) : 2;
+  const gridItemWidth =
+    (width - horizontalPadding * 2 - cardGap * (columnCount - 1)) / columnCount;
+  const getGridItemStyle = (index: number) => ({
+    width: gridItemWidth,
+    marginBottom: cardGap,
+    marginRight: (index + 1) % columnCount === 0 ? 0 : cardGap,
+  });
 
   // State
   const [activeTab, setActiveTab] = useState<'shows' | 'products'>('shows');
@@ -127,7 +132,7 @@ export default function HomeScreen() {
   const renderStreamItem = ({ item, index }: { item: any, index: number }) => (
     <Animated.View
       entering={FadeInUp.delay(index * 50)}
-      style={styles.gridItemContainer}
+      style={[styles.gridItemContainer, getGridItemStyle(index)]}
     >
       <TouchableOpacity
         style={styles.card}
@@ -186,7 +191,7 @@ export default function HomeScreen() {
   const renderProductItem = ({ item, index }: { item: any, index: number }) => (
     <Animated.View
       entering={FadeInUp.delay(index * 50)}
-      style={styles.gridItemContainer}
+      style={[styles.gridItemContainer, getGridItemStyle(index)]}
     >
       <TouchableOpacity
         style={styles.card}
@@ -229,18 +234,42 @@ export default function HomeScreen() {
       <HomeHeader />
 
       {/* Tabs */}
-      <View style={styles.tabContainer}>
+      <View
+        style={[
+          styles.tabContainer,
+          {
+            paddingHorizontal: horizontalPadding,
+            gap: isTablet ? 24 : 20,
+          },
+        ]}
+      >
         <TouchableOpacity
           style={[styles.tab, activeTab === 'shows' && styles.activeTab]}
           onPress={() => setActiveTab('shows')}
         >
-          <Text style={[styles.tabText, activeTab === 'shows' && styles.activeTabText]}>Shows</Text>
+          <Text
+            style={[
+              styles.tabText,
+              { fontSize: scaledFont(isTablet ? 20 : 18, 0.95, 1.15) },
+              activeTab === 'shows' && styles.activeTabText,
+            ]}
+          >
+            Shows
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'products' && styles.activeTab]}
           onPress={() => setActiveTab('products')}
         >
-          <Text style={[styles.tabText, activeTab === 'products' && styles.activeTabText]}>Products</Text>
+          <Text
+            style={[
+              styles.tabText,
+              { fontSize: scaledFont(isTablet ? 20 : 18, 0.95, 1.15) },
+              activeTab === 'products' && styles.activeTabText,
+            ]}
+          >
+            Products
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -249,7 +278,10 @@ export default function HomeScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoryContent}
+          contentContainerStyle={[
+            styles.categoryContent,
+            { paddingHorizontal: horizontalPadding },
+          ]}
         >
           {categories.map((cat) => (
             <TouchableOpacity
@@ -272,12 +304,16 @@ export default function HomeScreen() {
         </View>
       ) : (
         <FlatList
+          key={`home-grid-${columnCount}`}
           data={activeTab === 'shows' ? streams : products}
           renderItem={activeTab === 'shows' ? renderStreamItem : renderProductItem}
           keyExtractor={(item) => item.id}
-          numColumns={2}
-          contentContainerStyle={styles.gridContent}
-          columnWrapperStyle={styles.columnWrapper}
+          numColumns={columnCount}
+          contentContainerStyle={[
+            styles.gridContent,
+            { paddingHorizontal: horizontalPadding },
+          ]}
+          columnWrapperStyle={columnCount > 1 ? styles.columnWrapper : undefined}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -313,9 +349,7 @@ const styles = StyleSheet.create({
   // Tabs
   tabContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 24,
     marginBottom: 16,
-    gap: 20
   },
   tab: {
     paddingVertical: 8,
@@ -341,7 +375,6 @@ const styles = StyleSheet.create({
     height: 40,
   },
   categoryContent: {
-    paddingHorizontal: 24,
     gap: 12,
   },
   catPill: {
@@ -368,15 +401,13 @@ const styles = StyleSheet.create({
 
   // Grid
   gridContent: {
-    paddingHorizontal: 20,
     paddingBottom: 100,
   },
   columnWrapper: {
-    justifyContent: 'space-between',
+    justifyContent: "flex-start",
   },
   gridItemContainer: {
-    width: (width - 48) / 2,
-    marginBottom: 16,
+    minWidth: 0,
   },
   card: {
     width: '100%',

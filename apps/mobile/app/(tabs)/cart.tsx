@@ -8,27 +8,25 @@ import {
     RefreshControl,
     StyleSheet,
     Alert,
-    SafeAreaView,
     StatusBar,
-    Dimensions,
 } from "react-native";
 import { router } from "expo-router";
 import { Trash2, ShoppingCart, Minus, Plus } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { cartService } from "../../lib/api/services/cart";
 import { CartItem, CartTotal } from "../../types";
-import { useAuthStore } from "../../store/authStore";
 import { COLORS } from "../../constants/colors";
-
-const { width } = Dimensions.get("window");
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useResponsiveLayout } from "../../hooks/useResponsiveLayout";
 
 export default function CartScreen() {
+    const insets = useSafeAreaInsets();
+    const { horizontalPadding, isTablet, scaledFont } = useResponsiveLayout();
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [cartTotal, setCartTotal] = useState<CartTotal | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const { profile } = useAuthStore();
 
     const fetchCart = async () => {
         try {
@@ -176,10 +174,27 @@ export default function CartScreen() {
         return (
             <SafeAreaView style={styles.container}>
                 <StatusBar barStyle="light-content" />
-                <View style={styles.emptyHeader}>
-                    <Text style={styles.pageTitle}>YOUR BAG</Text>
+                <View
+                    style={[
+                        styles.emptyHeader,
+                        { paddingHorizontal: horizontalPadding, paddingTop: 12 },
+                    ]}
+                >
+                    <Text style={[styles.pageTitle, { fontSize: scaledFont(32, 0.9, 1.15) }]}>
+                        YOUR BAG
+                    </Text>
                 </View>
-                <View style={styles.emptyContainer}>
+                <View
+                    style={[
+                        styles.emptyContainer,
+                        {
+                            paddingHorizontal: horizontalPadding,
+                            maxWidth: isTablet ? 640 : undefined,
+                            alignSelf: "center",
+                            width: "100%",
+                        },
+                    ]}
+                >
                     <ShoppingCart size={64} color={COLORS.liveIndicator} />
                     <Text style={styles.emptyTitle}>CART ERROR</Text>
                     <Text style={styles.emptySubtitle}>{error}</Text>
@@ -208,10 +223,27 @@ export default function CartScreen() {
         return (
             <SafeAreaView style={styles.container}>
                 <StatusBar barStyle="light-content" />
-                <View style={styles.emptyHeader}>
-                    <Text style={styles.pageTitle}>YOUR BAG</Text>
+                <View
+                    style={[
+                        styles.emptyHeader,
+                        { paddingHorizontal: horizontalPadding, paddingTop: 12 },
+                    ]}
+                >
+                    <Text style={[styles.pageTitle, { fontSize: scaledFont(32, 0.9, 1.15) }]}>
+                        YOUR BAG
+                    </Text>
                 </View>
-                <View style={styles.emptyContainer}>
+                <View
+                    style={[
+                        styles.emptyContainer,
+                        {
+                            paddingHorizontal: horizontalPadding,
+                            maxWidth: isTablet ? 640 : undefined,
+                            alignSelf: "center",
+                            width: "100%",
+                        },
+                    ]}
+                >
                     <ShoppingCart size={64} color={COLORS.textPrimary} />
                     <Text style={styles.emptyTitle}>YOUR BAG IS EMPTY</Text>
                     <Text style={styles.emptySubtitle}>
@@ -243,8 +275,15 @@ export default function CartScreen() {
             <StatusBar barStyle="light-content" />
             
             {/* Header */}
-            <View style={styles.header}>
-                <Text style={styles.pageTitle}>YOUR BAG</Text>
+            <View
+                style={[
+                    styles.header,
+                    { paddingHorizontal: horizontalPadding, paddingTop: 12 },
+                ]}
+            >
+                <Text style={[styles.pageTitle, { fontSize: scaledFont(32, 0.9, 1.15) }]}>
+                    YOUR BAG
+                </Text>
                 <TouchableOpacity 
                     onPress={handleClearCart}
                     accessible={true}
@@ -268,7 +307,7 @@ export default function CartScreen() {
                     />
                 }
             >
-                <View style={styles.itemsContainer}>
+                <View style={[styles.itemsContainer, { paddingHorizontal: horizontalPadding }]}>
                     {cartItems.map((item) => (
                         <View key={item.id} style={styles.itemCard}>
                             <View style={styles.itemRow}>
@@ -353,7 +392,15 @@ export default function CartScreen() {
 
             {/* Checkout Footer */}
             {cartTotal && (
-                <View style={styles.footer}>
+                <View
+                    style={[
+                        styles.footer,
+                        {
+                            paddingHorizontal: horizontalPadding,
+                            paddingBottom: Math.max(insets.bottom + 12, 24),
+                        },
+                    ]}
+                >
                     <View style={styles.totalContainer}>
                         <View style={styles.totalRow}>
                             <Text style={styles.totalLabel}>Subtotal</Text>
@@ -414,8 +461,6 @@ const styles = StyleSheet.create({
         letterSpacing: 2,
     },
     emptyHeader: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
         paddingBottom: 24,
     },
     emptyContainer: {
@@ -444,8 +489,6 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        paddingHorizontal: 24,
-        paddingTop: 60,
         paddingBottom: 24,
     },
     pageTitle: {
@@ -464,7 +507,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     itemsContainer: {
-        paddingHorizontal: 24,
+        width: "100%",
     },
     itemCard: {
         backgroundColor: COLORS.cardBackground,
@@ -550,7 +593,7 @@ const styles = StyleSheet.create({
     footer: {
         borderTopWidth: 1,
         borderTopColor: COLORS.darkBorder,
-        padding: 24,
+        paddingTop: 24,
         backgroundColor: COLORS.luxuryBlack,
     },
     totalContainer: {

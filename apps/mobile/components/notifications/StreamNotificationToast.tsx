@@ -9,7 +9,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Animated, Dimensions } from 'react-native';
+import { Animated } from 'react-native';
 import {
   Box,
   HStack,
@@ -28,6 +28,7 @@ import {
 } from 'lucide-react-native';
 import { StreamNotification, NotificationType } from '../../lib/notifications/streamNotifications';
 import { COLORS } from '@/constants/colors';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 interface StreamNotificationToastProps {
   notification: StreamNotification | null;
@@ -35,13 +36,12 @@ interface StreamNotificationToastProps {
   duration?: number;
 }
 
-const { width } = Dimensions.get('window');
-
 export default function StreamNotificationToast({
   notification,
   onDismiss,
   duration = 5000,
 }: StreamNotificationToastProps) {
+  const { horizontalPadding, isTablet } = useResponsiveLayout();
   const [slideAnim] = useState(new Animated.Value(-100));
 
   useEffect(() => {
@@ -135,9 +135,9 @@ export default function StreamNotificationToast({
     <Animated.View
       style={{
         position: 'absolute',
-        top: 60,
-        left: 16,
-        right: 16,
+        top: isTablet ? 72 : 56,
+        left: horizontalPadding,
+        right: horizontalPadding,
         transform: [{ translateY: slideAnim }],
         zIndex: 1000,
       }}
@@ -203,12 +203,13 @@ export function BidToast({
   bidderName: string;
   onDismiss: () => void;
 }) {
+  const { horizontalPadding, isTablet } = useResponsiveLayout();
   return (
     <Box
       position="absolute"
-      top={60}
-      left={16}
-      right={16}
+      top={isTablet ? 72 : 56}
+      left={horizontalPadding}
+      right={horizontalPadding}
       bg={COLORS.warningAmber}
       rounded="$lg"
       p="$4"
@@ -253,6 +254,7 @@ export function CountdownToast({
   secondsRemaining: number;
   onDismiss: () => void;
 }) {
+  const { isTablet } = useResponsiveLayout();
   const getColor = () => {
     if (secondsRemaining <= 5) return COLORS.errorRed;
     if (secondsRemaining <= 10) return COLORS.warningAmber;
@@ -264,7 +266,7 @@ export function CountdownToast({
   return (
     <Box
       position="absolute"
-      top={60}
+      top={isTablet ? 72 : 56}
       alignSelf="center"
       bg={color}
       rounded="$lg"

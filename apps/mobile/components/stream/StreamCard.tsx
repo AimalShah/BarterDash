@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  Dimensions,
   ActivityIndicator,
   Alert,
 } from "react-native";
@@ -14,8 +13,7 @@ import { getStreamThumbnail, isValidImageUrl } from "@/lib/utils/imageUtils";
 import { Bell } from "lucide-react-native";
 import { streamsService } from "@/lib/api/services/streams";
 import { COLORS } from "@/constants/colors";
-
-const { width } = Dimensions.get("window");
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 interface StreamCardProps {
   stream: any;
@@ -25,6 +23,7 @@ interface StreamCardProps {
 const StreamCard = memo(
   ({ stream, isLive }: StreamCardProps) => {
     const router = useRouter();
+    const { isTablet, scaledFont } = useResponsiveLayout();
     const [imageLoading, setImageLoading] = useState(true);
     const [imageError, setImageError] = useState(false);
     const [notifying, setNotifying] = useState(false);
@@ -102,6 +101,8 @@ const StreamCard = memo(
       }
     };
 
+    const avatarSize = isTablet ? 36 : 32;
+
     return (
       <TouchableOpacity
         onPress={() => router.push(`/stream/${stream.id}`)}
@@ -125,9 +126,9 @@ const StreamCard = memo(
           {/* Seller Avatar */}
           <View
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: 16,
+              width: avatarSize,
+              height: avatarSize,
+              borderRadius: avatarSize / 2,
               overflow: "hidden",
               backgroundColor: COLORS.darkSurface,
               marginRight: 10,
@@ -161,7 +162,7 @@ const StreamCard = memo(
             numberOfLines={1}
             style={{
               color: COLORS.textPrimary,
-              fontSize: 13,
+              fontSize: scaledFont(13, 0.95, 1.1),
               fontWeight: "600",
             }}
           >
@@ -172,7 +173,7 @@ const StreamCard = memo(
         {/* Image - Rounded, Long Vertical */}
         <View style={{ 
           width: "100%", 
-          aspectRatio: 0.6, // Tall vertical image
+          aspectRatio: isTablet ? 0.68 : 0.6, // Tall vertical image
           position: "relative",
           borderRadius: 16,
           overflow: "hidden",
@@ -232,7 +233,7 @@ const StreamCard = memo(
               }} />
               <Text style={{ 
                 color: COLORS.textPrimary, 
-                fontSize: 11, 
+                fontSize: scaledFont(11, 0.95, 1.1), 
                 fontWeight: "700" 
               }}>
                 live . {stream.viewerCount || 0}
@@ -255,7 +256,7 @@ const StreamCard = memo(
             >
               <Text style={{ 
                 color: COLORS.luxuryBlack, 
-                fontSize: 10, 
+                fontSize: scaledFont(10, 0.95, 1.1), 
                 fontWeight: "800" 
               }}>
                 UPCOMING
@@ -276,7 +277,7 @@ const StreamCard = memo(
             numberOfLines={2}
             style={{
               color: COLORS.textPrimary,
-              fontSize: 14,
+              fontSize: scaledFont(14, 0.95, 1.1),
               fontWeight: "600",
               marginBottom: 4,
             }}
@@ -287,11 +288,11 @@ const StreamCard = memo(
           {/* Category */}
           {stream.category && (
             <Text
-              style={{
-                color: COLORS.textSecondary,
-                fontSize: 11,
-                fontWeight: "500",
-                marginBottom: 6,
+                style={{
+                  color: COLORS.textSecondary,
+                  fontSize: scaledFont(11, 0.95, 1.1),
+                  fontWeight: "500",
+                  marginBottom: 6,
               }}
             >
               {stream.category.name}
@@ -304,7 +305,7 @@ const StreamCard = memo(
               <Text
                 style={{
                   color: COLORS.textPrimary,
-                  fontSize: 12,
+                  fontSize: scaledFont(12, 0.95, 1.1),
                   fontWeight: "600",
                 }}
               >
@@ -313,7 +314,7 @@ const StreamCard = memo(
               <Text
                 style={{
                   color: COLORS.textSecondary,
-                  fontSize: 11,
+                  fontSize: scaledFont(11, 0.95, 1.1),
                   marginTop: 2,
                   marginBottom: 8,
                 }}

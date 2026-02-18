@@ -1,4 +1,4 @@
-import { eq, desc } from 'drizzle-orm';
+import { count, desc, eq, inArray } from 'drizzle-orm';
 import { db, reports, Report } from '../db';
 import { AppResult, success, failure, ValidationError } from '../utils/result';
 
@@ -112,6 +112,52 @@ export class ReportsRepository {
       return success(updated);
     } catch (error) {
       return failure(new ValidationError('Failed to resolve report'));
+    }
+  }
+
+  /**
+   * List reports for admin moderation
+   */
+  async listForAdmin(
+    limit: number,
+    offset: number,
+    statuses?: Array<'pending' | 'reviewing' | 'resolved' | 'dismissed'>,
+  ): Promise<AppResult<Report[]>> {
+    try {
+      const whereClause =
+        statuses && statuses.length > 0
+          ? inArray(reports.status, statuses)
+          : undefined;
+
+      const results = await db.query.reports.findMany({
+        where: whereClause,
+        orderBy: [desc(reports.createdAt)],
+        limit,
+        offset,
+      });
+      return success(results);
+    } catch (error) {
+      return failure(new ValidationError('Failed to list reports'));
+    }
+  }
+
+  /**
+   * Count reports for admin moderation
+   */
+  async countForAdmin(
+    statuses?: Array<'pending' | 'reviewing' | 'resolved' | 'dismissed'>,
+  ): Promise<AppResult<number>> {
+    try {
+      const whereClause =
+        statuses && statuses.length > 0
+          ? inArray(reports.status, statuses)
+          : undefined;
+
+      const query = db.select({ total: count() }).from(reports);
+      const [result] = whereClause ? await query.where(whereClause) : await query;
+      return success(Number(result?.total || 0));
+    } catch (error) {
+      return failure(new ValidationError('Failed to count reports'));
     }
   }
 }

@@ -3,7 +3,6 @@ import {
     FlatList,
     StatusBar,
     RefreshControl,
-    Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -33,10 +32,7 @@ import { categoriesService } from "@/lib/api/services/categories";
 import { Category } from "@/types";
 import { theme } from "@/constants/theme";
 import { COLORS } from "@/constants/colors";
-
-const { width } = Dimensions.get("window");
-const COLUMN_COUNT = 2;
-const ITEM_WIDTH = (width - 48 - 16) / COLUMN_COUNT; // Padding + gap
+import { useResponsiveLayout } from "../../hooks/useResponsiveLayout";
 
 // Default category icons
 const categoryIcons: Record<string, any> = {
@@ -52,9 +48,14 @@ const categoryIcons: Record<string, any> = {
 
 export default function CategoriesScreen() {
     const router = useRouter();
+    const { width, isTablet, horizontalPadding } = useResponsiveLayout();
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const columnCount = isTablet ? (width >= 1040 ? 4 : 3) : 2;
+    const itemGap = isTablet ? 20 : 16;
+    const itemWidth =
+        (width - horizontalPadding * 2 - itemGap * (columnCount - 1)) / columnCount;
 
     useEffect(() => {
         fetchCategories();
@@ -96,15 +97,15 @@ export default function CategoriesScreen() {
 
     const renderCategory = ({ item, index }: { item: Category; index: number }) => {
         const IconComponent = getIconComponent(item.slug);
-        const isEven = index % 2 === 0;
+        const isRowEnd = (index + 1) % columnCount === 0;
 
         return (
             <Pressable
                 onPress={() => handleCategoryPress(item)}
                 style={{
-                    width: ITEM_WIDTH,
-                    marginRight: isEven ? 16 : 0,
-                    marginBottom: 16,
+                    width: itemWidth,
+                    marginRight: isRowEnd ? 0 : itemGap,
+                    marginBottom: itemGap,
                 }}
                 sx={{ ":active": { opacity: 0.8 } }}
             >
@@ -112,7 +113,7 @@ export default function CategoriesScreen() {
                     bg={COLORS.cardBackground}
                     borderWidth={1}
                     borderColor={COLORS.darkBorder}
-                    rounded={theme.borderRadius.round}
+                    rounded={theme.borderRadius.xl}
                     p="$6"
                     alignItems="center"
                     style={{
@@ -159,7 +160,12 @@ export default function CategoriesScreen() {
             <StatusBar barStyle="light-content" />
 
             {/* Header */}
-            <Box px="$6" py="$4" borderBottomWidth={1} borderColor={COLORS.darkBorder}>
+            <Box
+                py="$4"
+                borderBottomWidth={1}
+                borderColor={COLORS.darkBorder}
+                style={{ paddingHorizontal: horizontalPadding }}
+            >
                 <Heading size="2xl" color={COLORS.textPrimary} fontWeight="$bold">
                     Categories
                 </Heading>
@@ -171,12 +177,12 @@ export default function CategoriesScreen() {
             {/* Search Bar */}
             <Pressable
                 onPress={() => router.push("/(tabs)/search")}
-                mx="$6"
                 my="$4"
+                style={{ marginHorizontal: horizontalPadding }}
             >
                 <HStack
                     bg={COLORS.luxuryBlackLighter}
-                    rounded={theme.borderRadius.round}
+                    rounded={theme.borderRadius.xl}
                     px="$4"
                     py="$3"
                     alignItems="center"
@@ -191,15 +197,17 @@ export default function CategoriesScreen() {
 
             {/* Categories Grid */}
             <FlatList
+                key={`categories-grid-${columnCount}`}
                 data={categories}
                 renderItem={renderCategory}
                 keyExtractor={(item) => item.id}
-                numColumns={COLUMN_COUNT}
+                numColumns={columnCount}
                 contentContainerStyle={{
-                    paddingHorizontal: 24,
+                    paddingHorizontal: horizontalPadding,
                     paddingTop: 8,
                     paddingBottom: 100,
                 }}
+                columnWrapperStyle={columnCount > 1 ? { justifyContent: "flex-start" } : undefined}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}

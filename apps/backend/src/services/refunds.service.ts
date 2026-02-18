@@ -1,5 +1,11 @@
 import { RefundsRepository } from '../repositories/refunds.repository';
-import { AppResult, failure, ValidationError, NotFoundError } from '../utils/result';
+import {
+  AppResult,
+  failure,
+  success,
+  ValidationError,
+  NotFoundError,
+} from '../utils/result';
 import { db, orders } from '../db';
 import { eq } from 'drizzle-orm';
 
@@ -61,5 +67,48 @@ export class RefundsService {
     }
 
     return result;
+  }
+
+  async listAdminRefunds(params: {
+    page: number;
+    limit: number;
+    statuses?: Array<
+      'pending' | 'approved' | 'rejected' | 'processing' | 'completed'
+    >;
+  }): Promise<
+    AppResult<{
+      items: any[];
+      pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+        hasNextPage: boolean;
+      };
+    }>
+  > {
+    const offset = (params.page - 1) * params.limit;
+
+    const [itemsResult, countResult] = await Promise.all([
+      this.repository.listForAdmin(params.limit, offset, params.statuses),
+      this.repository.countForAdmin(params.statuses),
+    ]);
+
+    if (itemsResult.isErr()) return failure(itemsResult.error);
+    if (countResult.isErr()) return failure(countResult.error);
+
+    const total = countResult.value;
+    const totalPages = Math.max(1, Math.ceil(total / params.limit));
+
+    return success({
+      items: itemsResult.value,
+      pagination: {
+        page: params.page,
+        limit: params.limit,
+        total,
+        totalPages,
+        hasNextPage: params.page < totalPages,
+      },
+    });
   }
 }

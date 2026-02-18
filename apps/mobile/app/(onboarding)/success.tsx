@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { View, Animated, StatusBar, Dimensions, TouchableOpacity, StyleSheet, Text as RNText } from "react-native";
+import { View, Animated, StatusBar, TouchableOpacity, StyleSheet, Text as RNText } from "react-native";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import {
@@ -12,21 +12,23 @@ import {
   VStack,
   HStack,
 } from "@gluestack-ui/themed";
-import { CheckCircle2, Sparkles, ShoppingBag, Users, Trophy, Shop } from "lucide-react-native";
+import { CheckCircle2, Sparkles, ShoppingBag, Users, Trophy, Store } from "lucide-react-native";
 import { COLORS } from "@/constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuthStore } from "@/store/authStore";
-
-const { width } = Dimensions.get("window");
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 export default function SuccessScreen() {
   const insets = useSafeAreaInsets();
+  const { width, isTablet, horizontalPadding, scaledFont } = useResponsiveLayout();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const confettiAnim = useRef(new Animated.Value(0)).current;
   const { profile } = useAuthStore();
   const isSeller = profile?.is_seller === true;
+  const successBadgeSize = isTablet ? 132 : 120;
+  const buttonHeight = isTablet ? 64 : 60;
 
   useEffect(() => {
     Animated.sequence([
@@ -118,23 +120,37 @@ export default function SuccessScreen() {
         {renderConfetti()}
       </View>
 
-      <Box flex={1} px="$8" justifyContent="center" alignItems="center">
-        <VStack space="xl" alignItems="center" maxWidth={400}>
+      <Box
+        flex={1}
+        justifyContent="center"
+        alignItems="center"
+        style={{ paddingHorizontal: horizontalPadding }}
+      >
+        <VStack
+          space="xl"
+          alignItems="center"
+          maxWidth={isTablet ? 520 : 400}
+          width="100%"
+        >
           <Animated.View
             style={{
               transform: [{ scale: scaleAnim }],
             }}
           >
             <Center
-              w={120}
-              h={120}
+              w={successBadgeSize}
+              h={successBadgeSize}
               rounded="$full"
               bg={COLORS.successGreen}
               borderWidth={4}
               borderColor={COLORS.primaryGold}
               mb="$4"
             >
-              <CheckCircle2 size={60} color={COLORS.luxuryBlack} strokeWidth={3} />
+              <CheckCircle2
+                size={isTablet ? 66 : 60}
+                color={COLORS.luxuryBlack}
+                strokeWidth={3}
+              />
             </Center>
           </Animated.View>
 
@@ -159,6 +175,7 @@ export default function SuccessScreen() {
               fontWeight="$black"
               textAlign="center"
               mb="$4"
+              style={{ fontSize: scaledFont(38, 0.95, 1.15) }}
             >
               You're All Set!
             </Heading>
@@ -201,7 +218,7 @@ export default function SuccessScreen() {
                     colors={[COLORS.primaryGold, COLORS.secondaryGold]}
                     style={styles.sellerGradient}
                   >
-                    <Shop size={18} color={COLORS.luxuryBlack} />
+                    <Store size={18} color={COLORS.luxuryBlack} />
                     <RNText style={styles.sellerButtonText}>Become a Seller</RNText>
                   </LinearGradient>
                 </TouchableOpacity>
@@ -222,7 +239,7 @@ export default function SuccessScreen() {
               onPress={handleGetStarted}
               bg={COLORS.primaryGold}
               rounded="$full"
-              h={60}
+              h={buttonHeight}
               justifyContent="center"
               alignItems="center"
               sx={{

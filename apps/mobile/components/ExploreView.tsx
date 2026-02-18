@@ -7,14 +7,12 @@ import {
   Image,
   ScrollView,
   StyleSheet,
-  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search } from 'lucide-react-native';
 import { StreamSession } from '../types';
 import { COLORS } from '../constants/colors';
-
-const { width } = Dimensions.get('window');
+import { useResponsiveLayout } from '../hooks/useResponsiveLayout';
 
 interface ExploreViewProps {
   streams: StreamSession[];
@@ -22,8 +20,13 @@ interface ExploreViewProps {
 }
 
 const ExploreView: React.FC<ExploreViewProps> = ({ streams, onSelectStream }) => {
+  const { width, isTablet, horizontalPadding, scaledFont } = useResponsiveLayout();
   const [activeCategory, setActiveCategory] = useState('All');
   const categories = ['All', 'Rare Gems', 'Timepieces', 'Streetwear', 'Modern Art'];
+  const columns = isTablet ? 3 : 2;
+  const gap = isTablet ? 20 : 16;
+  const itemWidth =
+    (width - horizontalPadding * 2 - gap * (columns - 1)) / columns;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -32,8 +35,10 @@ const ExploreView: React.FC<ExploreViewProps> = ({ streams, onSelectStream }) =>
         contentContainerStyle={styles.scrollContent}
       >
         {/* Search Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Explore Auctions</Text>
+        <View style={[styles.header, { paddingHorizontal: horizontalPadding }]}>
+          <Text style={[styles.title, { fontSize: scaledFont(24, 0.95, 1.15) }]}>
+            Explore Auctions
+          </Text>
           <View style={styles.searchContainer}>
             <TextInput
               placeholder="Search items, sellers, or brands..."
@@ -50,7 +55,10 @@ const ExploreView: React.FC<ExploreViewProps> = ({ streams, onSelectStream }) =>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoriesContainer}
+          contentContainerStyle={[
+            styles.categoriesContainer,
+            { paddingHorizontal: horizontalPadding },
+          ]}
         >
           {categories.map((cat, i) => (
             <TouchableOpacity
@@ -74,7 +82,7 @@ const ExploreView: React.FC<ExploreViewProps> = ({ streams, onSelectStream }) =>
         </ScrollView>
 
         {/* Live Wall */}
-        <View style={styles.section}>
+        <View style={[styles.section, { paddingHorizontal: horizontalPadding }]}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Live Right Now</Text>
             <View style={styles.activeIndicator}>
@@ -88,7 +96,7 @@ const ExploreView: React.FC<ExploreViewProps> = ({ streams, onSelectStream }) =>
               <TouchableOpacity
                 key={stream.id}
                 onPress={() => onSelectStream(stream)}
-                style={styles.gridItem}
+                style={[styles.gridItem, { width: itemWidth }]}
                 activeOpacity={0.9}
               >
                 <Image
@@ -126,7 +134,7 @@ const ExploreView: React.FC<ExploreViewProps> = ({ streams, onSelectStream }) =>
             ))}
             {/* Mock Extra Content for Grid */}
             {[3, 4, 5, 6].map((i) => (
-              <View key={i} style={styles.placeholderItem}>
+              <View key={i} style={[styles.placeholderItem, { width: itemWidth }]}>
                 <View style={styles.placeholderLine} />
                 <View style={[styles.placeholderLine, { width: '50%', marginTop: 4 }]} />
               </View>
@@ -135,7 +143,7 @@ const ExploreView: React.FC<ExploreViewProps> = ({ streams, onSelectStream }) =>
         </View>
 
         {/* Featured Collections */}
-        <View style={styles.section}>
+        <View style={[styles.section, { paddingHorizontal: horizontalPadding }]}>
           <Text style={styles.sectionTitle}>Ending Soon</Text>
           <View style={styles.endingsList}>
             {[1, 2].map((i) => (
@@ -173,7 +181,6 @@ const styles = StyleSheet.create({
     paddingBottom: 96,
   },
   header: {
-    paddingHorizontal: 24,
     marginBottom: 24,
   },
   title: {
@@ -203,7 +210,6 @@ const styles = StyleSheet.create({
     transform: [{ translateY: -10 }],
   },
   categoriesContainer: {
-    paddingHorizontal: 24,
     gap: 8,
     marginBottom: 32,
   },
@@ -230,7 +236,6 @@ const styles = StyleSheet.create({
     color: COLORS.luxuryBlack,
   },
   section: {
-    paddingHorizontal: 24,
     marginBottom: 40,
   },
   sectionHeader: {
@@ -269,7 +274,6 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   gridItem: {
-    width: (width - 64) / 2,
     aspectRatio: 3 / 4,
     borderRadius: 24,
     overflow: 'hidden',
@@ -333,7 +337,6 @@ const styles = StyleSheet.create({
     color: COLORS.primaryGold,
   },
   placeholderItem: {
-    width: (width - 64) / 2,
     aspectRatio: 3 / 4,
     borderRadius: 24,
     backgroundColor: COLORS.cardBackground,

@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { count, desc, eq, inArray } from 'drizzle-orm';
 import {
   db,
   sellerApplications,
@@ -357,6 +357,98 @@ export class SellerApplicationsRepository {
     } catch (error) {
       console.error('Error fetching seller details:', error);
       return failure(new NotFoundError('Seller details'));
+    }
+  }
+
+  /**
+   * List seller applications for admin review
+   */
+  async listForAdmin(
+    limit: number,
+    offset: number,
+    statuses?: Array<
+      | 'draft'
+      | 'submitted'
+      | 'in_review'
+      | 'approved'
+      | 'rejected'
+      | 'more_info_needed'
+    >,
+  ): Promise<
+    AppResult<
+      Array<
+        SellerApplication & {
+          user: {
+            id: string;
+            username: string;
+            fullName: string | null;
+            isSeller: boolean;
+            isAdmin: boolean;
+          } | null;
+        }
+      >
+    >
+  > {
+    try {
+      const whereClause =
+        statuses && statuses.length > 0
+          ? inArray(sellerApplications.status, statuses)
+          : undefined;
+
+      const items = await db.query.sellerApplications.findMany({
+        where: whereClause,
+        with: {
+          user: {
+            columns: {
+              id: true,
+              username: true,
+              fullName: true,
+              isSeller: true,
+              isAdmin: true,
+            },
+          },
+        },
+        orderBy: [desc(sellerApplications.updatedAt)],
+        limit,
+        offset,
+      });
+
+      return success(items as any);
+    } catch (error) {
+      console.error('Error listing seller applications:', error);
+      return failure(
+        new ValidationError('Failed to list seller applications'),
+      );
+    }
+  }
+
+  /**
+   * Count seller applications for admin review
+   */
+  async countForAdmin(
+    statuses?: Array<
+      | 'draft'
+      | 'submitted'
+      | 'in_review'
+      | 'approved'
+      | 'rejected'
+      | 'more_info_needed'
+    >,
+  ): Promise<AppResult<number>> {
+    try {
+      const whereClause =
+        statuses && statuses.length > 0
+          ? inArray(sellerApplications.status, statuses)
+          : undefined;
+
+      const query = db.select({ total: count() }).from(sellerApplications);
+      const [result] = whereClause ? await query.where(whereClause) : await query;
+      return success(Number(result?.total || 0));
+    } catch (error) {
+      console.error('Error counting seller applications:', error);
+      return failure(
+        new ValidationError('Failed to count seller applications'),
+      );
     }
   }
 }

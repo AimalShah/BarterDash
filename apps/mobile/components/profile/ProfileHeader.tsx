@@ -5,11 +5,11 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
-  Platform,
 } from "react-native";
 import { Settings, RefreshCw, BadgeCheck } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { COLORS } from "@/constants/colors";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 interface ProfileHeaderProps {
   isSeller: boolean;
@@ -32,16 +32,25 @@ export const ProfileHeader = ({
   onRefresh,
   onSettings,
 }: ProfileHeaderProps) => {
+  const { isTablet, horizontalPadding, scaledFont } = useResponsiveLayout();
+  const avatarSize = isTablet ? 112 : 100;
+  const headerHeight = isTablet ? 170 : 150;
+
   return (
     <View style={styles.container}>
       {/* Dynamic Header Background */}
-      <View style={styles.headerBackgroundContainer}>
+      <View style={[styles.headerBackgroundContainer, { height: headerHeight }]}>
         <LinearGradient
           colors={[COLORS.luxuryBlackLight, COLORS.luxuryBlack]}
           style={StyleSheet.absoluteFill}
         />
         <View style={styles.headerContent}>
-          <Text style={styles.watermarkText}>
+          <Text
+            style={[
+              styles.watermarkText,
+              { fontSize: scaledFont(48, 0.95, 1.15) },
+            ]}
+          >
             {isSeller ? 'BARTERDASH STUDIO' : 'BARTERDASH'}
           </Text>
         </View>
@@ -52,10 +61,28 @@ export const ProfileHeader = ({
         />
       </View>
 
-      <View style={styles.profileInfoContainer}>
+      <View
+        style={[
+          styles.profileInfoContainer,
+          {
+            paddingHorizontal: horizontalPadding,
+            marginTop: -(avatarSize / 2),
+          },
+        ]}
+      >
         <View style={styles.rowBetween}>
           {/* Avatar Container */}
-          <View style={[styles.avatarContainer, isSeller && styles.avatarContainerSeller]}>
+          <View
+            style={[
+              styles.avatarContainer,
+              {
+                width: avatarSize,
+                height: avatarSize,
+                borderRadius: avatarSize / 2,
+              },
+              isSeller && styles.avatarContainerSeller,
+            ]}
+          >
             {avatarUrl ? (
               <Image
                 source={{ uri: avatarUrl }}
@@ -74,7 +101,14 @@ export const ProfileHeader = ({
             <TouchableOpacity
               onPress={onRefresh}
               disabled={refreshing}
-              style={styles.iconButton}
+              style={[
+                styles.iconButton,
+                {
+                  width: isTablet ? 48 : 44,
+                  height: isTablet ? 48 : 44,
+                  borderRadius: isTablet ? 24 : 22,
+                },
+              ]}
               activeOpacity={0.7}
             >
               <RefreshCw
@@ -84,7 +118,14 @@ export const ProfileHeader = ({
             </TouchableOpacity>
             <TouchableOpacity
               onPress={onSettings}
-              style={styles.iconButton}
+              style={[
+                styles.iconButton,
+                {
+                  width: isTablet ? 48 : 44,
+                  height: isTablet ? 48 : 44,
+                  borderRadius: isTablet ? 24 : 22,
+                },
+              ]}
               activeOpacity={0.7}
             >
               <Settings size={22} color={COLORS.textPrimary} />
@@ -95,7 +136,12 @@ export const ProfileHeader = ({
         {/* User Info Section */}
         <View style={styles.userInfo}>
           <View style={styles.nameRow}>
-            <Text style={styles.displayName}>
+            <Text
+              style={[
+                styles.displayName,
+                { fontSize: scaledFont(isTablet ? 32 : 28, 0.95, 1.1) },
+              ]}
+            >
               {displayName}
             </Text>
             {isSeller && <BadgeCheck size={22} color={COLORS.primaryGold} />}
@@ -135,7 +181,6 @@ const styles = StyleSheet.create({
   },
   headerBackgroundContainer: {
     width: '100%',
-    height: 150,
     backgroundColor: COLORS.luxuryBlackLight,
     position: 'relative',
     overflow: 'hidden',
@@ -163,8 +208,6 @@ const styles = StyleSheet.create({
     height: 80,
   },
   profileInfoContainer: {
-    paddingHorizontal: 24,
-    marginTop: -50,
   },
   rowBetween: {
     flexDirection: 'row',
@@ -172,12 +215,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   avatarContainer: {
-    height: 100,
-    width: 100,
     backgroundColor: COLORS.cardBackground,
     borderWidth: 3,
     borderColor: COLORS.darkBorder,
-    borderRadius: 50, // Circle
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -210,14 +250,11 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   iconButton: {
-    height: 44,
-    width: 44,
     backgroundColor: 'rgba(26, 26, 26, 0.8)', // Semi-transparent
     borderWidth: 1,
     borderColor: COLORS.darkBorder,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 22,
   },
   userInfo: {
     marginTop: 16,

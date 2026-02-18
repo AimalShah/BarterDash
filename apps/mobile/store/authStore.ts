@@ -47,7 +47,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     setSellerStatus: (isSeller: boolean) => {
         set((state) => ({
-            profile: state.profile ? { ...state.profile, is_seller: isSeller, role: isSeller ? 'SELLER' : state.profile.role } : null
+            profile: state.profile
+                ? {
+                    ...state.profile,
+                    is_seller: isSeller,
+                    seller_status: isSeller ? 'approved' : state.profile.seller_status,
+                    role: isSeller ? 'SELLER' : state.profile.role
+                }
+                : null
         }));
     },
 
@@ -134,13 +141,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
         if (error) throw error;
 
-        // Check if user email is confirmed
-        if (data.user && !data.user.email_confirmed_at) {
-            // Sign out since email is not verified
-            await supabase.auth.signOut();
-            throw new Error("Email not confirmed. Please verify your email before logging in.");
-        }
-
         set({ session: data.session, user: data.user });
         await get().fetchProfile();
         get().subscribeToProfile();
@@ -213,7 +213,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     canAccessSellerFeatures: () => {
         const state = get();
-        return !!(state.profile?.is_seller && state.profile?.onboarded);
+        const hasSellerAccess =
+            state.profile?.is_seller ||
+            state.profile?.role === 'SELLER' ||
+            state.profile?.seller_status === 'approved';
+        return !!(hasSellerAccess && state.profile?.onboarded);
     },
 }));
 

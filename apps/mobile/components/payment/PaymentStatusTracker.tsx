@@ -3,7 +3,6 @@ import {
   View,
   Text,
   Animated,
-  Dimensions,
 } from 'react-native';
 import {
   Clock,
@@ -41,8 +40,6 @@ interface PaymentStatusTrackerProps {
   showProgressBar?: boolean;
   showTimestamp?: boolean;
 }
-
-const { width: screenWidth } = Dimensions.get('window');
 
 export const PaymentStatusTracker: React.FC<PaymentStatusTrackerProps> = ({
   paymentIntentId,

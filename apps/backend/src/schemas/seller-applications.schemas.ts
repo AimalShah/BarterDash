@@ -86,3 +86,25 @@ export const updateApplicationStatusSchema = z.object({
 export type UpdateApplicationStatusInput = z.infer<
   typeof updateApplicationStatusSchema
 >['body'];
+
+/**
+ * Admin: List applications query params
+ */
+export const listAdminApplicationsSchema = z.object({
+  query: z.object({
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(20),
+    statuses: z
+      .preprocess((value) => {
+        if (typeof value !== 'string') {
+          return undefined;
+        }
+
+        return value
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }, z.array(applicationStatusEnum).optional())
+      .optional(),
+  }),
+});

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,18 +9,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
-  Dimensions,
   Alert,
   Vibration,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '../../constants/colors';
 
 import { useChat } from '../../hooks/useChat';
-
-const { width, height } = Dimensions.get('window');
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 
 interface InstagramLiveChatProps {
   streamId: string;
@@ -53,7 +50,9 @@ export const InstagramLiveChatUI: React.FC<InstagramLiveChatUIProps> = ({
   const [tagQuery, setTagQuery] = useState('');
   const flatListRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets();
+  const { isTablet, horizontalPadding } = useResponsiveLayout();
   const prevMessagesCount = useRef(messages.length);
+  const contentPadding = Math.min(Math.max(horizontalPadding - 4, 12), 24);
 
   useEffect(() => {
     if (messages.length > prevMessagesCount.current) {
@@ -127,7 +126,13 @@ export const InstagramLiveChatUI: React.FC<InstagramLiveChatUIProps> = ({
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-      style={[styles.container, { paddingBottom: showInput ? insets.bottom : 0 }]}
+      style={[
+        styles.container,
+        {
+          paddingBottom: showInput ? insets.bottom : 0,
+          maxHeight: isTablet ? 320 : 250,
+        },
+      ]}
     >
       {/* Messages with gradient fade */}
       <View style={styles.messagesWrapper}>
@@ -138,7 +143,10 @@ export const InstagramLiveChatUI: React.FC<InstagramLiveChatUIProps> = ({
           keyExtractor={item => item.id}
           extraData={messages.length}
           style={styles.messagesList}
-          contentContainerStyle={styles.messagesContent}
+          contentContainerStyle={[
+            styles.messagesContent,
+            { paddingHorizontal: contentPadding },
+          ]}
           showsVerticalScrollIndicator={false}
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
         />
@@ -146,7 +154,12 @@ export const InstagramLiveChatUI: React.FC<InstagramLiveChatUIProps> = ({
 
       {/* Tag Suggestions */}
       {showInput && showTagSuggestions && filteredViewers.length > 0 && (
-        <View style={styles.suggestionsContainer}>
+        <View
+          style={[
+            styles.suggestionsContainer,
+            { left: contentPadding, right: contentPadding },
+          ]}
+        >
           <FlatList
             data={filteredViewers}
             keyExtractor={item => item.id}
@@ -168,8 +181,8 @@ export const InstagramLiveChatUI: React.FC<InstagramLiveChatUIProps> = ({
 
       {/* Input area - Only shown if showInput is true */}
       {showInput && (
-        <View style={styles.inputWrapper}>
-          <View style={styles.inputContainer}>
+        <View style={[styles.inputWrapper, { paddingHorizontal: contentPadding }]}>
+          <View style={[styles.inputContainer, { height: isTablet ? 48 : 44 }]}>
             <TextInput
               style={styles.input}
               value={inputText}
@@ -219,7 +232,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: '100%',
     width: '100%',
-    maxHeight: 250,
   },
   messagesWrapper: {
     flex: 1,
@@ -229,7 +241,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   messagesContent: {
-    paddingHorizontal: 16,
     paddingTop: 20,
     paddingBottom: 10,
   },
@@ -268,7 +279,6 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   inputWrapper: {
-    paddingHorizontal: 16,
     paddingVertical: 12,
   },
   inputContainer: {
@@ -278,7 +288,6 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    height: 44,
   },
   input: {
     flex: 1,
@@ -297,8 +306,6 @@ const styles = StyleSheet.create({
   suggestionsContainer: {
     position: 'absolute',
     bottom: 60,
-    left: 16,
-    right: 16,
     backgroundColor: COLORS.cardBackground,
     borderRadius: 12,
     maxHeight: 150,

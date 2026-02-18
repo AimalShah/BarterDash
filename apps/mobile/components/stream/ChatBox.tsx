@@ -4,8 +4,7 @@ import {
     FlatList, 
     KeyboardAvoidingView, 
     Platform, 
-    StyleSheet,
-    Dimensions
+    StyleSheet
 } from 'react-native';
 import {
     Box,
@@ -17,8 +16,7 @@ import {
 import { Send, MessageCircle } from 'lucide-react-native';
 import { useChat } from '../../hooks/useChat';
 import { COLORS } from '../../constants/colors';
-
-const { width } = Dimensions.get('window');
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 
 interface ChatMessage {
     id: string;
@@ -32,6 +30,7 @@ interface ChatBoxProps {
 }
 
 export const ChatBox = ({ streamId, username }: ChatBoxProps) => {
+    const { width, isTablet } = useResponsiveLayout();
     const { messages, loading, sending, sendMessage } = useChat(streamId);
     const [inputText, setInputText] = React.useState('');
     const flatListRef = useRef<FlatList>(null);
@@ -59,7 +58,7 @@ export const ChatBox = ({ streamId, username }: ChatBoxProps) => {
         const isFirstMessage = index === 0;
         
         return (
-            <View style={styles.messageContainer}>
+            <View style={[styles.messageContainer, { maxWidth: width * (isTablet ? 0.7 : 0.85) }]}>
                 <View style={styles.messageBubble}>
                     <Text style={styles.username}>
                         {item.username}
@@ -76,7 +75,7 @@ export const ChatBox = ({ streamId, username }: ChatBoxProps) => {
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
-            style={styles.container}
+            style={[styles.container, { maxHeight: isTablet ? 340 : 280 }]}
         >
             {/* Header */}
             <View style={styles.header}>
@@ -157,7 +156,6 @@ export const ChatBox = ({ streamId, username }: ChatBoxProps) => {
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        maxHeight: 280,
         backgroundColor: COLORS.overlayStrong,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
@@ -194,7 +192,6 @@ const styles = StyleSheet.create({
     },
     messageContainer: {
         marginBottom: 8,
-        maxWidth: width * 0.85,
     },
     messageBubble: {
         backgroundColor: COLORS.darkBorderLight,

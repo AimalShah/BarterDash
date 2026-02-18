@@ -24,6 +24,8 @@ import refundsRoutes from './refunds.routes';
 import watchlistRoutes from './watchlist.routes';
 import devRoutes from './dev.routes';
 import webhooksRoutes from './webhooks.routes';
+import adminRoutes from './admin.routes';
+import healthRoutes from './health.routes';
 import { config } from '../config';
 
 const router = Router();
@@ -33,14 +35,8 @@ const router = Router();
  * Aggregates all route modules
  */
 
-// Health check endpoint
-router.get('/health', (_req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'API is healthy',
-    timestamp: new Date().toISOString(),
-  });
-});
+// Health routes (includes both public and admin endpoints)
+router.use('/health', healthRoutes);
 
 // Mount feature routes
 router.use('/auth', authRoutes);
@@ -66,6 +62,7 @@ router.use('/analytics', analyticsRoutes);
 router.use('/reports', reportsRoutes);
 router.use('/refunds', refundsRoutes);
 router.use('/watchlist', watchlistRoutes);
+router.use('/admin', adminRoutes);
 router.use('/webhooks', webhooksRoutes);
 
 if (config.nodeEnv === 'development') {

@@ -18,6 +18,7 @@ import { socialService } from '@/lib/api/services/social';
 import { sellersService } from '@/lib/api/services/sellers';
 import { useToast } from '@/context/ToastContext';
 import { COLORS } from '@/constants/colors';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 // Components
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
@@ -35,8 +36,10 @@ interface ProfileStats {
 }
 
 export default function ProfileScreen() {
+    const { horizontalPadding, isTablet, scaledFont } = useResponsiveLayout();
     const { profile, signOut, fetchProfile } = useAuthStore();
     const { showError, showSuccess } = useToast();
+    const legacyProfile = profile as any;
     const [stats, setStats] = useState<ProfileStats>({
         followers: 0,
         following: 0,
@@ -46,7 +49,10 @@ export default function ProfileScreen() {
     const [refreshing, setRefreshing] = useState(false);
     const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
 
-    const isSeller = profile?.role === 'SELLER' || profile?.isSeller === true;
+    const isSeller =
+        profile?.role === 'SELLER' ||
+        profile?.is_seller === true ||
+        legacyProfile?.isSeller === true;
 
     useEffect(() => {
         loadProfileData();
@@ -112,8 +118,8 @@ export default function ProfileScreen() {
     };
 
     const username = profile?.username || 'User';
-    const displayName = profile?.full_name || profile?.fullName || username;
-    const avatarUrl = profile?.avatar_url || profile?.avatarUrl;
+    const displayName = profile?.full_name || legacyProfile?.fullName || username;
+    const avatarUrl = profile?.avatar_url || legacyProfile?.avatarUrl;
 
     if (loading && !refreshing) {
         return (
@@ -190,12 +196,22 @@ export default function ProfileScreen() {
                 <ProfileMenuItems menuItems={MENU_ITEMS} />
 
                 <TouchableOpacity
-                    style={styles.logoutButton}
+                    style={[
+                        styles.logoutButton,
+                        {
+                            marginHorizontal: horizontalPadding,
+                            maxWidth: isTablet ? 520 : undefined,
+                            alignSelf: "center",
+                            width: "100%",
+                        },
+                    ]}
                     onPress={handleLogout}
                     activeOpacity={0.8}
                 >
                     <LogOut size={18} color={COLORS.textPrimary} />
-                    <Text style={styles.logoutText}>SIGN OUT</Text>
+                    <Text style={[styles.logoutText, { fontSize: scaledFont(14, 0.95, 1.05) }]}>
+                        SIGN OUT
+                    </Text>
                 </TouchableOpacity>
             </ScrollView>
         </SafeAreaView>
@@ -231,7 +247,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        marginHorizontal: 24,
         marginTop: 40,
         marginBottom: 40,
         height: 56,

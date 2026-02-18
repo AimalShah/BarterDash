@@ -1,4 +1,3 @@
-import React from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import ViewerStreamViewStream from "../../components/stream/ViewerStreamViewStream";

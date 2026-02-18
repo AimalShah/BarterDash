@@ -7,8 +7,35 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler';
 import { requestLogger, productionLogger } from './middleware/logger';
 import routes from './routes';
 import { initJobs } from './jobs';
+import { realtimeService } from './services/realtime.service';
+import { healthService } from './services/health.service';
 
 const app: Application = express();
+const corsOrigins = config.corsOrigin
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const allowAllCorsOrigins = corsOrigins.includes('*');
+
+const corsOptions: cors.CorsOptions = {
+  origin(origin, callback) {
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    if (allowAllCorsOrigins || corsOrigins.includes(origin)) {
+      // Reflect the request origin when credentials are enabled.
+      callback(null, origin);
+      return;
+    }
+
+    callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
 // ============================================
 // Security Middleware
@@ -21,12 +48,10 @@ app.use(
 
 app.use(
   cors({
-    origin: config.corsOrigin,
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    ...corsOptions,
   }),
 );
+app.options('*', cors(corsOptions));
 
 // ============================================
 // Rate Limiting
@@ -37,6 +62,8 @@ const limiter = rateLimit({
   message: 'Too many requests from this IP, please try again later',
   standardHeaders: true,
   legacyHeaders: false,
+  // Preflight requests are browser-internal and should not consume rate budget.
+  skip: (req) => req.method === 'OPTIONS',
 });
 
 app.use(limiter);
@@ -44,8 +71,12 @@ app.use(limiter);
 // Stricter limit for auth endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // 10 requests per windowMs
+  max: config.nodeEnv === 'development' ? 60 : 20,
   message: 'Too many authentication attempts, please try again later',
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Keep strict limits for mutation endpoints, but allow frequent session checks.
+  skip: (req) => req.method === 'OPTIONS' || req.method === 'GET',
 });
 
 app.use(`/${config.apiPrefix}/auth`, authLimiter);
@@ -120,6 +151,26 @@ const server = app.listen(PORT, () => {
   console.log(
     `💚 Health Check: http://localhost:${PORT}/${config.apiPrefix}/health`,
   );
+});
+
+// ============================================
+// Initialize WebSocket Server
+// ============================================
+realtimeService.initialize(server);
+
+// ============================================
+// Request Metrics Tracking
+// ============================================
+app.use((_req, res, next) => {
+  const start = Date.now();
+  
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    const error = res.statusCode >= 400;
+    healthService.recordRequest(duration, error);
+  });
+  
+  next();
 });
 
 // ============================================

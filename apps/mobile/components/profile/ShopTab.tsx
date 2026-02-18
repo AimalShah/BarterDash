@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FlatList, Dimensions } from "react-native";
+import { FlatList } from "react-native";
 import {
     Box,
     Text,
@@ -12,14 +12,18 @@ import { useRouter } from "expo-router";
 import { productsService } from "@/lib/api/services/products";
 import { Product } from "@/types";
 import { COLORS } from "@/constants/colors";
-
-const { width } = Dimensions.get("window");
-const ITEM_WIDTH = (width - 48 - 16) / 2;
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 export function ShopTab({ userId }: { userId: string }) {
     const router = useRouter();
+    const { width, isTablet, horizontalPadding } = useResponsiveLayout();
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
+    const columns = isTablet ? (width >= 1040 ? 4 : 3) : 2;
+    const itemGap = isTablet ? 20 : 16;
+    const itemWidth =
+        (width - horizontalPadding * 2 - itemGap * (columns - 1)) / columns;
+    const imageHeight = isTablet ? 180 : 150;
 
     useEffect(() => {
         fetchProducts();
@@ -36,11 +40,14 @@ export function ShopTab({ userId }: { userId: string }) {
         }
     };
 
-    const renderItem = ({ item }: { item: Product }) => (
+    const renderItem = ({ item, index }: { item: Product; index: number }) => (
         <Pressable
             onPress={() => router.push(`/product/${item.id}`)}
-            style={{ width: ITEM_WIDTH, marginBottom: 16 }}
-            mr={16} // This will be handled by columnWrapperStyle usually
+            style={{
+                width: itemWidth,
+                marginBottom: itemGap,
+                marginRight: (index + 1) % columns === 0 ? 0 : itemGap,
+            }}
         >
             <Box
                 bg={COLORS.luxuryBlackLight}
@@ -49,7 +56,7 @@ export function ShopTab({ userId }: { userId: string }) {
                 borderWidth={1}
                 borderColor={COLORS.darkBorder}
             >
-                <Box h={150} bg={COLORS.luxuryBlackLighter}>
+                <Box bg={COLORS.luxuryBlackLighter} style={{ height: imageHeight }}>
                     {item.images?.[0] && (
                         <Image
                             source={{ uri: item.images[0] }}
@@ -90,11 +97,16 @@ export function ShopTab({ userId }: { userId: string }) {
 
     return (
         <FlatList
+            key={`shop-grid-${columns}`}
             data={products}
             renderItem={renderItem}
             keyExtractor={(item) => item.id}
-            numColumns={2}
-            contentContainerStyle={{ padding: 24 }}
+            numColumns={columns}
+            columnWrapperStyle={columns > 1 ? { justifyContent: "flex-start" } : undefined}
+            contentContainerStyle={{
+                paddingHorizontal: horizontalPadding,
+                paddingTop: 24,
+            }}
             scrollEnabled={false} // Nested in main ScrollView
         />
     );
