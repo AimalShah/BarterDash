@@ -7,7 +7,7 @@ import {
     HStack,
     Center,
     Spinner,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { Star } from "lucide-react-native";
 import { COLORS } from "@/constants/colors";
 

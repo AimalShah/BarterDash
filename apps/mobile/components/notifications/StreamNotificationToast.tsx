@@ -16,7 +16,7 @@ import {
   Text,
   VStack,
   Pressable,
-} from '@gluestack-ui/themed';
+} from '@/components/ui/reusables';
 import {
   Gavel,
   Clock,

@@ -13,7 +13,7 @@ import {
     Text,
     Input,
     InputField,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { ChevronLeft, ChevronDown } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { productsService } from "../../lib/api/services/products";

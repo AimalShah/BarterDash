@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BarterDash Live | Search &amp; Discovery</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#007bff",
+                "background-light": "#f5f7f8",
+                "background-dark": "#0f1923",
+              },
+              fontFamily: {
+                "display": ["Space Grotesk"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+      </script>
+<style>
+        body { font-family: 'Space Grotesk', sans-serif; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen">
+<!-- Header Navigation -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<div class="max-w-7xl mx-auto px-4 py-4">
+<div class="flex items-center gap-4">
+<div class="relative flex-1">
+<span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-sm" placeholder="Search for sneakers, cards, or live breaks..." type="text"/>
+</div>
+<button class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-icons text-primary">tune</span>
+</button>
+</div>
+<!-- Category Chips -->
+<div class="flex gap-2 mt-4 overflow-x-auto hide-scrollbar pb-1">
+<button class="px-5 py-2 bg-primary text-white rounded-full text-sm font-medium whitespace-nowrap">All</button>
+<button class="px-5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full text-sm font-medium whitespace-nowrap hover:border-primary transition-colors">Sneakers</button>
+<button class="px-5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full text-sm font-medium whitespace-nowrap hover:border-primary transition-colors">TCG Cards</button>
+<button class="px-5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full text-sm font-medium whitespace-nowrap hover:border-primary transition-colors">Comics</button>
+<button class="px-5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full text-sm font-medium whitespace-nowrap hover:border-primary transition-colors">Watches</button>
+<button class="px-5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full text-sm font-medium whitespace-nowrap hover:border-primary transition-colors">Memorabilia</button>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-4 py-6 pb-24">
+<!-- Trending Section -->
+<section class="mb-8">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-xl font-bold flex items-center gap-2">
+<span class="material-icons text-orange-500">whatshot</span> Trending Now
+                </h2>
+<button class="text-primary text-sm font-medium">See all</button>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+<div class="flex items-center gap-3 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow cursor-pointer">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+<span class="material-icons text-primary">trending_up</span>
+</div>
+<div>
+<p class="text-xs text-slate-500">Trending</p>
+<p class="text-sm font-bold">Jordan 4 SB</p>
+</div>
+</div>
+<div class="flex items-center gap-3 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow cursor-pointer">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+<span class="material-icons text-primary">auto_awesome</span>
+</div>
+<div>
+<p class="text-xs text-slate-500">Hot Item</p>
+<p class="text-sm font-bold">Pokemon 151</p>
+</div>
+</div>
+<div class="flex items-center gap-3 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow cursor-pointer">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+<span class="material-icons text-primary">live_tv</span>
+</div>
+<div>
+<p class="text-xs text-slate-500">Live Break</p>
+<p class="text-sm font-bold">Vintage Wax</p>
+</div>
+</div>
+<div class="flex items-center gap-3 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow cursor-pointer">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+<span class="material-icons text-primary">style</span>
+</div>
+<div>
+<p class="text-xs text-slate-500">Top Trade</p>
+<p class="text-sm font-bold">Charizard PSA 10</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Search Results Grid -->
+<section>
+<h2 class="text-xl font-bold mb-4">Results</h2>
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+<!-- Live Stream Card -->
+<div class="group relative bg-white dark:bg-slate-900 rounded-xl border-2 border-primary/40 overflow-hidden hover:shadow-xl transition-all">
+<div class="relative aspect-[4/5] overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A person holding high-end sneakers during a live stream" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVMSDPvEc1r-tHkT7h_txec51VaohOGFd9J1eHTj_11KbYzNqBrSjZ4v1SxEpv9IBXLfjDmxo_mYrWae4U9uVNXWDjoWnY3OiYA6zkPob2xyVIbjvgKZum2aU3vBC-HOBvE52G8HIyHm2MfdHGfElt3avVHlZuGeznH6FNuDE3-TuIIm881a5qozymM3hINZjyil9s6Tmo11dVlSRtgCtuYDXWOLY-KIT4w7exoCumA11Pj-L8Cfg5OQyBcqIlRKXfV54BigggcXFe"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+<div class="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 bg-red-600 text-white rounded-md">
+<span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+<span class="text-[10px] font-bold uppercase tracking-wider">Live</span>
+</div>
+<div class="absolute top-2 right-2 px-2 py-1 bg-black/50 backdrop-blur-md text-white rounded-md flex items-center gap-1 text-[10px]">
+<span class="material-icons text-[12px]">visibility</span> 1.2k
+                        </div>
+<div class="absolute bottom-2 left-2 right-2">
+<p class="text-white text-xs font-medium truncate">SneakerHeads Night Out!</p>
+<div class="flex items-center gap-1.5 mt-1">
+<div class="w-5 h-5 rounded-full bg-slate-200 border border-white overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="User avatar profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwh8IxRST48I5Qa_msKi2qk0v2jSaBBcAeVHLGNtg8EXA9LAY7GHmSuS5I1CWjsi4P_ah2M1xN9ElaZ4yX0WwG9Cmz8aQa1AlkP91xr0noHuk-HnoSnVZBddZKAlUGCYDs4uIgO17uq0EdcTJs-WfgpGSAJDK8H8vNhuKhL2SP1tnFoknM3hTjYPIa2uEDoPm2TlhNEVPRpRiUu5DWwgxfUvp8YDpW38658aUwgsNFsD2Q7zlxHTHmGHqKTws9wGDKEMH3yJHGv2c4"/>
+</div>
+<span class="text-[10px] text-slate-300">@solesurfer</span>
+</div>
+</div>
+</div>
+<button class="w-full py-2 bg-primary text-white text-xs font-bold hover:bg-primary/90 transition-colors uppercase tracking-widest">Join Stream</button>
+</div>
+<!-- Product Card 1 -->
+<div class="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-all">
+<div class="relative aspect-square overflow-hidden bg-slate-50 dark:bg-slate-950 p-4">
+<img class="w-full h-full object-contain group-hover:scale-110 transition-transform" data-alt="Rare collectible trading card in protective case" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwYybwDn072Pal_u9Pw4Gz1b_eYsRBJMcj5WLe4zFblh2l7aThYTEen8xuCqp3ZHzdyYbpDm7jeD4NO29SlnmLGBe0odLe4H9g_zd4cmQGyYdoGcq7Jt02vJAb6E89DQs-U0TiJhbR6jHF1mDF05JvoerBioG4I-xBDpJzrhW4ddhp-WvgHMNPqq0hLoM_cmbTvKCDpLCDNZ30pXMiZtD_9Jvlm5UZjw92scvAxn0hirryOjVhkSid4itmrVDi4X-UmSnWcoS8dDJY"/>
+<span class="absolute top-2 left-2 px-2 py-1 bg-white/90 dark:bg-slate-800/90 text-slate-900 dark:text-white rounded-md text-[10px] font-bold border border-slate-200 dark:border-slate-700">PSA 10</span>
+</div>
+<div class="p-3">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-sm font-bold truncate pr-2">Charizard GX Shiny</h3>
+<span class="material-icons text-primary text-sm">swap_horiz</span>
+</div>
+<div class="flex items-center gap-1 mb-2">
+<span class="text-xs text-slate-500">Est. Value:</span>
+<span class="text-xs font-bold text-primary">$450.00</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1">
+<span class="material-icons text-[12px] text-yellow-500">star</span>
+<span class="text-[10px] font-medium">4.9 (124)</span>
+</div>
+<button class="text-[10px] font-bold text-slate-400 hover:text-primary transition-colors uppercase tracking-wider">Watch</button>
+</div>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-all">
+<div class="relative aspect-square overflow-hidden bg-slate-50 dark:bg-slate-950 p-4">
+<img class="w-full h-full object-contain group-hover:scale-110 transition-transform" data-alt="Limited edition lifestyle sneakers on white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbU7QhJljlKENdJj3FLE1NmXu0NzZpaDOhSX6ABJzH9oGcPqE4VJRz2GZkJ7qIoPm0n1U3zOihrs9cymP20WtO0slW5rmJR6bPfu3kiHkjxg7t6a4s9oSOc6IvfXyTPCrvbZvGKoyKJbzlxN8x0dF9zPZ8SCR7VfY-WOhemU-iu8NHVwjNKkNVAADMPRVMuWT4u2B66ykF-PwwBN2FqKryAzY3Gqbpy0G6oRfjExeUytnmcgHPuytdkX-woV5_XhC0jPEKIJ6NAPtm"/>
+<span class="absolute top-2 left-2 px-2 py-1 bg-white/90 dark:bg-slate-800/90 text-slate-900 dark:text-white rounded-md text-[10px] font-bold border border-slate-200 dark:border-slate-700">DEADSTOCK</span>
+</div>
+<div class="p-3">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-sm font-bold truncate pr-2">AJ1 Retro High '85</h3>
+<span class="material-icons text-primary text-sm">swap_horiz</span>
+</div>
+<div class="flex items-center gap-1 mb-2">
+<span class="text-xs text-slate-500">Est. Value:</span>
+<span class="text-xs font-bold text-primary">$890.00</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1">
+<span class="material-icons text-[12px] text-yellow-500">star</span>
+<span class="text-[10px] font-medium">5.0 (56)</span>
+</div>
+<button class="text-[10px] font-bold text-slate-400 hover:text-primary transition-colors uppercase tracking-wider">Watch</button>
+</div>
+</div>
+</div>
+<!-- Live Stream Card 2 -->
+<div class="group relative bg-white dark:bg-slate-900 rounded-xl border-2 border-primary/40 overflow-hidden hover:shadow-xl transition-all">
+<div class="relative aspect-[4/5] overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A person surrounded by vintage comics and gaming gear" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9cTfaOQx5Scg7M6tPyoUdxysEm03If_f9Y2rQm3f4fJr6xG8UaDVRHV1ARWBAfDs_mGbU-zIxdNifvwItFEQ6A3AQTyBXM-d2T5f45qqIjIUidpBiquC8ljCBKX1UUFGIP5ty0cRwNurFevB66HWg4QcAs_209UuGLsn8zv0OsMJyrjcLxmI39keH-DsoVSOPV3lJRjJa55EbNylCCfEtQD9BSsfnw-ozy1DnDCG71Mfjj6jy4MdJUm9Ne7N4mGTyaqFviT4igKa2"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+<div class="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 bg-red-600 text-white rounded-md">
+<span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+<span class="text-[10px] font-bold uppercase tracking-wider">Live</span>
+</div>
+<div class="absolute top-2 right-2 px-2 py-1 bg-black/50 backdrop-blur-md text-white rounded-md flex items-center gap-1 text-[10px]">
+<span class="material-icons text-[12px]">visibility</span> 842
+                        </div>
+<div class="absolute bottom-2 left-2 right-2">
+<p class="text-white text-xs font-medium truncate">Mega Comic Book Mystery Box!</p>
+<div class="flex items-center gap-1.5 mt-1">
+<div class="w-5 h-5 rounded-full bg-slate-200 border border-white overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="User avatar profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyafGkh1MqRIvnENkviEMzodnZ3cz_l52fTHAun8j_MXdYV2ibR1egYz5KA1n0SeJnX6AjjxJpOcVD4FZCB4oTVUixccFtc094_23zBa6lWpxDAZ-mnqQPOuDVHjfKelB5XoBn9TRSLlVNWPJqQasLgXLC0yNje0drS040enA-UzLN-summDTsrweVFa_mqwSBstWuJ2ht_iNEmprnlZC5jXoONyBzSFGwSYuZIhp4NIm_jtJ1QoWiR_7Y77sK_7EmTioxy7AuaRdk"/>
+</div>
+<span class="text-[10px] text-slate-300">@comicsczar</span>
+</div>
+</div>
+</div>
+<button class="w-full py-2 bg-primary text-white text-xs font-bold hover:bg-primary/90 transition-colors uppercase tracking-widest">Join Stream</button>
+</div>
+<!-- Product Card 3 -->
+<div class="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-all">
+<div class="relative aspect-square overflow-hidden bg-slate-50 dark:bg-slate-950 p-4">
+<img class="w-full h-full object-contain group-hover:scale-110 transition-transform" data-alt="Luxury minimalist watch on showcase" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEVze_sqD6ENYt5bicawGI4g1LG40VS1TUWDlFF4v-QgaWr23sRTGTOAWkeJWyOqCaOkyJ7p849h5ZWypE6uM12hd1-vn6_7Trw7Oen87oWNWR80Z-iyoYsOz-IT-ZFj9H2SLtC1h7XXw8NkHKj0i6m5s4TmJXOXjKckMUIr3mzwtbM-WJFxqzyMv21qvI00rbdd59r3gmyTSO5anoATOyKOc63Q1CzleUmtxkZSY-WIIaKLC93GVBoxWhI0Xx_X5jq43sush5RvAf"/>
+<span class="absolute top-2 left-2 px-2 py-1 bg-white/90 dark:bg-slate-800/90 text-slate-900 dark:text-white rounded-md text-[10px] font-bold border border-slate-200 dark:border-slate-700">VINTAGE</span>
+</div>
+<div class="p-3">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-sm font-bold truncate pr-2">Omega Seamaster 1964</h3>
+<span class="material-icons text-primary text-sm">swap_horiz</span>
+</div>
+<div class="flex items-center gap-1 mb-2">
+<span class="text-xs text-slate-500">Est. Value:</span>
+<span class="text-xs font-bold text-primary">$2,400.00</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1">
+<span class="material-icons text-[12px] text-yellow-500">star</span>
+<span class="text-[10px] font-medium">4.8 (89)</span>
+</div>
+<button class="text-[10px] font-bold text-slate-400 hover:text-primary transition-colors uppercase tracking-wider">Watch</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-slate-950/90 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-6 py-3 z-50">
+<div class="max-w-md mx-auto flex items-center justify-between">
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-icons">home</span>
+<span class="text-[10px] font-bold uppercase">Home</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-icons">search</span>
+<span class="text-[10px] font-bold uppercase">Search</span>
+</button>
+<button class="flex flex-col items-center -mt-8">
+<div class="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/40 border-4 border-background-light dark:border-background-dark">
+<span class="material-icons">add</span>
+</div>
+<span class="text-[10px] font-bold uppercase mt-1 text-primary">Trade</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-icons">notifications</span>
+<span class="text-[10px] font-bold uppercase">Inbox</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-icons">person</span>
+<span class="text-[10px] font-bold uppercase">Profile</span>
+</button>
+</div>
+</nav>
+</body></html>

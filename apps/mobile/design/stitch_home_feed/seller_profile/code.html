@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Seller Profile | BarterDash Live</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007bff",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1923",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .active-tab {
+            border-bottom: 3px solid #007bff;
+            color: #007bff;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="max-w-md mx-auto bg-white dark:bg-slate-900 shadow-xl min-h-screen flex flex-col relative">
+<!-- Header Nav -->
+<div class="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-primary/10">
+<button class="p-2 hover:bg-primary/10 rounded-full transition-colors">
+<span class="material-symbols-outlined align-middle">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight">Seller Profile</h1>
+<button class="p-2 hover:bg-primary/10 rounded-full transition-colors">
+<span class="material-symbols-outlined align-middle">more_vert</span>
+</button>
+</div>
+<!-- Profile Section -->
+<div class="px-6 pt-6 pb-4">
+<div class="flex flex-col items-center">
+<div class="relative">
+<div class="size-28 rounded-full p-1 border-4 border-primary animate-pulse">
+<img alt="Seller Avatar" class="size-full rounded-full object-cover" data-alt="Professional seller headshot portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJHu7UIxBIKimvoDmQPTQB2WwqeuWjOOXGLRNLauXzh1Zpv_E1Obxup9l27dGq71zoaOB7RGhb1I4KsZUsrPUtLGNQ-ICwzaafeT2-tXTt4xgNRsmfgpUlO5NNYmSHjatvAhH0hq9JZI27ScmfqiX5KgtEIjVsMLDAhkuma_cEG4Y6Ie5-VmST5B4sEE-Qlq6e-GFjt4jqhQB7FaHfdaJwwas1Rfsi8ytS8vM_im_eY27DRBEAtX6PP6tSaLbkbH1c3pwEKxSUh7Rf"/>
+</div>
+<div class="absolute bottom-1 right-1 bg-primary text-white p-1 rounded-full border-2 border-white dark:border-slate-900">
+<span class="material-symbols-outlined text-xs block">verified</span>
+</div>
+<div class="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        Live Now
+                    </div>
+</div>
+<h2 class="mt-4 text-2xl font-bold">Alex 'The Trader' Rivera</h2>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">location_on</span> New York, NY • Joined 2022
+                </p>
+<p class="text-center text-sm mt-3 leading-relaxed px-4 text-slate-600 dark:text-slate-300">
+                    Expert in vintage watches &amp; collectibles. Always open to fair trades and high-end bartering sessions.
+                </p>
+<div class="flex gap-3 w-full mt-6">
+<button class="flex-1 bg-primary text-white font-bold py-2.5 rounded-lg shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">person_add</span>
+                        Follow
+                    </button>
+<button class="flex-1 bg-primary/10 text-primary font-bold py-2.5 rounded-lg hover:bg-primary/20 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">mail</span>
+                        Message
+                    </button>
+</div>
+</div>
+</div>
+<!-- Metrics Bar -->
+<div class="px-6 py-4 flex items-center justify-between border-y border-primary/5 bg-primary/5">
+<div class="text-center">
+<p class="text-lg font-bold leading-none">12.4k</p>
+<p class="text-[10px] uppercase font-medium text-slate-500 tracking-wider mt-1">Followers</p>
+</div>
+<div class="h-8 w-px bg-primary/10"></div>
+<div class="text-center">
+<div class="flex items-center justify-center gap-1">
+<p class="text-lg font-bold leading-none">4.9</p>
+<span class="material-symbols-outlined text-primary text-sm fill-1">star</span>
+</div>
+<p class="text-[10px] uppercase font-medium text-slate-500 tracking-wider mt-1">Rating</p>
+</div>
+<div class="h-8 w-px bg-primary/10"></div>
+<div class="text-center">
+<p class="text-lg font-bold leading-none">842</p>
+<p class="text-[10px] uppercase font-medium text-slate-500 tracking-wider mt-1">Sales</p>
+</div>
+</div>
+<!-- Tabs -->
+<div class="sticky top-[68px] z-10 bg-white dark:bg-slate-900 border-b border-primary/10">
+<div class="flex">
+<button class="flex-1 py-4 text-sm font-bold active-tab flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">storefront</span> Store
+                </button>
+<button class="flex-1 py-4 text-sm font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">reviews</span> Reviews
+                </button>
+<button class="flex-1 py-4 text-sm font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">history</span> Shows
+                </button>
+</div>
+</div>
+<!-- Listings Grid (Store Tab Content) -->
+<div class="p-4 grid grid-cols-2 gap-4 flex-1">
+<!-- Item 1 -->
+<div class="group">
+<div class="relative aspect-square rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-primary/5">
+<img alt="Vintage Watch" class="size-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Luxury minimalist gold wrist watch" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAl_57G_-UFeobGD7a12kNT_UGf88oc4NKY7NqzULowmLURNINVJFGofaH1wGQwGBHTPBoGuWVS7CwGjAk7AjtkOtQ0msH4N6Eni-JmVibXLsjSW1TogN_4ZHszdh7tXofZa8tqgahQWBFrPKLmzrzNReIGlCrrIlyNLqumBGMPpub2BBXLKGsvmWPj4Mu2--LsSwgT3tqBhVt-dnvp_xVxN5QSXIgU2wbxdS7LU7gNU75to3hYXFxnPBDixlzS7-XfBkIo2es0DR0E"/>
+<div class="absolute top-2 right-2 bg-white/90 dark:bg-slate-900/90 px-2 py-1 rounded text-[10px] font-bold shadow-sm">
+                        BARTER
+                    </div>
+</div>
+<div class="mt-2">
+<h3 class="font-bold text-sm truncate">Seiko Vintage Gold</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="text-primary font-bold">$1,200</span>
+<span class="text-[10px] text-slate-400">4 bids</span>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="group">
+<div class="relative aspect-square rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-primary/5">
+<img alt="Sneakers" class="size-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Modern high-end street wear sneakers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXKG8PvJ4ivkgQTWWV7M8XbeAb8kwVBNfffLzOHMB350brnT8bAv8tZCMyvDyq83_WjmaoeXej9s1v_ccuyZ8CFWYPaHEoCjG0BPz5yySZnGDtrDmmHGKIPlMcLar7jJB-NFAb4kKXquLwQmuWHBqf3D_6dKEkXR_heuH3bXCpXso19gweBwjIBhnTnTcKMjl25bEd44CdwDhCv9CJhMuRJf3uV6QdSgJe_HArx8UlIz6fGukL2IcxS1vIoq31cWkWjH6FUf3aYvke"/>
+<div class="absolute top-2 right-2 bg-primary text-white px-2 py-1 rounded text-[10px] font-bold shadow-sm">
+                        CASH ONLY
+                    </div>
+</div>
+<div class="mt-2">
+<h3 class="font-bold text-sm truncate">Limitless Runner X</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="text-primary font-bold">$450</span>
+<span class="text-[10px] text-slate-400">Brand New</span>
+</div>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="group">
+<div class="relative aspect-square rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-primary/5">
+<img alt="Retro Console" class="size-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Retro collectible game console" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDANb8Xgk4lDkQrmpFluyIN24R_O_mixn6XDXZ_JCEnxG8fGAt4baf81HscXuDgSwKe3BDoeepMxevMpXmwY9GfUz5C49oAJLnbiA4snuPYs_ULprhSZyfaCeey8_TVCXcnI9y-WlIsL4WikpmaGypdC-wrAlZuXbCzKcCJt3eYMBgpEPyZlplMOwatV_mHNfege9BryyuiTVl8F721Hg61IBDtqERrxfeQ1H0r4AwhEYut8JhRcAVWQwbbVbYuS89gg6KdwEIvAree"/>
+<div class="absolute top-2 right-2 bg-white/90 dark:bg-slate-900/90 px-2 py-1 rounded text-[10px] font-bold shadow-sm">
+                        BARTER
+                    </div>
+</div>
+<div class="mt-2">
+<h3 class="font-bold text-sm truncate">Gamebox Advance Rare</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="text-primary font-bold">Offer Trade</span>
+<span class="text-[10px] text-slate-400">Mint</span>
+</div>
+</div>
+</div>
+<!-- Item 4 -->
+<div class="group">
+<div class="relative aspect-square rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-primary/5">
+<img alt="Headphones" class="size-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Premium professional studio headphones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA17Ktv_YvStpnSuDszptuDwFXM6IVosueMNYMB1BnQqrzc_iWmhTDSxuFTKwpXGhd1wEIO902D3F-JL3HARA_IbgraUKH1bp13Tg0Ng0dkYslIOyu7Gq_cyp2PCi085NWIqd09qUnAdbMLzw6avWCJ83EbXWESGN27K4pHUCKnroCe2hp7wtPysF9ZwsLjnJt299U-OwMSWUf9rtICeBciE93BzqzBVnzrWZ0ev0p9qNfWCip46HEYsrxL_1t0pRp7md6OGlgGUwDM"/>
+<div class="absolute top-2 right-2 bg-white/90 dark:bg-slate-900/90 px-2 py-1 rounded text-[10px] font-bold shadow-sm">
+                        BARTER
+                    </div>
+</div>
+<div class="mt-2">
+<h3 class="font-bold text-sm truncate">Audio-Pro Monitors</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="text-primary font-bold">$280</span>
+<span class="text-[10px] text-slate-400">2 Offers</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Action Button -->
+<div class="fixed bottom-24 right-1/2 translate-x-1/2 w-full max-w-md px-4 pointer-events-none">
+<div class="flex justify-center">
+<button class="pointer-events-auto bg-primary text-white px-6 py-3 rounded-full shadow-2xl shadow-primary/40 font-bold flex items-center gap-2 hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined">notifications_active</span>
+                    Notify when Live
+                </button>
+</div>
+</div>
+<!-- Bottom Navigation -->
+<div class="mt-auto border-t border-primary/10 bg-white dark:bg-slate-900 flex justify-around items-center py-2 pb-6 px-4">
+<a class="flex flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">home</span>
+<span class="text-[10px] font-medium text-slate-400 group-hover:text-primary">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">search</span>
+<span class="text-[10px] font-medium text-slate-400 group-hover:text-primary">Explore</span>
+</a>
+<a class="flex flex-col items-center gap-1 -mt-8" href="#">
+<div class="size-14 bg-primary rounded-full flex items-center justify-center text-white shadow-lg shadow-primary/30 border-4 border-white dark:border-slate-900">
+<span class="material-symbols-outlined text-3xl">add</span>
+</div>
+<span class="text-[10px] font-bold text-primary mt-1">Go Live</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">shopping_bag</span>
+<span class="text-[10px] font-medium text-slate-400 group-hover:text-primary">Orders</span>
+</a>
+<a class="flex flex-col items-center gap-1" href="#">
+<span class="material-symbols-outlined text-primary fill-1">account_circle</span>
+<span class="text-[10px] font-bold text-primary">Profile</span>
+</a>
+</div>
+</div>
+<!-- Background Pattern/Gradient for outside the mobile container -->
+<div class="fixed inset-0 -z-10 bg-gradient-to-br from-primary/5 via-background-light to-primary/10 dark:from-background-dark dark:to-slate-950"></div>
+</body></html>

@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { CreditCard, Check, Shield, Trash2 } from "lucide-react-native";
-import { Card, CardContent } from "../ui/Card";
+import { Card, CardContent } from "../ui/card";
 import { COLORS } from "../../constants/colors";
 import { PaymentMethod } from "../../lib/api/services/payments";
 

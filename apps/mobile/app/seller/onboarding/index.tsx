@@ -52,7 +52,7 @@ import {
   Upload,
   X,
   Check,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { useSellerApplication } from "@/hooks/useSellerApplication";
 import { sellersService } from "@/lib/api/services/sellers";
 import { useAuthStore } from "@/store/authStore";

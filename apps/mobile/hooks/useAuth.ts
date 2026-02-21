@@ -1,102 +1,142 @@
-import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
-import { Session, User } from "@supabase/supabase-js";
-export type Profile = {
-  id: string;
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { Session, User } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
+import apiClient from '@/lib/api/client';
+import { getEmailVerificationRedirectUri } from '@/lib/auth/emailVerification';
+import { queryKeys } from '@/lib/api/queryKeys';
+
+type AuthProfile = Record<string, unknown> | null;
+
+interface RegisterInput {
+  email: string;
+  password: string;
   username: string;
-  fullName: string | null;
-  avatarUrl: string | null;
-  phone: string | null;
-  isSeller: boolean;
-  isAdmin: boolean;
-  sellerTier: string | null;
-};
+}
+
+interface PasswordResetInput {
+  email: string;
+  redirectTo?: string;
+}
+
+interface ResendVerificationInput {
+  email: string;
+}
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
+  const sessionQuery = useQuery({
+    queryKey: [...queryKeys.auth, 'session'],
+    queryFn: async (): Promise<Session | null> => {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      return data.session;
+    },
+  });
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchProfile(session.user.id);
-      } else {
-        setProfile(null);
-      }
-    });
+  const loginMutation = useMutation({
+    mutationFn: async ({ email, password }: { email: string; password: string }) => {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData([...queryKeys.auth, 'session'], data.session ?? null);
+    },
+  });
 
-    return () => subscription.unsubscribe();
-  }, []);
-
-  async function fetchProfile(userId: string) {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
+  const registerMutation = useMutation({
+    mutationFn: async ({ email, password, username }: RegisterInput) => {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            username,
+            full_name: username,
+          },
+        },
+      });
 
       if (error) throw error;
-      setProfile(data);
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData([...queryKeys.auth, 'session'], data.session ?? null);
+    },
+  });
 
-  const signUp = async (email: string, password: string, username: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          username,
-          full_name: username,
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.setQueryData([...queryKeys.auth, 'session'], null);
+    },
+  });
+
+  const requestPasswordResetMutation = useMutation({
+    mutationFn: async ({ email, redirectTo }: PasswordResetInput) => {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectTo || 'barterdash://auth/update-password',
+      });
+
+      if (error) throw error;
+      return true;
+    },
+  });
+
+  const updatePasswordMutation = useMutation({
+    mutationFn: async ({ password }: { password: string }) => {
+      const { data, error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const resendVerificationMutation = useMutation({
+    mutationFn: async ({ email }: ResendVerificationInput) => {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: {
+          emailRedirectTo: getEmailVerificationRedirectUri(),
         },
-      },
-    });
-    return { data, error };
-  };
+      });
 
-  const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { data, error };
-  };
+      if (error) throw error;
+      return true;
+    },
+  });
 
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    return { error };
-  };
+  const verificationStatusMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.get('/auth/verification-status');
+      return Boolean(response?.data?.data?.emailVerified);
+    },
+  });
+
+  const user: User | null = sessionQuery.data?.user ?? null;
+  const session = sessionQuery.data ?? null;
 
   return {
     user,
-    profile,
     session,
-    loading,
-    signUp,
-    signIn,
-    signOut,
+    profile: null as AuthProfile,
+    loading: sessionQuery.isLoading,
+    sessionQuery,
+    loginMutation,
+    registerMutation,
+    logoutMutation,
+    requestPasswordResetMutation,
+    updatePasswordMutation,
+    resendVerificationMutation,
+    verificationStatusMutation,
+    signIn: (email: string, password: string) => loginMutation.mutateAsync({ email, password }),
+    signUp: (email: string, password: string, username: string) =>
+      registerMutation.mutateAsync({ email, password, username }),
+    signOut: () => logoutMutation.mutateAsync(),
   };
 }

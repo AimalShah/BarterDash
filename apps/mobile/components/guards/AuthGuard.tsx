@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useSegments } from 'expo-router';
 import { supabase } from '../../lib/supabase';
-import { Center, Spinner, VStack, Heading, Text, Button, ButtonText, Box } from '@gluestack-ui/themed';
+import { Center, Spinner, VStack, Heading, Text, Button, ButtonText, Box } from '@/components/ui/reusables';
 import { useAuthStore } from '../../store/authStore';
 import { COLORS } from '@/constants/colors';
 

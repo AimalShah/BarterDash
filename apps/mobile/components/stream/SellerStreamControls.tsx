@@ -24,7 +24,7 @@ import {
   Badge,
   BadgeText,
   Spinner,
-} from '@gluestack-ui/themed';
+} from '@/components/ui/reusables';
 import {
   X,
   Package,

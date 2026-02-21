@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Button, ButtonText, HStack } from "@gluestack-ui/themed";
+import { Box, Button, ButtonText, HStack } from "@/components/ui/reusables";
 import { UserPlus, UserCheck } from 'lucide-react-native';
 import { COLORS } from "@/constants/colors";
 

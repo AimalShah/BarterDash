@@ -15,7 +15,7 @@ import {
   Box,
   Text,
   HStack,
-} from '@gluestack-ui/themed';
+} from '@/components/ui/reusables';
 import { Clock } from 'lucide-react-native';
 import { COLORS } from '@/constants/colors';
 

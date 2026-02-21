@@ -1,8 +1,8 @@
-export * from "./ui/Button";
-export * from "./ui/Input";
-export * from "./ui/Card";
-export * from "./ui/Header";
-export * from "./ui/Text";
+export * from './ui/button';
+export * from './ui/input';
+export * from './ui/card';
+export * from './ui/Header';
+export * from './ui/text';
 
 // Payment components
-export * from "./payment";
+export * from './payment';

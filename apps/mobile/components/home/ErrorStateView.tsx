@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Heading, Text, Pressable, Center } from "@gluestack-ui/themed";
+import { Box, Heading, Text, Pressable, Center } from "@/components/ui/reusables";
 import { WifiOff, RefreshCw } from "lucide-react-native";
 import { StatusBar } from "react-native";
 import { COLORS } from "@/constants/colors";

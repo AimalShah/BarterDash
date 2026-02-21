@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BarterDash Live - Help Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007bff",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1923",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Header -->
+<header class="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-primary/10 px-4 py-4 flex items-center justify-between">
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-primary/10 text-slate-900 dark:text-slate-100 transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight">Help Center</h1>
+<div class="w-10"></div> <!-- Spacer for symmetry -->
+</header>
+<main class="flex-1 overflow-y-auto pb-24">
+<!-- Hero Section -->
+<section class="px-6 pt-8 pb-6">
+<h2 class="text-3xl font-bold leading-tight mb-6">How can we help you today?</h2>
+<!-- Search Bar -->
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+</div>
+<input class="block w-full pl-11 pr-4 py-4 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all text-base shadow-sm" placeholder="Search FAQs, articles, and guides..." type="text"/>
+</div>
+</section>
+<!-- Category Grid -->
+<section class="px-6 py-4">
+<h3 class="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-4">Support Categories</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<!-- Buying Card -->
+<div class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all cursor-pointer group shadow-sm">
+<div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl">shopping_cart</span>
+</div>
+<h4 class="text-lg font-bold mb-1">Buying</h4>
+<p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Finding items, bidding, and secure payments.</p>
+</div>
+<!-- Selling Card -->
+<div class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all cursor-pointer group shadow-sm">
+<div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl">sell</span>
+</div>
+<h4 class="text-lg font-bold mb-1">Selling</h4>
+<p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Listing items, bartering tips, and fee structures.</p>
+</div>
+<!-- Shipping Card -->
+<div class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all cursor-pointer group shadow-sm">
+<div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl">local_shipping</span>
+</div>
+<h4 class="text-lg font-bold mb-1">Shipping</h4>
+<p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Tracking, labels, and delivery troubleshooting.</p>
+</div>
+</div>
+</section>
+<!-- Trending FAQs -->
+<section class="px-6 py-8">
+<h3 class="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-4">Trending Questions</h3>
+<div class="space-y-3">
+<div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-colors">
+<span class="font-medium">How do I cancel an active trade?</span>
+<span class="material-symbols-outlined text-slate-400">chevron_right</span>
+</div>
+<div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-colors">
+<span class="font-medium">What is the "Barter Protection" program?</span>
+<span class="material-symbols-outlined text-slate-400">chevron_right</span>
+</div>
+<div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-colors">
+<span class="font-medium">How to resolve a dispute with a seller?</span>
+<span class="material-symbols-outlined text-slate-400">chevron_right</span>
+</div>
+<div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-colors">
+<span class="font-medium">Managing my subscription and payments</span>
+<span class="material-symbols-outlined text-slate-400">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- Help Visual/Empty State Preview area -->
+<section class="px-6 py-6">
+<div class="bg-primary/5 dark:bg-primary/10 rounded-2xl p-8 text-center border border-dashed border-primary/20">
+<div class="w-20 h-20 mx-auto bg-primary rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-white text-4xl">support_agent</span>
+</div>
+<h3 class="text-xl font-bold mb-2">Still need help?</h3>
+<p class="text-slate-600 dark:text-slate-400 mb-6 max-w-xs mx-auto text-sm">Our support team is available 24/7 to help you with your barter experience.</p>
+<button class="w-full bg-primary text-white font-bold py-4 px-8 rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/25 active:scale-[0.98]">
+                    Contact Support
+                </button>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-4 pb-4 pt-2 flex justify-around items-center">
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">swap_horiz</span>
+<span class="text-[10px] font-medium">Trades</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">notifications</span>
+<span class="text-[10px] font-medium">Activity</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">help</span>
+<span class="text-[10px] font-medium">Help</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</nav>
+</body></html>

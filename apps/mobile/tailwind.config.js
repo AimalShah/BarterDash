@@ -5,89 +5,121 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Brand Colors - Gold
+        // Primary Brand Colors
+        primary: {
+          DEFAULT: '#6391F2',
+          blue: '#6391F2',
+          soft: '#B2CBEC',
+          lavender: '#9CA9DE',
+          foreground: '#FFFFFF',
+        },
+
+        // Backgrounds & Surfaces
+        background: {
+          DEFAULT: '#F2F1F8',
+          main: '#F2F1F8',
+          card: '#FFFFFF',
+        },
+
+        // Text & Contrast
+        foreground: {
+          DEFAULT: '#22232D',
+          primary: '#22232D',
+          secondary: '#2F354E',
+          muted: '#9C9AA6',
+        },
+
+        // Secondary
+        secondary: {
+          DEFAULT: '#2F354E',
+          foreground: '#FFFFFF',
+        },
+
+        // Muted
+        muted: {
+          DEFAULT: '#9C9AA6',
+          foreground: '#22232D',
+        },
+
+        // Accent / Highlight Colors
+        accent: {
+          DEFAULT: '#F2D468',
+          warm: '#F2D468',
+          gold: '#E7D7A2',
+          mutedBlueGrey: '#768CAB',
+          foreground: '#22232D',
+        },
+
+        // Card
+        card: {
+          DEFAULT: '#FFFFFF',
+          foreground: '#22232D',
+        },
+
+        // Border
+        border: {
+          DEFAULT: '#E5E5E5',
+          light: '#F2F1F8',
+          medium: '#9C9AA6',
+        },
+
+        // Input
+        input: '#E5E5E5',
+
+        // Ring (focus states)
+        ring: '#6391F2',
+
+        // Status Colors
+        success: '#22c55e',
+        error: '#EF4444',
+        warning: '#F59E0B',
+        info: '#6391F2',
+        destructive: {
+          DEFAULT: '#EF4444',
+          foreground: '#FFFFFF',
+        },
+
+        // Legacy support (remove after migration)
         gold: {
-          DEFAULT: '#F4C542',
+          DEFAULT: '#F2D468',
           light: '#F9D77A',
           dark: '#C99412',
           secondary: '#E5A920',
         },
-        
-        // Luxury Dark Backgrounds
         luxury: {
           DEFAULT: '#0f0f0f',
           light: '#1a1a1a',
           lighter: '#262626',
         },
-        
-        // Background Colors
-        background: {
-          primary: '#0f0f0f',      // Main background
-          secondary: '#1a1a1a',    // Cards
-          tertiary: '#262626',     // Elevated surfaces
-          nav: '#121212',          // Navigation
-          card: '#1a1a1a',         // Cards
-          surface: '#2a2a2a',      // Input backgrounds
-        },
-        
-        // Text Colors
         text: {
-          primary: '#ffffff',      // Main text
-          secondary: '#9ca3af',    // Secondary text
-          muted: '#6b7280',        // Muted text
-          darkMuted: '#4b5563',    // Dark muted
-          inverse: '#0f0f0f',      // Text on gold
+          primary: '#22232D',
+          secondary: '#2F354E',
+          muted: '#9C9AA6',
+          inverse: '#FFFFFF',
         },
-        
-        // Border Colors
-        border: {
-          light: 'rgba(255, 255, 255, 0.05)',
-          medium: '#333333',
-          strong: '#F4C542',
-        },
-        
-        // Status Colors
         status: {
           success: '#22c55e',
           error: '#EF4444',
           warning: '#F59E0B',
           live: '#dc2626',
         },
-        
-        // Legacy mappings (for backwards compatibility during migration)
-        primary: {
-          DEFAULT: '#F4C542',
-          50: '#2a2210',
-          100: '#3d3015',
-          200: '#5c4818',
-          300: '#7a601c',
-          400: '#9a7a20',
-          500: '#C99412',
-          600: '#E5A920',
-          700: '#F4C542',
-          800: '#F9D77A',
-          900: '#fceeb0',
-          950: '#fff9e0',
-        },
       },
-      
+
       fontFamily: {
         sans: ['PlusJakartaSans', 'Plus Jakarta Sans', 'sans-serif'],
         jakarta: ['PlusJakartaSans', 'Plus Jakarta Sans', 'sans-serif'],
       },
-      
+
       borderRadius: {
         'round': '500px',
+        'lg': '0.5rem',
+        'md': '0.375rem',
+        'sm': '0.25rem',
       },
-      
+
       spacing: {
         'safe-top': 'env(safe-area-inset-top)',
         'safe-bottom': 'env(safe-area-inset-bottom)',
-      },
-      
-      boxShadow: {
-        'gold-glow': '0 0 20px rgba(244, 197, 66, 0.2)',
-        'gold-glow-strong': '0 0 30px rgba(244, 197, 66, 0.4)',
       },
     },
   },

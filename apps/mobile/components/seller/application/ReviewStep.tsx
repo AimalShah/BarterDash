@@ -6,7 +6,7 @@ import {
   HStack,
   Center,
   Heading,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { CheckCircle2 } from "lucide-react-native";
 import { COLORS } from "../../../constants/colors";
 import { PickedDocument, BusinessType } from "../../../hooks/useSellerApplication";

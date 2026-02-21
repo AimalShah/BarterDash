@@ -11,7 +11,7 @@ import {
   Center,
   VStack,
   HStack,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { CheckCircle2, Sparkles, ShoppingBag, Users, Trophy, Store } from "lucide-react-native";
 import { COLORS } from "@/constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

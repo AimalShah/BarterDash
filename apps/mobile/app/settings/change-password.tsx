@@ -17,7 +17,7 @@ import {
     InputField,
     Button,
     ButtonText
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { ChevronLeft, Lock } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';

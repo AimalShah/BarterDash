@@ -7,7 +7,7 @@ import {
     Image,
     Center,
     Spinner,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { useRouter } from "expo-router";
 import { productsService } from "@/lib/api/services/products";
 import { Product } from "@/types";

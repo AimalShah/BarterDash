@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, ScrollView, HStack, Pressable, Text } from "@gluestack-ui/themed";
+import { Box, ScrollView, HStack, Pressable, Text } from "@/components/ui/reusables";
 import { Plus } from "lucide-react-native";
 import { CategoryDrawer } from "./CategoryDrawer";
 import { Category } from "../../lib/api/services/categories";

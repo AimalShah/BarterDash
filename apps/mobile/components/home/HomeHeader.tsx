@@ -1,147 +1,47 @@
-import React from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { Bell, MessageCircle } from "lucide-react-native";
-import { COLORS } from "@/constants/colors";
-import { useNotifications } from "@/hooks/useNotifications";
-import { useUnreadMessages } from "@/hooks/useUnreadMessages";
-import { useAuth } from "@/hooks/useAuth";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+import { View, Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Bell, MessageCircle } from 'lucide-react-native';
+import { Text } from '@/components/ui/text';
+import { useNotifications } from '@/hooks/useNotifications';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
+import { useAuthStore } from '@/store/authStore';
+import { COLORS } from '@/constants/colors';
 
-export const HomeHeader = () => {
+export default function HomeHeader() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const { horizontalPadding, isTablet, scaledFont } = useResponsiveLayout();
-  const { user } = useAuth();
-  const { unreadCount } = useNotifications(user?.id);
-  const { unreadMessagesCount } = useUnreadMessages(user?.id);
-
-  const handleNotificationsPress = () => {
-    router.push("/notifications");
-  };
-
-  const handleMessagesPress = () => {
-    router.push("/(tabs)/inbox");
-  };
+  const userId = useAuthStore((state) => state.user?.id);
+  const { unreadCount } = useNotifications(userId);
+  const { unreadMessagesCount } = useUnreadMessages(userId);
+  const hasUnread = unreadCount > 0 || unreadMessagesCount > 0;
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          paddingHorizontal: horizontalPadding,
-          paddingTop: Math.max(insets.top + 8, 16),
-          paddingBottom: isTablet ? 20 : 16,
-        },
-      ]}
-    >
-      <View style={styles.leftSection}>
-        <Text style={[styles.title, { fontSize: scaledFont(26, 0.95, 1.15) }]}>
+    <View className="flex-row items-center justify-between px-6 pb-4 pt-3">
+      <View>
+        <Text color="muted" className="text-xs uppercase tracking-[1px]">
+          Live Marketplace
+        </Text>
+        <Text variant="h2" className="mt-1">
           BarterDash
         </Text>
       </View>
 
-      <View style={styles.buttonsContainer}>
-        {/* Messages Button */}
-        <TouchableOpacity
-          onPress={handleMessagesPress}
-          style={[
-            styles.button,
-            {
-              width: isTablet ? 52 : 48,
-              height: isTablet ? 52 : 48,
-              borderRadius: isTablet ? 18 : 16,
-            },
-          ]}
-          activeOpacity={0.8}
+      <View className="flex-row gap-2">
+        <Pressable
+          className="h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card"
+          onPress={() => router.push('/(tabs)/inbox')}
         >
-          <MessageCircle size={isTablet ? 26 : 24} color={COLORS.textPrimary} />
-          {unreadMessagesCount > 0 && (
-            <View style={styles.badge}>
-              <View style={styles.badgeDot} />
-            </View>
-          )}
-        </TouchableOpacity>
-
-        {/* Notifications Button */}
-        <TouchableOpacity
-          onPress={handleNotificationsPress}
-          style={[
-            styles.button,
-            {
-              width: isTablet ? 52 : 48,
-              height: isTablet ? 52 : 48,
-              borderRadius: isTablet ? 18 : 16,
-            },
-          ]}
-          activeOpacity={0.8}
+          <MessageCircle size={20} color={COLORS.secondaryDark} />
+        </Pressable>
+        <Pressable
+          className="h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card"
+          onPress={() => router.push('/notifications')}
         >
-          <Bell size={isTablet ? 26 : 24} color={COLORS.textPrimary} />
-          {unreadCount > 0 && (
-            <View style={styles.badge}>
-              <View style={styles.badgeDot} />
-            </View>
-          )}
-        </TouchableOpacity>
+          <Bell size={20} color={COLORS.secondaryDark} />
+          {hasUnread ? (
+            <View className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" />
+          ) : null}
+        </Pressable>
       </View>
     </View>
   );
-};
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: COLORS.luxuryBlack,
-  },
-  leftSection: {
-    flex: 1,
-  },
-  welcomeText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: COLORS.textSecondary,
-    marginBottom: 4,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "900",
-    color: COLORS.primaryGold,
-    textTransform: "uppercase",
-    letterSpacing: -1,
-  },
-  buttonsContainer: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  button: {
-    backgroundColor: COLORS.cardBackground,
-    borderWidth: 1,
-    borderColor: COLORS.darkBorderLight,
-    justifyContent: "center",
-    alignItems: "center",
-    position: "relative",
-  },
-  badge: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-  },
-  badgeDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: COLORS.primaryGold,
-    borderWidth: 2,
-    borderColor: COLORS.cardBackground,
-  },
-});
-
-export default HomeHeader;
+}

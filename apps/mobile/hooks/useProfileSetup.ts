@@ -4,7 +4,7 @@ import * as ImagePicker from "expo-image-picker";
 import { decode } from "base64-arraybuffer";
 import { supabase } from "../lib/supabase";
 import { useAuthStore } from "../store/authStore";
-import { useUpdateProfileMutation } from "../lib/api/hooks/useUser";
+import { useUpdateProfileMutation } from "./useUser";
 
 export interface ProfileFormData {
   username: string;
@@ -139,7 +139,6 @@ export function useProfileSetup(): UseProfileSetupReturn {
     (data: ProfileFormData, onSuccess: () => void) => {
       updateProfile(
         {
-          id: userId!,
           username: data.username.trim().toLowerCase(),
           full_name: data.fullName.trim() || undefined,
           avatar_url: data.avatarUrl || undefined,

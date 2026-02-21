@@ -12,7 +12,7 @@ import {
   Center,
   Switch,
   Pressable
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import {
   Bell,
   Clock,
@@ -21,7 +21,7 @@ import {
   ChevronRight,
 } from "lucide-react-native";
 import { useAuthStore } from "@/store/authStore";
-import { useUpdateProfileMutation } from "@/lib/api/hooks/useUser";
+import { useUpdateProfileMutation } from "@/hooks/useUser";
 import { OnboardingProgress } from "@/components/onboarding/OnboardingProgress";
 import { COLORS } from "@/constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Text, Pressable, Center, Image, Spinner } from "@gluestack-ui/themed";
+import { Box, Text, Pressable, Center, Image, Spinner } from "@/components/ui/reusables";
 import { Image as ImageIcon } from "lucide-react-native";
 import { COLORS } from "@/constants/colors";
 

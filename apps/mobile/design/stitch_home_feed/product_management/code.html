@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BarterDash Live - Product Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007bff",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1923",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Header Section -->
+<header class="sticky top-0 z-30 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 py-4">
+<div class="max-w-3xl mx-auto flex items-center justify-between">
+<div class="flex items-center gap-3">
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400">arrow_back</span>
+</button>
+<h1 class="text-xl font-bold tracking-tight">My Inventory</h1>
+</div>
+<button class="bg-primary text-white flex items-center gap-2 px-4 py-2 rounded-lg font-semibold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95">
+<span class="material-symbols-outlined text-sm">add</span>
+<span class="text-sm">Add Product</span>
+</button>
+</div>
+</header>
+<main class="flex-1 max-w-3xl mx-auto w-full px-4 py-6 space-y-6">
+<!-- Search Bar -->
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-4 pl-12 pr-4 shadow-sm focus:ring-2 focus:ring-primary/50 placeholder:text-slate-400 transition-all" placeholder="Search products, SKUs, or tags..." type="text"/>
+</div>
+<!-- Filter Tabs -->
+<div class="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-2">
+<button class="px-5 py-2 bg-primary text-white rounded-full text-sm font-medium whitespace-nowrap shadow-md shadow-primary/20">All Items</button>
+<button class="px-5 py-2 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 rounded-full text-sm font-medium whitespace-nowrap border border-slate-100 dark:border-slate-800 hover:border-primary/30 transition-colors">Active (12)</button>
+<button class="px-5 py-2 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 rounded-full text-sm font-medium whitespace-nowrap border border-slate-100 dark:border-slate-800 hover:border-primary/30 transition-colors">Sold (45)</button>
+<button class="px-5 py-2 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 rounded-full text-sm font-medium whitespace-nowrap border border-slate-100 dark:border-slate-800 hover:border-primary/30 transition-colors">Scheduled (3)</button>
+</div>
+<!-- Product List -->
+<div class="space-y-4">
+<!-- Active Item -->
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all">
+<div class="flex gap-4">
+<div class="relative w-24 h-24 shrink-0 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800">
+<img class="w-full h-full object-cover" data-alt="Modern studio headphones on a wooden table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDFdsqV_bokXD7z0ihE0xyLGpaxYGvmXj3TiQ6qc6RqS40tcwXphpLIGE29-pnu2IYgSyERMU7qoB2AyXDrr8e-s6YzCO8sLZiD5MGTif2YZcerbm-OwFZHBriDgZ-icI0iRv6EbjLoKjpjay1jKZCt33bfr0RZzXvoqLap6usbceZEoJtxNWpyWT5Pu4_gqP_SZIo3GkGg-J1Y2PaPNdHIhoQ5syfQeLOoVInbl7UIFGTfLAS8sv39Gg3qVzKh-tvjFEma7YUyxWy"/>
+<div class="absolute top-1 left-1 bg-green-500 text-[10px] text-white px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Live</div>
+</div>
+<div class="flex-1 flex flex-col justify-between min-w-0">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100 truncate pr-2">Premium Noise Cancelling Headphones</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">local_offer</span> Barter Value: $249
+                                </p>
+</div>
+<button class="p-1 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="flex items-center justify-between mt-2">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">8</div>
+<span class="pl-3 text-xs text-slate-500 font-medium">Active offers</span>
+</div>
+<span class="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full font-semibold">Active</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Scheduled Item -->
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all">
+<div class="flex gap-4">
+<div class="w-24 h-24 shrink-0 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800">
+<img class="w-full h-full object-cover grayscale opacity-80" data-alt="Minimalist white wristwatch on a plain background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCP8IN0vsKb7W9VIoFqwLA3hnq2nzSEZZPs5-w7vXEmam5nE9yzqKS-Y3BNk131blJwZYHLju2qgIeBx1qGzqxAv8ng7JcRT6L5E287LVyxag0G-c5Pl-WkmKi4WJ_s4zUe8mJ7C88335YZKyWnjLj1SO5saRlTcIfwx04HwzqUWzgposXbetC1NAcesvKXcaxp7ummKUL87DABxuOh5-KQ6t4YKGQXpMVWHVVD2JDK8MjaEkLfUklQk8QGab5YDbGtJSuZp4ozhQcx"/>
+</div>
+<div class="flex-1 flex flex-col justify-between min-w-0">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100 truncate pr-2">Minimalist Analog Watch</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">calendar_today</span> Starts Tomorrow, 10:00 AM
+                                </p>
+</div>
+<button class="p-1 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="flex items-center justify-between mt-2">
+<span class="text-xs text-slate-400">Est. Value: $120</span>
+<span class="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 px-3 py-1 rounded-full font-semibold">Scheduled</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Sold Item -->
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all">
+<div class="flex gap-4 opacity-75">
+<div class="relative w-24 h-24 shrink-0 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800">
+<img class="w-full h-full object-cover" data-alt="Classic red athletic sneakers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkUlQLoO70Q7G-NhFSZOHS_q4mdcVqYNXtaEnTgiCCZ_wzu5ZDeBBIjRy2DjTgmM57jkj5xxD98sKKc9BL5QneRjcM23s1ofzmztJ6a8jCyEx2RyXghZB4w7eWNJ49WC49Ozg0J-kgSBf5PreEMb_qdj5sRdbSsl5q4JEIy1qY0gqoP3IUg0VWmVyNaF0Y3Y6LoweZz1l9l3tBcG-kDu7od1DSex0tDextUn7qciF0zJ6Zyk5X3r6G3STPNnyXDaK3h-Bjo_uLmxfV"/>
+<div class="absolute inset-0 bg-black/40 flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-3xl">check_circle</span>
+</div>
+</div>
+<div class="flex-1 flex flex-col justify-between min-w-0">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100 truncate pr-2">Vintage Runner Sneakers</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">handshake</span> Bartered for: DJI Mini 3 Pro
+                                </p>
+</div>
+<button class="p-1 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="flex items-center justify-between mt-2">
+<span class="text-xs text-slate-400">Traded 2 days ago</span>
+<span class="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full font-semibold">Sold</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Active Item 2 -->
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all">
+<div class="flex gap-4">
+<div class="w-24 h-24 shrink-0 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800">
+<img class="w-full h-full object-cover" data-alt="Retro style instant camera on pastel blue background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmHuY0X8tZvVZkduRtTwSCCk2lXzmySS8kqKqFgQxNufvvnxuiPVzabK_QCz3pkPxkQFo_4dVqpgABcB5ga9rJHldM6br1BtTee9Uqzio2R9t5YRDfcvkjAhHvWgVJ0fSMPLm0bPAgMH6qdEg75XEzcw876HjECoNJu6bC4j1bc0RGhxghi-PcT4QBxwZ3hjJEFSY8qKNRoOkWPqq6z2O3UDCBVqU8lj0lZpqATdYx-0CNbBZCz2rkPlH8qiH3mn6p9VLMM1hGXrMu"/>
+</div>
+<div class="flex-1 flex flex-col justify-between min-w-0">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100 truncate pr-2">Polaroid Instax Mini 11</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">local_offer</span> Barter Value: $75
+                                </p>
+</div>
+<button class="p-1 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="flex items-center justify-between mt-2">
+<div class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+<span class="text-xs text-slate-500">Live in 5 mins</span>
+</div>
+<span class="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full font-semibold">Active</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination / Load More (Optional visually) -->
+<div class="flex justify-center pt-4">
+<button class="text-primary text-sm font-bold flex items-center gap-1 hover:gap-2 transition-all">
+                Load more items
+                <span class="material-symbols-outlined text-sm">keyboard_double_arrow_down</span>
+</button>
+</div>
+</main>
+<!-- Bottom Nav Bar -->
+<nav class="sticky bottom-0 bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 px-6 py-3 flex justify-between items-center z-40">
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold uppercase tracking-wider">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="text-[10px] font-bold uppercase tracking-wider">Inventory</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors relative" href="#">
+<div class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-950"></div>
+<span class="material-symbols-outlined">sensors</span>
+<span class="text-[10px] font-bold uppercase tracking-wider">Live</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="text-[10px] font-bold uppercase tracking-wider">Messages</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="text-[10px] font-bold uppercase tracking-wider">Profile</span>
+</a>
+</nav>
+</body></html>

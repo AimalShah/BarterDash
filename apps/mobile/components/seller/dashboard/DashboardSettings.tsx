@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, HStack, VStack, Text, Pressable, Switch, Center } from "@gluestack-ui/themed";
+import { Box, HStack, VStack, Text, Pressable, Switch, Center } from "@/components/ui/reusables";
 import { Settings, ShieldCheck, Volume2, Globe, Clock } from "lucide-react-native";
 import { COLORS } from "@/constants/colors";
 

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BarterDash Live - Discovery</title>
+<!-- Tailwind CSS with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Space Grotesk & Noto Sans -->
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007bff",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1923",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "sans": ["Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .glass-overlay {
+            background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Top Navigation / Header -->
+<header class="sticky top-0 z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<div class="flex items-center px-4 py-3 justify-between max-w-2xl mx-auto w-full">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-3xl">swap_calls</span>
+<h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">BarterDash <span class="text-primary">Live</span></h1>
+</div>
+<div class="flex items-center gap-3">
+<button class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="size-8 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden border border-primary/30">
+<span class="material-symbols-outlined text-primary text-xl">person</span>
+</div>
+</div>
+</div>
+<!-- Search Bar Section -->
+<div class="px-4 pb-3 max-w-2xl mx-auto w-full">
+<label class="relative flex items-center w-full">
+<span class="material-symbols-outlined absolute left-3 text-slate-400">search</span>
+<input class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl py-2.5 pl-10 pr-4 focus:ring-2 focus:ring-primary text-sm font-medium placeholder:text-slate-500" placeholder="Search niches, items or users" type="text"/>
+</label>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 max-w-2xl mx-auto w-full pb-24">
+<!-- Hero Section: Trending Niche -->
+<section class="px-4 py-6">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-lg font-bold">Trending Niche</h2>
+<span class="text-primary text-xs font-bold uppercase tracking-widest flex items-center gap-1">
+<span class="flex h-2 w-2 rounded-full bg-red-500 animate-pulse"></span>
+                    Live Now
+                </span>
+</div>
+<div class="relative aspect-[16/9] rounded-xl overflow-hidden group cursor-pointer shadow-lg shadow-primary/10">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Modern premium high-top sneakers on a pedestal" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCSZNkWk3nd80hBI4_YrXhHZoTX0eK_en_TJrzhYErrI-rTGFvOUNqB-A4mUlN1OlIAHlI6WaVI53CnS4xqScdBP7BejEnPSKoBWTinhXytpWgtSdZN6OjHyK8BfxX5htUYQcJ5GTOnYi_Rr1knjD0LcwmlVImM6YF75F_4M2UoBlfx9tahu5Z3p-sSl76EsxepaDVriKY_1GQzXG_ckqwmNy9SgOyyBky3kweClcKGbWuCGcsOxMvsXig8tWpLz4aU4EL9dRz1ZP4-');">
+</div>
+<div class="absolute inset-0 glass-overlay flex flex-col justify-end p-5">
+<div class="flex items-center gap-2 mb-1">
+<span class="bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Hot Pick</span>
+<span class="text-white/80 text-xs">124 Live Trades</span>
+</div>
+<h3 class="text-2xl font-bold text-white mb-2 leading-tight">Sneakers &amp; Kicks</h3>
+<div class="flex gap-2">
+<button class="bg-primary hover:bg-primary/90 text-white text-sm font-bold px-5 py-2 rounded-lg transition-all">
+                            Join Room
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Category Discovery Grid -->
+<section class="px-4 py-2">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-lg font-bold">Browse by Interest</h2>
+<button class="text-primary text-sm font-bold">View All</button>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<!-- Trading Cards -->
+<div class="relative aspect-square rounded-xl overflow-hidden group cursor-pointer">
+<div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-500" data-alt="Collection of collectible trading cards in plastic cases" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDDroj6oEP7YzisBuY3aYaEMZkSj7yyM0AmLFBzIKMl0Bf6cpAd6NjG0YwT0BWfVNyw-FxIriuVPMyhLagnUjA8xJZHCixfkV-lAVBNi0Mb0ryi6IFrDk9JF6KTQP8Ybk-ic_hqBKkPv1fDJW6MoSebXDKOX-28nbOwTjcFIjbJlfWXPjWs-ocRNf7mVd3OqRhHv7n8K3SCLMZcVmJ4L8QQJQ06WgJj9duR5xgoaZ9wypEot58a0fFvjeXkjd7Mil2gvuVzdnPvkv0C');">
+</div>
+<div class="absolute inset-0 glass-overlay flex flex-col justify-end p-3">
+<h4 class="text-white font-bold text-sm">TCG &amp; Sports Cards</h4>
+<p class="text-white/70 text-[10px]">85 Active Trades</p>
+</div>
+<span class="material-symbols-outlined absolute top-2 right-2 text-white/50 text-xl group-hover:text-primary transition-colors">style</span>
+</div>
+<!-- Comics -->
+<div class="relative aspect-square rounded-xl overflow-hidden group cursor-pointer">
+<div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-500" data-alt="Colorful stack of vintage comic books" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuALDMCUW-PW1mQhYUR7LvNf5i-lN8MLPn6db2Ud3XyvUWuuHLNdUCpgalDo1ywTacV9jYWnLS8Lsmg1sxFvfmVz6WQiOkh6ICgc0eQrMmhgB5AvD0mPKGSnsFwbSuFioTIww2bfuXL_kP5ffGMmyFxm3ZFT55Im23rrm1nhhr95aOJ_blpfLkzQsN2i3yE1_RhxjH18p5gwvx30P9Bgpmt59eklFKxCu1gL-T_ZVAnaB4ENqOpqNzrKFj1na2ViCBnFCHBl3zP194LT');">
+</div>
+<div class="absolute inset-0 glass-overlay flex flex-col justify-end p-3">
+<h4 class="text-white font-bold text-sm">Comic Books</h4>
+<p class="text-white/70 text-[10px]">42 Active Trades</p>
+</div>
+<span class="material-symbols-outlined absolute top-2 right-2 text-white/50 text-xl group-hover:text-primary transition-colors">auto_stories</span>
+</div>
+<!-- Toys & Figures -->
+<div class="relative aspect-square rounded-xl overflow-hidden group cursor-pointer">
+<div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-500" data-alt="Limited edition designer action figures" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCf1uvHxTi9XDLMg3nWqeDxnDYPNCgicOojt4CKGSxEZfYi1Mpaah1lsfO7GvBy9d-KUjmGgjVtnU4JQ7btk33lQmZQQEZw4NzvDRmisk7-NyE4DM-2Az38vlNlfJJ095UZKyHRL_WiptiXAu42MBudgKypUzqN4OEkRkjKj0F5l5pI-72_SAjwRtclQyqt_6UCSNdib2Eefx0HDaeL707s7TcjJXI_WaEf8VNbOcq-r1OVmqIq1pNC2fXwKQeV5yVHGWcG1GTKqhr8');">
+</div>
+<div class="absolute inset-0 glass-overlay flex flex-col justify-end p-3">
+<h4 class="text-white font-bold text-sm">Figures &amp; Toys</h4>
+<p class="text-white/70 text-[10px]">110 Active Trades</p>
+</div>
+<span class="material-symbols-outlined absolute top-2 right-2 text-white/50 text-xl group-hover:text-primary transition-colors">toys</span>
+</div>
+<!-- Vintage & Retro -->
+<div class="relative aspect-square rounded-xl overflow-hidden group cursor-pointer">
+<div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-500" data-alt="Vintage film camera and retro fashion accessories" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBPa3AcdIJlTfJm8q7Qcl5p3TnlR7T17Jqi-wCyGV0nPzAf42cx1BmyYyESgpW89OpD801THFRUK9k5Zhu1rvym_n9iVIu2hNcA5Y-wgZT6ike7h4Y_R3AGp0B8QH1V6RAVJG9QbnUl17lk-kUt6PDObetuWeprgUK6jyrx0EWJTYBP2Fgbca5951euNFIzVYdXUn65p_ORaRRWsoH26I7TPjCA5poc_ksypDDTVM3v-XEYD4C5c3eQdzrm82TFrT1cJE9FHZvnz_Ut');">
+</div>
+<div class="absolute inset-0 glass-overlay flex flex-col justify-end p-3">
+<h4 class="text-white font-bold text-sm">Vintage &amp; Retro</h4>
+<p class="text-white/70 text-[10px]">67 Active Trades</p>
+</div>
+<span class="material-symbols-outlined absolute top-2 right-2 text-white/50 text-xl group-hover:text-primary transition-colors">settings_backup_restore</span>
+</div>
+<!-- Watches -->
+<div class="relative aspect-square rounded-xl overflow-hidden group cursor-pointer">
+<div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-500" data-alt="Luxury timepiece on a velvet cushion" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDx7Fn8zO3dWx0FA6cQnXX5_7pYF9sr7XXjUtCNdWt47s-tUVJ9aybwsXiueDKeFhuQP7ELmMq0twfwagYzCGwudT9tuIKiu_yBiRwjqeeF74FM69xYCp5ma0dPtenJImerLUYlLKJ1NKGIGjZRlQN8RlARcsQ_TjNvHzoovYl2UBwmAedo6BKnHgvalTcv16-xYzCE0jmqzT-sTdfI7Rt-x-KCcnxGCzrOr3XB6TrWhXkCGBwFrov_WNw94wnBwmDu7m45M54NMJUi');">
+</div>
+<div class="absolute inset-0 glass-overlay flex flex-col justify-end p-3">
+<h4 class="text-white font-bold text-sm">Luxury Watches</h4>
+<p class="text-white/70 text-[10px]">29 Active Trades</p>
+</div>
+<span class="material-symbols-outlined absolute top-2 right-2 text-white/50 text-xl group-hover:text-primary transition-colors">watch</span>
+</div>
+<!-- Vinyl & Music -->
+<div class="relative aspect-square rounded-xl overflow-hidden group cursor-pointer">
+<div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-500" data-alt="Close up of a vinyl record spinning on a turntable" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBQeDP4mVy5PiBLyAyCmnQT9oS-DgOnA15nNGy2kbNezCfgfdZZRzbDTEyNBfPwzz1ZR7DUrzouTy-oPm8h0QYwlbqPfxf1jXVwvnK5GAhy0J3rL5gvqCgsgDYa7FCNNdTBe-JJeg3aLRVzHRTXV1WyKIcfDig6qlzIxOhIH6lVuhRm0Y_Z1l2ckiAGeRbiOsF6o8fHWu7OxDBS53cq6JLm2WTnDrUXEosmI7m7c4_mbf7_PgGjl6O4TfOd9UMa-eAmZsj4_aaOnINd');">
+</div>
+<div class="absolute inset-0 glass-overlay flex flex-col justify-end p-3">
+<h4 class="text-white font-bold text-sm">Vinyl &amp; Music</h4>
+<p class="text-white/70 text-[10px]">51 Active Trades</p>
+</div>
+<span class="material-symbols-outlined absolute top-2 right-2 text-white/50 text-xl group-hover:text-primary transition-colors">album</span>
+</div>
+</div>
+</section>
+<!-- Recommended / Nearby Section -->
+<section class="px-4 py-8">
+<h2 class="text-lg font-bold mb-4">Recommended for You</h2>
+<div class="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+<!-- User card 1 -->
+<div class="min-w-[140px] bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+<div class="size-16 mx-auto rounded-full bg-slate-200 mb-3 relative">
+<div class="absolute bottom-0 right-0 size-4 bg-green-500 border-2 border-white rounded-full"></div>
+<span class="material-symbols-outlined absolute inset-0 flex items-center justify-center text-slate-400">person</span>
+</div>
+<p class="text-center font-bold text-sm truncate">RetroCollector</p>
+<p class="text-center text-[10px] text-slate-500 mb-2">98% Feedback</p>
+<button class="w-full bg-primary/10 text-primary py-1.5 rounded text-xs font-bold hover:bg-primary/20 transition-colors">Follow</button>
+</div>
+<!-- User card 2 -->
+<div class="min-w-[140px] bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+<div class="size-16 mx-auto rounded-full bg-slate-200 mb-3 relative">
+<div class="absolute bottom-0 right-0 size-4 bg-green-500 border-2 border-white rounded-full"></div>
+<span class="material-symbols-outlined absolute inset-0 flex items-center justify-center text-slate-400">person</span>
+</div>
+<p class="text-center font-bold text-sm truncate">KicksKing</p>
+<p class="text-center text-[10px] text-slate-500 mb-2">100% Feedback</p>
+<button class="w-full bg-primary/10 text-primary py-1.5 rounded text-xs font-bold hover:bg-primary/20 transition-colors">Follow</button>
+</div>
+<!-- User card 3 -->
+<div class="min-w-[140px] bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+<div class="size-16 mx-auto rounded-full bg-slate-200 mb-3 relative">
+<div class="absolute bottom-0 right-0 size-4 bg-slate-300 border-2 border-white rounded-full"></div>
+<span class="material-symbols-outlined absolute inset-0 flex items-center justify-center text-slate-400">person</span>
+</div>
+<p class="text-center font-bold text-sm truncate">CardGuru</p>
+<p class="text-center text-[10px] text-slate-500 mb-2">95% Feedback</p>
+<button class="w-full bg-primary/10 text-primary py-1.5 rounded text-xs font-bold hover:bg-primary/20 transition-colors">Follow</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-background-dark border-t border-slate-200 dark:border-slate-800 safe-bottom">
+<div class="flex max-w-2xl mx-auto h-16">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined">home</span>
+<p class="text-[10px] font-medium leading-none">Home</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">explore</span>
+<p class="text-[10px] font-medium leading-none">Discover</p>
+</a>
+<div class="flex flex-1 flex-col items-center justify-center -mt-6">
+<button class="bg-primary text-white size-12 rounded-full shadow-lg flex items-center justify-center border-4 border-white dark:border-background-dark">
+<span class="material-symbols-outlined">add</span>
+</button>
+<p class="text-[10px] font-medium mt-1.5 text-slate-500">List</p>
+</div>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined">swap_horizontal_circle</span>
+<p class="text-[10px] font-medium leading-none">Trades</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined">account_circle</span>
+<p class="text-[10px] font-medium leading-none">Profile</p>
+</a>
+</div>
+</nav>
+</body></html>

@@ -14,7 +14,7 @@ import {
     VStack,
     HStack,
     Pressable,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import {
     Users,
     Calendar,

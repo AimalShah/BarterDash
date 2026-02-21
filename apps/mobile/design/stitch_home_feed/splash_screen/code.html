@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BarterDash Live - Splash Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007bff",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1923",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Space Grotesk", sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col items-center justify-center overflow-hidden">
+<!-- Subtle Background Pattern Overlay -->
+<div class="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" data-alt="Subtle blue geometric dot pattern background" style="background-image: radial-gradient(#007bff 1px, transparent 1px); background-size: 32px 32px;">
+</div>
+<!-- Soft Gradient Glow -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] z-0"></div>
+<main class="relative z-10 flex flex-col items-center justify-between h-screen w-full py-16 px-6">
+<!-- Top Spacer for Balance -->
+<div class="flex-1"></div>
+<!-- Center Content: Logo and Branding -->
+<div class="flex flex-col items-center gap-8 flex-1 justify-center">
+<div class="relative w-32 h-32 flex items-center justify-center bg-primary rounded-xl shadow-2xl shadow-primary/30">
+<span class="material-symbols-outlined text-white text-6xl" style="font-variation-settings: 'wght' 600, 'opsz' 48;">
+                    sync_alt
+                </span>
+<!-- Abstract Accent Rings -->
+<div class="absolute -inset-4 border-2 border-primary/20 rounded-xl"></div>
+<div class="absolute -inset-8 border border-primary/10 rounded-xl"></div>
+</div>
+<div class="text-center">
+<h1 class="text-slate-900 dark:text-slate-100 text-5xl font-bold tracking-tight leading-none mb-2">
+                    BarterDash <span class="text-primary">Live</span>
+</h1>
+<p class="text-slate-500 dark:text-slate-400 text-lg font-medium tracking-wide">
+                    Trade in Real-Time
+                </p>
+</div>
+</div>
+<!-- Bottom Content: Progress and Footer -->
+<div class="flex-1 flex flex-col justify-end w-full max-w-xs gap-12">
+<!-- Loading Indicator -->
+<div class="flex flex-col gap-4">
+<div class="flex justify-between items-center px-1">
+<span class="text-slate-400 dark:text-slate-500 text-sm font-medium uppercase tracking-widest">Initializing</span>
+<span class="text-primary text-sm font-bold">64%</span>
+</div>
+<div class="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all duration-500" style="width: 64%;"></div>
+</div>
+</div>
+<!-- Footer Meta -->
+<div class="text-center">
+<p class="text-slate-400 dark:text-slate-500 text-xs font-medium uppercase tracking-[0.2em]">
+                    SECURE PEER NETWORK
+                </p>
+<div class="mt-4 flex items-center justify-center gap-2 text-slate-300 dark:text-slate-600">
+<span class="h-1 w-1 bg-current rounded-full"></span>
+<span class="h-1 w-1 bg-current rounded-full"></span>
+<span class="h-1 w-1 bg-current rounded-full"></span>
+</div>
+</div>
+</div>
+</main>
+<!-- Decorative Corner Elements -->
+<div class="absolute top-0 left-0 p-8 opacity-20 hidden md:block">
+<div class="w-12 h-12 border-t-2 border-l-2 border-primary"></div>
+</div>
+<div class="absolute bottom-0 right-0 p-8 opacity-20 hidden md:block">
+<div class="w-12 h-12 border-b-2 border-r-2 border-primary"></div>
+</div>
+</body></html>

@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, HStack, Heading, Text, FlatList } from "@gluestack-ui/themed";
+import { Box, HStack, Heading, Text, FlatList } from "@/components/ui/reusables";
 import { Animated } from "react-native";
 import StreamCard from "../stream/StreamCard";
 import { COLORS } from "@/constants/colors";

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BarterDash Live - My Wishlist</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007bff",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1923",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Sticky Header -->
+<header class="sticky top-0 z-30 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-primary/10">
+<div class="flex items-center justify-between px-4 py-3">
+<button class="flex items-center justify-center p-2 hover:bg-primary/10 rounded-full transition-colors">
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-100">arrow_back</span>
+</button>
+<h1 class="text-xl font-bold tracking-tight">My Wishlist</h1>
+<button class="flex items-center justify-center p-2 hover:bg-primary/10 rounded-full transition-colors">
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-100">search</span>
+</button>
+</div>
+<!-- Navigation Tabs -->
+<div class="flex px-4 border-b border-primary/5">
+<button class="flex-1 py-3 text-sm font-bold border-b-2 border-primary text-primary">All</button>
+<button class="flex-1 py-3 text-sm font-medium text-slate-500 hover:text-primary transition-colors">Active</button>
+<button class="flex-1 py-3 text-sm font-medium text-slate-500 hover:text-primary transition-colors">Ended</button>
+</div>
+</header>
+<!-- Content Area -->
+<main class="flex-1 overflow-y-auto pb-24">
+<!-- Filter Bar -->
+<div class="flex gap-2 p-4 overflow-x-auto no-scrollbar">
+<button class="flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-white dark:bg-slate-800 px-4 border border-primary/10 shadow-sm">
+<span class="text-sm font-semibold">Ending Soonest</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-white dark:bg-slate-800 px-4 border border-primary/10 shadow-sm">
+<span class="text-sm font-semibold">Lowest Price</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+</div>
+<!-- Grid View -->
+<div class="grid grid-cols-2 gap-4 px-4">
+<!-- Item Card 1 (Active/Live) -->
+<div class="flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-primary/5">
+<div class="relative aspect-square">
+<div class="absolute inset-0 bg-center bg-cover" data-alt="Luxury silver wristwatch macro shot" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAFsEq3tirjDdSW1otrc4Dh-5UY1eJv18elgVa86GVQ2Qmj755qUKkXy8utnO0lM74z2jCzRO8itfOBqe4HeNOFoI8aLCXbXz3NrrrTC2L03WLCkj_rJLHm0OWGm0mMAuCguwJfWjne8egsCPikZpZh5Obu_I_mtm8UTG40Lx83s1Ctdvpmh6yg79uj-rHIN6fKfULoU_H3uLcs90iL4rKjMTmhensvSVWfxtS4mTl6PcW2j85GWq-n3ZseMb4bHXRULItDAScPrxx-')"></div>
+<div class="absolute top-2 left-2 flex gap-1">
+<span class="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 uppercase tracking-wider">
+<span class="size-1.5 bg-white rounded-full"></span> LIVE
+                        </span>
+</div>
+<button class="absolute top-2 right-2 bg-white/90 dark:bg-slate-800/90 p-1.5 rounded-full shadow-md text-primary">
+<span class="material-symbols-outlined filled-icon text-lg">favorite</span>
+</button>
+<div class="absolute bottom-2 left-2 right-2">
+<div class="bg-black/60 backdrop-blur-sm text-white text-[11px] py-1 px-2 rounded-lg flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+                            2m 14s left
+                        </div>
+</div>
+</div>
+<div class="p-3 flex flex-col gap-1">
+<h3 class="text-sm font-bold line-clamp-1">Vintage Rolex Submariner</h3>
+<div class="flex justify-between items-end mt-1">
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Current Bid</span>
+<span class="text-lg font-bold text-primary leading-none">$4,200</span>
+</div>
+<span class="text-[10px] text-slate-400">12 bids</span>
+</div>
+<button class="w-full mt-2 bg-primary hover:bg-primary/90 text-white font-bold py-2 rounded-lg text-sm transition-transform active:scale-95">
+                        Bid Now
+                    </button>
+</div>
+</div>
+<!-- Item Card 2 -->
+<div class="flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-primary/5">
+<div class="relative aspect-square">
+<div class="absolute inset-0 bg-center bg-cover" data-alt="Premium brown leather messenger bag" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDfgAmWxJt-TDBu-IK_WU3oRafbHIS0vC5S5urec7h6NDsaEikSz99fRAJtfL78KXgJgy75o2KqsGwrZdf9fRil60X738mCTsiHmH8CVvPwbasraPCQaU8Bh3Coedg1bVU6V7re7UHMaUlkloxzDZfxQNwMd-RAauGqLQ8r7DAGXSnYSR_2ZHMxAh7BMrdLrchTEQyGAoc3Qm9wRjFsezdnjXbF8PO3Hq3IoS3250ew9sZXIfwZxrAcDmCXSvB06jbR9qIPG6idG6s9')"></div>
+<div class="absolute top-2 left-2">
+<span class="bg-primary/20 backdrop-blur-md text-primary text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Upcoming</span>
+</div>
+<button class="absolute top-2 right-2 bg-white/90 dark:bg-slate-800/90 p-1.5 rounded-full shadow-md text-primary">
+<span class="material-symbols-outlined filled-icon text-lg">favorite</span>
+</button>
+<div class="absolute bottom-2 left-2 right-2">
+<div class="bg-black/60 backdrop-blur-sm text-white text-[11px] py-1 px-2 rounded-lg flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span>
+                            Starts in 4h
+                        </div>
+</div>
+</div>
+<div class="p-3 flex flex-col gap-1">
+<h3 class="text-sm font-bold line-clamp-1">Leather Travel Satchel</h3>
+<div class="flex justify-between items-end mt-1">
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Starting At</span>
+<span class="text-lg font-bold text-slate-900 dark:text-slate-100 leading-none">$150</span>
+</div>
+</div>
+<button class="w-full mt-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold py-2 rounded-lg text-sm transition-colors">
+                        Remind Me
+                    </button>
+</div>
+</div>
+<!-- Item Card 3 -->
+<div class="flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-primary/5">
+<div class="relative aspect-square">
+<div class="absolute inset-0 bg-center bg-cover" data-alt="Retro gaming console on white surface" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBEX8w3Se6myYSucoGBnds5yYYyKcP0y-ovisS1JCVVmnHD4llZbMA0CZrZCVTm5ZY0DCa1f6zojwubOzA3RsGsCEbn-jrYuXaGFn0K_w1Z4YHGLUOygRpdYL59g8H99W4o1aw-Y2Ob3lWqSRAGlh5KNPNkIWsRN8PH0ojuEXN3rZXy8kQDVmIVRxNmHBwsXU51wwJg0NFXGTzr9zZbzqTy2N81PGug6CuJr6eJA0SICyvCO9dNqYqpvGKrgK0VF1YjqPIh5MnymDeH')"></div>
+<div class="absolute top-2 left-2">
+<span class="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 uppercase tracking-wider">
+<span class="size-1.5 bg-white rounded-full"></span> LIVE
+                        </span>
+</div>
+<button class="absolute top-2 right-2 bg-white/90 dark:bg-slate-800/90 p-1.5 rounded-full shadow-md text-primary">
+<span class="material-symbols-outlined filled-icon text-lg">favorite</span>
+</button>
+<div class="absolute bottom-2 left-2 right-2">
+<div class="bg-black/60 backdrop-blur-sm text-white text-[11px] py-1 px-2 rounded-lg flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+                            45m 10s left
+                        </div>
+</div>
+</div>
+<div class="p-3 flex flex-col gap-1">
+<h3 class="text-sm font-bold line-clamp-1">Retro 16-Bit Console</h3>
+<div class="flex justify-between items-end mt-1">
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Current Bid</span>
+<span class="text-lg font-bold text-primary leading-none">$85</span>
+</div>
+<span class="text-[10px] text-slate-400">4 bids</span>
+</div>
+<button class="w-full mt-2 bg-primary hover:bg-primary/90 text-white font-bold py-2 rounded-lg text-sm transition-transform active:scale-95">
+                        Bid Now
+                    </button>
+</div>
+</div>
+<!-- Item Card 4 -->
+<div class="flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-primary/5">
+<div class="relative aspect-square">
+<div class="absolute inset-0 bg-center bg-cover" data-alt="Classic aviator sunglasses" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAxrNKpH1N3GAr94bSyjDIK9IJkPMg9wn8Foi3dw8zWgcovQ0_bzc_S9gP2pd4KHerWf72_zwdAuW9d6OOYdynGmqjAxvDXpYwmQSf-m2t2lcrx3StkguPOgu4bqkH3EL5U6gv2maIwWWI62ED8d9uxy6kWem4BV1szMlJjuvBAI37N1OHSZGLFIWKaNMIGldjWwQ2MtC4pdXHGcVExGCSFleoKTH2IhSxfDUsIk-DP8xN43LT-fDOSprGq5Lub-YBSTdhHrOXzHKku')"></div>
+<div class="absolute top-2 left-2">
+<span class="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 uppercase tracking-wider">
+<span class="size-1.5 bg-white rounded-full"></span> LIVE
+                        </span>
+</div>
+<button class="absolute top-2 right-2 bg-white/90 dark:bg-slate-800/90 p-1.5 rounded-full shadow-md text-primary">
+<span class="material-symbols-outlined filled-icon text-lg">favorite</span>
+</button>
+<div class="absolute bottom-2 left-2 right-2">
+<div class="bg-black/60 backdrop-blur-sm text-white text-[11px] py-1 px-2 rounded-lg flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+                            1h 05m left
+                        </div>
+</div>
+</div>
+<div class="p-3 flex flex-col gap-1">
+<h3 class="text-sm font-bold line-clamp-1">Classic Aviator Shades</h3>
+<div class="flex justify-between items-end mt-1">
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Current Bid</span>
+<span class="text-lg font-bold text-primary leading-none">$210</span>
+</div>
+<span class="text-[10px] text-slate-400">22 bids</span>
+</div>
+<button class="w-full mt-2 bg-primary hover:bg-primary/90 text-white font-bold py-2 rounded-lg text-sm transition-transform active:scale-95">
+                        Bid Now
+                    </button>
+</div>
+</div>
+</div>
+<!-- Ended Items Header -->
+<div class="px-4 pt-8 pb-2">
+<h2 class="text-sm font-bold uppercase tracking-widest text-slate-400">Recently Ended</h2>
+</div>
+<!-- Horizontal Scroll for Ended Items -->
+<div class="flex gap-4 px-4 overflow-x-auto no-scrollbar pb-6">
+<div class="flex-shrink-0 w-40 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 opacity-75">
+<div class="relative h-28 bg-center bg-cover grayscale rounded-t-xl" data-alt="Classic wooden wristwatch" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBWRfQW0JF802H2p2GzheCnBUsMzluFr55191eJ4ZTa7g-D8hzB4uoR9e7_aMzyfOZ_E-tENY3pKPacNUzoxGjjISaCYLGXwyuva7Jx2u2659pfY4T5JNQPPDA4VYIKi-3Q5B1M4YhIoF-DG_pNVb5eXhKM_LoYEqi03PfPcN4VfZGcPRhpvjXO0uh4ihVTFOOTxoSz-HSA9bAYi_V6dFlgfOMH2ZV8Vdo2nZqY6yzBkgTyKM9zwaTR3AO307lvQ5h0qyvt0jGJhF0y')">
+<div class="absolute inset-0 bg-black/40 flex items-center justify-center rounded-t-xl">
+<span class="text-white font-bold text-xs">SOLD</span>
+</div>
+</div>
+<div class="p-2">
+<p class="text-[11px] font-bold truncate">Wooden Watch</p>
+<p class="text-xs font-bold text-slate-500">Final: $340</p>
+</div>
+</div>
+<div class="flex-shrink-0 w-40 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 opacity-75">
+<div class="relative h-28 bg-center bg-cover grayscale rounded-t-xl" data-alt="Modern designer chair" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCPJXZcPFfYxQ04RsFOcUGYrXkoM78gLagDqPRFFqLUJctxh6erHuZYoHcfNT0H0-xb8l7NoVgOU_y4JzWJsZ5_axs8cCFBDpCOwQkzeZvEym0mXa5JKiHxal6Sb1SjUNqNk8P2lnC3KedSt2-G45aI5YAcDcYbn0O5bslqaGCQ3Wuw_YHWJlMV_DSNc3Iw2YPPc_gOeQ2se6AG_7YwSLeLGqPel-sWPb3ts9tAaJ-FICFhItefkl4e9cDvq5RqrMLTf0AD12pxdcGk')">
+<div class="absolute inset-0 bg-black/40 flex items-center justify-center rounded-t-xl">
+<span class="text-white font-bold text-xs">EXPIRED</span>
+</div>
+</div>
+<div class="p-2">
+<p class="text-[11px] font-bold truncate">Lounge Chair</p>
+<p class="text-xs font-bold text-slate-500">No Bids</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 w-full bg-white dark:bg-background-dark border-t border-primary/10 px-4 pb-6 pt-2">
+<div class="flex justify-between items-center max-w-md mx-auto">
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">sensors</span>
+<span class="text-[10px] font-bold">Live</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined filled-icon">favorite</span>
+<span class="text-[10px] font-bold">Saved</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">gavel</span>
+<span class="text-[10px] font-bold">Bids</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold">Profile</span>
+</a>
+</div>
+</nav>
+</body></html>

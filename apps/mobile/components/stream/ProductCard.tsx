@@ -11,7 +11,7 @@ import {
     Pressable,
     Center,
     Spinner
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { COLORS } from "@/constants/colors";
 
 interface ProductCardProps {

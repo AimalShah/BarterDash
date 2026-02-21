@@ -15,7 +15,7 @@ import {
     InputField,
     Textarea,
     TextareaInput,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { ChevronLeft, Camera, X } from "lucide-react-native";
 import * as ImagePicker from "expo-image-picker";
 import { decode } from "base64-arraybuffer";

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BarterDash Live - Buy It Now</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007bff",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1923",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full max-w-md mx-auto flex-col bg-white dark:bg-slate-900 overflow-x-hidden shadow-xl">
+<!-- Top Navigation -->
+<div class="flex items-center bg-white dark:bg-slate-900 p-4 sticky top-0 z-10 border-b border-slate-100 dark:border-slate-800 justify-between">
+<div class="text-slate-900 dark:text-slate-100 flex size-10 shrink-0 items-center cursor-pointer">
+<span class="material-symbols-outlined">arrow_back</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight flex-1 text-center">Product Details</h2>
+<div class="flex w-10 items-center justify-end">
+<button class="flex cursor-pointer items-center justify-center rounded-lg h-10 w-10 bg-transparent text-slate-900 dark:text-slate-100">
+<span class="material-symbols-outlined">share</span>
+</button>
+</div>
+</div>
+<!-- Image Carousel Section -->
+<div class="px-4 py-3">
+<div class="relative bg-cover bg-center flex flex-col justify-end overflow-hidden bg-slate-100 dark:bg-slate-800 rounded-xl min-h-80 shadow-sm" data-alt="Modern high-end headphones on a wooden desk" style='background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0) 40%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuBUX6BJhQabKHrQg07himnfNEtKiERG_vzoQ-sgTohycc-QZLdMqr6FfqOFv8K_E2myWdG62mMyyGsixvr7i62dlK4ZNSOsdKhXhSEZaepf_3oJtJGzQN-iBAxKw0Ck4aEjPyrlDf66p3eaIMtdtnsVD0GcQs-jtT1ikpE5xqrkkRNKlVdzVt54ccVcgkGsGs6OG-BHWfCz0ggrNvaD7iWEyPNaSauVF8yteOeGW_JVllfkSR1l9vIqKRu0QmZ-EbHBbdgAPb8dNNmc");'>
+<div class="flex justify-center gap-2 p-5">
+<div class="size-2 rounded-full bg-primary"></div>
+<div class="size-2 rounded-full bg-white opacity-50"></div>
+<div class="size-2 rounded-full bg-white opacity-50"></div>
+<div class="size-2 rounded-full bg-white opacity-50"></div>
+</div>
+<div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-sm text-primary" style="font-variation-settings: 'FILL' 1">verified_user</span>
+<span class="text-[10px] font-bold text-slate-800 uppercase tracking-wider">Verified</span>
+</div>
+</div>
+</div>
+<!-- Product Title & Price -->
+<div class="px-4 pt-4 pb-2">
+<div class="flex justify-between items-start">
+<div>
+<h1 class="text-slate-900 dark:text-slate-100 text-2xl font-bold leading-tight tracking-tight">Premium Wireless Studio Headphones</h1>
+<div class="flex items-center gap-2 mt-2">
+<span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">Fixed Price</span>
+<span class="text-slate-500 text-xs font-medium">• 24 views today</span>
+</div>
+</div>
+</div>
+<div class="mt-4">
+<h2 class="text-primary text-3xl font-bold tracking-tight">$299.00</h2>
+<p class="text-slate-500 text-xs mt-1">Free Shipping &amp; Returns</p>
+</div>
+</div>
+<div class="h-px bg-slate-100 dark:bg-slate-800 mx-4 my-4"></div>
+<!-- Seller Profile Card -->
+<div class="px-4 pb-6">
+<div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl flex items-center justify-between border border-slate-100 dark:border-slate-800">
+<div class="flex items-center gap-3">
+<div class="size-12 rounded-full bg-slate-200 overflow-hidden border-2 border-white dark:border-slate-700 shadow-sm">
+<img alt="Seller Avatar" class="w-full h-full object-cover" data-alt="Professional male portrait avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoMX-rwgIXxt-A0qIIWYNcye88Y6CFN4Qgn1MiH4Ijr0qyKADVONv6-e4iM7LpRufwKInr41ADOpMX-meAajqE8fJjGnY3Pteiqz0dUNeDEI0lPdiLGNa7QGoKgt-fD_KC04HFUaS6XWeSv_t0QqsGW50XUSTCpnJJ64jyI-MwzFkrGqisNC2IiCcqGdsH0_4IsDOEw9AG2ynBGkKUDHQdw-2bkZS0W4gi-r7jlbbe43_YFLDglPpNIstYrNxKiyAk_pqmURZxm-io"/>
+</div>
+<div>
+<p class="text-slate-900 dark:text-slate-100 font-bold leading-tight">Alex Rivera</p>
+<div class="flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-yellow-400 text-sm" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="text-slate-600 dark:text-slate-400 text-xs font-medium">4.9 (124 sales)</span>
+</div>
+</div>
+</div>
+<button class="text-primary text-sm font-bold hover:underline">View Profile</button>
+</div>
+</div>
+<!-- Specifications Grid -->
+<div class="px-4 pb-6">
+<h3 class="text-slate-900 dark:text-slate-100 text-sm font-bold uppercase tracking-widest mb-3">Specifications</h3>
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-slate-50 dark:bg-slate-800/30 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
+<p class="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Condition</p>
+<p class="text-slate-900 dark:text-slate-100 text-sm font-semibold">Like New</p>
+</div>
+<div class="bg-slate-50 dark:bg-slate-800/30 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
+<p class="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Category</p>
+<p class="text-slate-900 dark:text-slate-100 text-sm font-semibold">Electronics</p>
+</div>
+<div class="bg-slate-50 dark:bg-slate-800/30 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
+<p class="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Location</p>
+<p class="text-slate-900 dark:text-slate-100 text-sm font-semibold">Brooklyn, NY</p>
+</div>
+<div class="bg-slate-50 dark:bg-slate-800/30 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
+<p class="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Delivery</p>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-green-500 text-xs">local_shipping</span>
+<p class="text-slate-900 dark:text-slate-100 text-sm font-semibold">Ships in 24h</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Description -->
+<div class="px-4 pb-24">
+<h3 class="text-slate-900 dark:text-slate-100 text-sm font-bold uppercase tracking-widest mb-2">Description</h3>
+<div class="relative group">
+<p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed line-clamp-4">
+                    Selling my lightly used studio headphones. They feature active noise cancellation, 40-hour battery life, and crystal clear sound quality. Original box and all cables included. No scratches or signs of wear. Perfect for music production or high-fidelity listening. Only selling because I upgraded to a higher model. These are the carbon black limited edition.
+                </p>
+<button class="text-primary text-sm font-bold mt-2 flex items-center gap-1">
+                    Read More <span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+</div>
+<!-- Trust Badges -->
+<div class="mt-8 flex flex-wrap gap-4 items-center justify-center border-t border-slate-100 dark:border-slate-800 pt-6">
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-slate-400">gpp_good</span>
+<span class="text-[10px] font-bold text-slate-500 uppercase">Protection</span>
+</div>
+<div class="w-px h-8 bg-slate-100 dark:bg-slate-800"></div>
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-slate-400">payments</span>
+<span class="text-[10px] font-bold text-slate-500 uppercase">Secure Pay</span>
+</div>
+<div class="w-px h-8 bg-slate-100 dark:bg-slate-800"></div>
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-slate-400">history</span>
+<span class="text-[10px] font-bold text-slate-500 uppercase">30-Day Return</span>
+</div>
+</div>
+</div>
+<!-- Sticky Bottom Actions -->
+<div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 border-t border-slate-100 dark:border-slate-800 flex gap-3 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)]">
+<button class="flex-1 h-12 border-2 border-primary text-primary font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined">chat_bubble</span>
+                Contact
+            </button>
+<button class="flex-[2] h-12 bg-primary text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">shopping_cart_checkout</span>
+                Buy Now
+            </button>
+</div>
+</div>
+</body></html>

@@ -16,7 +16,7 @@ import {
     Center,
     Image,
     Spinner,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { Search, Filter, ShoppingBag, Play, ChevronLeft } from 'lucide-react-native';
 import { productsService } from '@/lib/api/services/products';
 import { auctionsService } from '@/lib/api/services/auctions';

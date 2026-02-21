@@ -4,7 +4,7 @@ import {
   Button,
   ButtonText,
   Spinner,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { Users, ExternalLink } from "lucide-react-native";
 import { router } from "expo-router";
 import { COLORS } from "../../../constants/colors";

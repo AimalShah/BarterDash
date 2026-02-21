@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BarterDash Live - Direct Messages</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007bff",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1923",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
+<div class="relative flex h-screen w-full flex-col bg-background-light dark:bg-background-dark overflow-hidden max-w-md mx-auto shadow-2xl">
+<!-- Top Navigation -->
+<div class="flex items-center bg-white dark:bg-slate-900 p-4 border-b border-slate-200 dark:border-slate-800 justify-between">
+<div class="text-slate-900 dark:text-slate-100 flex size-10 shrink-0 items-center">
+<span class="material-symbols-outlined text-2xl">menu</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-bold leading-tight tracking-tight flex-1 text-center">Messages</h2>
+<div class="flex w-10 items-center justify-end">
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-primary/10 text-primary">
+<span class="material-symbols-outlined">edit_square</span>
+</button>
+</div>
+</div>
+<!-- Search Bar -->
+<div class="px-4 py-3 bg-white dark:bg-slate-900">
+<label class="flex flex-col min-w-40 h-11 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full overflow-hidden">
+<div class="text-slate-400 flex bg-slate-100 dark:bg-slate-800 items-center justify-center pl-4">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-slate-100 dark:bg-slate-800 focus:ring-0 h-full placeholder:text-slate-500 px-4 text-base font-normal" placeholder="Search trades or users" value=""/>
+</div>
+</label>
+</div>
+<!-- Filters -->
+<div class="bg-white dark:bg-slate-900">
+<div class="flex border-b border-slate-100 dark:border-slate-800 px-4 gap-6">
+<a class="flex flex-col items-center justify-center border-b-2 border-primary text-primary pb-3 pt-2" href="#">
+<p class="text-sm font-bold tracking-tight">All</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-2 border-transparent text-slate-500 pb-3 pt-2 hover:text-primary transition-colors" href="#">
+<p class="text-sm font-bold tracking-tight">Buying</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-2 border-transparent text-slate-500 pb-3 pt-2 hover:text-primary transition-colors" href="#">
+<p class="text-sm font-bold tracking-tight">Selling</p>
+</a>
+</div>
+</div>
+<!-- Conversation List -->
+<div class="flex-1 overflow-y-auto bg-white dark:bg-slate-900">
+<!-- Conversation Item 1 (Unread) -->
+<div class="flex items-center gap-4 px-4 py-4 border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer relative">
+<div class="relative">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-14 w-14 border-2 border-primary/20" data-alt="User profile picture showing a smiling man" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDmRx1FIII2mKxiMXNNOA3_srM8WkDmWPdUtnQ7jbglazNraSiRs8_hg-eMRYujL-PGejVO3G95qkEitOvl0OW5dvL30HSdj-IW4WIEI5ebU436MiC6-EEXY3orW1hitJISPhT8dBRle2qP8835AvJuR7iKd_pQo1UARDyHsq5IuM1HEfUFJyZWU1_vlxquDJMloMZWLOzNSIkD0vaN1-z_YssEGN08CCHbiJhEIo7UT81QCnlygVwdslOp1cFGA4em4FO4v-jXIKT5");'></div>
+<div class="absolute bottom-0 right-0 h-4 w-4 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold truncate">Alex Rivers</p>
+<p class="text-primary text-xs font-bold shrink-0">2m ago</p>
+</div>
+<div class="flex justify-between items-center mt-0.5">
+<p class="text-slate-900 dark:text-slate-100 text-sm font-semibold truncate pr-4">Is the vintage watch still available for trade?</p>
+<div class="h-2.5 w-2.5 bg-primary rounded-full shrink-0"></div>
+</div>
+<div class="mt-1 flex items-center">
+<span class="bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Vintage Watch</span>
+</div>
+</div>
+</div>
+<!-- Conversation Item 2 -->
+<div class="flex items-center gap-4 px-4 py-4 border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+<div class="relative">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-14 w-14" data-alt="User profile picture showing a woman with glasses" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAol5GNQ052QLKpIp-lj8uCyGswD7ubqgQarz5919HttJJ3IayBb2wWrnfQBMtf-IVvbr5ffi_DmBB0Vcr55a3WGOGBdf2yP-WKrb9qyamYJg0j_Mv9WkA2wuvBliQqNwaWl8wJnGUgMgnVZTrJDb_Iw_LWSdUBVivLYgDHN43a5bfqiJW51s9dRWvHITagdtYq0CbYp1yGO6OjBoq78YOa_5S7kAmMHm_sQoPbsO5EzmJnaQkzumsyX-iikF8JqEGAVsdvSJFQxFJz");'></div>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<p class="text-slate-900 dark:text-slate-100 text-base font-medium truncate">Sarah Jenkins</p>
+<p class="text-slate-500 text-xs shrink-0">1h ago</p>
+</div>
+<div class="flex justify-between items-center mt-0.5">
+<p class="text-slate-500 text-sm truncate pr-4">I can offer my DSLR for your MacBook Air.</p>
+<span class="material-symbols-outlined text-slate-400 text-sm">done_all</span>
+</div>
+<div class="mt-1 flex items-center">
+<span class="bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">MacBook Air</span>
+</div>
+</div>
+</div>
+<!-- Conversation Item 3 -->
+<div class="flex items-center gap-4 px-4 py-4 border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+<div class="relative">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-14 w-14" data-alt="User profile picture showing a man with a beard" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAmlnNeGoZo8E9jcltaqYwVXDIp7vbPbO9VMc4m9J6L0__vCa8xWGJeAHpsOgjmMDokvYRZNYMQ8WwzwVkne6csLGiknr6AAq_V3mnc_VCv8w6lv-izRJjVc7JSe24RBGlwkJqD0XmlBl5vnD6GMvTAr-WPzOgp_Pb3p3kZB24G-2wxn7R-gTxGVV4DSitCUEkCNJk945m-kvC3Iu_wgvx9nWajYQ0VxJmvZBIxV0KsfEJRXPioMlheckif8IfKWRLiDzGZjLXx8cBM");'></div>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<p class="text-slate-900 dark:text-slate-100 text-base font-medium truncate">Marcus Thorne</p>
+<p class="text-slate-500 text-xs shrink-0">Yesterday</p>
+</div>
+<div class="flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-slate-400 text-sm">image</span>
+<p class="text-slate-500 text-sm truncate">Sent a photo</p>
+</div>
+</div>
+</div>
+<!-- Conversation Item 4 -->
+<div class="flex items-center gap-4 px-4 py-4 border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+<div class="relative">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-14 w-14" data-alt="User profile picture showing a woman with long hair" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBxtkp5sHWjSwM-uu0d77RcSqHCqdj7e6U-vNmQNWKJKN7b6pZtwL-39mkxNUgX8TL9R8vMIY2LCAqSgrWwR0mQ5T96X_-sV0_rWpd1HX1wNZ0B2FuqtpKnrNDjzAERsxO0e9dPie246dd9lJsDRSjNyGztvhRz-jvgxhfhsK1HYR9ATEn9FaMHQFRLEkpg2tvfa-OX_kFioOtDh0zp-X1Yxp3H_zwecpEzsCO4YjkC-vv9AZ8yfLuZdBNEkXjwuwWlKdKo3roBlsVP");'></div>
+<div class="absolute bottom-0 right-0 h-4 w-4 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<p class="text-slate-900 dark:text-slate-100 text-base font-medium truncate">Elena K.</p>
+<p class="text-slate-500 text-xs shrink-0">Oct 24</p>
+</div>
+<div class="flex justify-between items-center mt-0.5">
+<p class="text-slate-500 text-sm truncate pr-4">Deal! Let's meet tomorrow at the park.</p>
+</div>
+</div>
+</div>
+<!-- Conversation Item 5 -->
+<div class="flex items-center gap-4 px-4 py-4 border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+<div class="bg-slate-200 dark:bg-slate-800 rounded-full h-14 w-14 flex items-center justify-center shrink-0">
+<span class="text-slate-500 font-bold">JD</span>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<p class="text-slate-900 dark:text-slate-100 text-base font-medium truncate">Jordan Doe</p>
+<p class="text-slate-500 text-xs shrink-0">Oct 22</p>
+</div>
+<div class="flex justify-between items-center mt-0.5">
+<p class="text-slate-500 text-sm italic truncate pr-4">Typing...</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Action Button -->
+<button class="absolute bottom-24 right-4 h-14 w-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center hover:bg-primary/90 transition-transform active:scale-95">
+<span class="material-symbols-outlined text-2xl">add_comment</span>
+</button>
+<!-- Bottom Navigation Bar -->
+<div class="flex gap-2 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pb-6 pt-2">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined text-2xl">home</span>
+<p class="text-[10px] font-bold uppercase tracking-wider">Home</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined text-2xl">swap_horiz</span>
+<p class="text-[10px] font-bold uppercase tracking-wider">Trades</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1">chat_bubble</span>
+<p class="text-[10px] font-bold uppercase tracking-wider">Messages</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined text-2xl">person</span>
+<p class="text-[10px] font-bold uppercase tracking-wider">Profile</p>
+</a>
+</div>
+</div>
+</body></html>

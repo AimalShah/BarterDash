@@ -18,7 +18,7 @@ import {
 } from "lucide-react-native";
 import { categoriesService } from "@/lib/api/services/categories";
 import { useAuthStore } from "@/store/authStore";
-import { useUpdateProfileMutation } from "@/lib/api/hooks/useUser";
+import { useUpdateProfileMutation } from "@/hooks/useUser";
 import { OnboardingProgress } from "@/components/onboarding/OnboardingProgress";
 import { COLORS } from "@/constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

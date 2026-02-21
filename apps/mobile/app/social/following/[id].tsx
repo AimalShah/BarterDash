@@ -11,7 +11,7 @@ import {
   Center,
   Spinner,
   Image,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { ChevronLeft } from "lucide-react-native";
 import { socialService } from "@/lib/api/services/social";
 import { COLORS } from "@/constants/colors";

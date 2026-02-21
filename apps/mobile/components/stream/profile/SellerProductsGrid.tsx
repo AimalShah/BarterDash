@@ -5,7 +5,7 @@ import {
   HStack,
   Text,
   Pressable,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { router } from "expo-router";
 import { COLORS } from "../../../constants/colors";
 

@@ -13,13 +13,13 @@ import {
     Center,
     Button,
     ButtonText
-} from '@gluestack-ui/themed';
+} from '@/components/ui/reusables';
 import { ChevronLeft, Share2, Heart, Truck, ShieldCheck, User, Gavel, ChevronRight, ShoppingCart, Zap } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { productsService } from '@/lib/api/services/products';
 import { cartService } from '@/lib/api/services/cart';
 import { Product } from '@/types';
-import { Spinner } from '@gluestack-ui/themed';
+import { Spinner } from '@/components/ui/reusables';
 import { COLORS } from '../../constants/colors';
 
 const getApiErrorMessage = (

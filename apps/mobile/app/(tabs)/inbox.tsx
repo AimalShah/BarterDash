@@ -19,7 +19,7 @@ import {
 	Center,
 	Spinner,
 	Image,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { MessageCircle, Edit, X, Users, UserCheck } from "lucide-react-native";
 import { useAuthStore } from "@/store/authStore";
 import { theme } from "@/constants/theme";

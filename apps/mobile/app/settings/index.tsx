@@ -10,7 +10,7 @@ import {
     Pressable,
     Center,
     Icon,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import {
     ChevronLeft,
     ChevronRight,

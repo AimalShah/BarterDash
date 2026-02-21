@@ -1,62 +1,53 @@
-import React from "react";
-import { Box, ScrollView, Pressable, Text } from "@gluestack-ui/themed";
-import { COLORS } from "@/constants/colors";
+import { ScrollView, Pressable, View } from 'react-native';
+import { Text } from '@/components/ui/text';
+import { cn } from '@/lib/utils';
 
-interface Category {
+export interface HomeCategory {
   id: string;
   name: string;
 }
 
 interface CategoryFilterProps {
-  categories: Category[];
+  categories: HomeCategory[];
   selectedCategory: string;
   onSelectCategory: (id: string) => void;
 }
 
-export const CategoryFilter = ({
+export function CategoryFilter({
   categories,
   selectedCategory,
   onSelectCategory,
-}: CategoryFilterProps) => {
+}: CategoryFilterProps) {
   return (
-    <Box pt="$3" borderBottomWidth={1} borderColor={COLORS.darkBorder} bg={COLORS.luxuryBlack}>
+    <View className="mt-4">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 24 }}
+        contentContainerClassName="px-6"
       >
-        {categories.map((category) => (
-          <Pressable
-            key={String(category.id)}
-            onPress={() => onSelectCategory(String(category.id))}
-            mr="$1"
-            px="$6"
-            py="$1"
-            rounded={0}
-            borderBottomWidth={selectedCategory === String(category.id) ? 2 : 0}
-            borderColor={
-              selectedCategory === String(category.id) ? COLORS.primaryGold : COLORS.darkBorder
-            }
-            sx={{
-              ":active": { transform: [{ scale: 0.95 }] },
-            }}
-          >
-            <Text
-              size="sm"
-              fontWeight={
-                selectedCategory === String(category.id) ? "$bold" : "$normal"
-              }
-              color={
-                selectedCategory === String(category.id)
-                  ? COLORS.textPrimary
-                  : COLORS.textSecondary
-              }
+        {categories.map((category) => {
+          const isActive = selectedCategory === category.id;
+          return (
+            <Pressable
+              key={category.id}
+              onPress={() => onSelectCategory(category.id)}
+              className={cn(
+                'mr-2 rounded-full border px-4 py-2',
+                isActive ? 'border-primary bg-primary' : 'border-border bg-card'
+              )}
             >
-              {category.name}
-            </Text>
-          </Pressable>
-        ))}
+              <Text
+                className={cn(
+                  'text-xs',
+                  isActive ? 'text-white' : 'text-secondary'
+                )}
+              >
+                {category.name}
+              </Text>
+            </Pressable>
+          );
+        })}
       </ScrollView>
-    </Box>
+    </View>
   );
-};
+}

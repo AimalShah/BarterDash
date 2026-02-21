@@ -14,7 +14,7 @@ import {
   Input,
   InputField,
   Textarea,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { streamsService, Stream } from "../../../../lib/api/services/streams";
 import { categoriesService } from "../../../../lib/api/services/categories";
 import { ChevronLeft } from "lucide-react-native";

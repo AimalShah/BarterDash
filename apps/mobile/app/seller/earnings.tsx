@@ -13,7 +13,7 @@ import {
     Spinner,
     Button,
     ButtonText,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import {
     ChevronLeft,
     DollarSign,

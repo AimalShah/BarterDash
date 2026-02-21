@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, HStack, Heading, Text, Pressable } from "@gluestack-ui/themed";
+import { Box, HStack, Heading, Text, Pressable } from "@/components/ui/reusables";
 import { COLORS } from "@/constants/colors";
 
 interface UserStatsProps {

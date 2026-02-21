@@ -7,7 +7,7 @@ import {
     Pressable,
     Button,
     ButtonText,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import {
     Shield,
     Clock,

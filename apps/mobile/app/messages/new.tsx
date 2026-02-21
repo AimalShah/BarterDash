@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { StatusBar } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Center, Spinner, Text, Box } from "@gluestack-ui/themed";
+import { Center, Spinner, Text, Box } from "@/components/ui/reusables";
 import { messagesService } from "@/lib/api/services/messages";
 import { useToast } from "@/context/ToastContext";
 import { handleApiError } from "@/lib/api/errorHandle";

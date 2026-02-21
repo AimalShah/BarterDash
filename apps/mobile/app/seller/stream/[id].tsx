@@ -16,7 +16,7 @@ import {
   BadgeText,
   Divider,
   Icon,
-} from '@gluestack-ui/themed';
+} from '@/components/ui/reusables';
 import {
   ChevronLeft,
   Video,

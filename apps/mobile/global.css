@@ -1,3 +1,95 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    /* Primary Brand Colors */
+    --primary: 218 85% 67%; /* #6391F2 */
+    --primary-foreground: 0 0% 100%;
+    --primary-soft: 213 64% 81%; /* #B2CBEC */
+    --primary-lavender: 229 44% 74%; /* #9CA9DE */
+
+    /* Backgrounds & Surfaces */
+    --background: 240 20% 97%; /* #F2F1F8 */
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 229 14% 15%;
+
+    /* Text & Contrast */
+    --foreground: 229 14% 15%; /* #22232D */
+    --secondary: 227 23% 24%; /* #2F354E */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 250 8% 62%; /* #9C9AA6 */
+    --muted-foreground: 229 14% 15%;
+
+    /* Accent / Highlight Colors */
+    --accent: 45 85% 67%; /* #F2D468 */
+    --accent-foreground: 229 14% 15%;
+    --accent-gold: 45 60% 77%; /* #E7D7A2 */
+    --accent-muted-blue-grey: 213 19% 56%; /* #768CAB */
+
+    /* Borders & Inputs */
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 218 85% 67%;
+
+    /* Status Colors */
+    --success: 142 71% 45%; /* #22c55e */
+    --error: 0 84% 60%; /* #EF4444 */
+    --warning: 38 92% 50%; /* #F59E0B */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Radius */
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+@layer utilities {
+  /* Custom utility classes */
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Gradient backgrounds */
+  .gradient-primary {
+    background: linear-gradient(135deg, #6391F2 0%, #9CA9DE 100%);
+  }
+  
+  .gradient-soft {
+    background: linear-gradient(135deg, #B2CBEC 0%, #F2F1F8 100%);
+  }
+  
+  .gradient-accent {
+    background: linear-gradient(135deg, #F2D468 0%, #E7D7A2 100%);
+  }
+  
+  /* Shadow utilities */
+  .shadow-soft {
+    box-shadow: 0 4px 20px rgba(99, 145, 242, 0.15);
+  }
+  
+  .shadow-card {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* Safe area utilities */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+}

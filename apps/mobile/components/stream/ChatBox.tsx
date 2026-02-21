@@ -12,7 +12,7 @@ import {
     Input,
     InputField,
     Pressable,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { Send, MessageCircle } from 'lucide-react-native';
 import { useChat } from '../../hooks/useChat';
 import { COLORS } from '../../constants/colors';

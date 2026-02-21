@@ -20,7 +20,7 @@ import {
     Center,
     Spinner,
     Image,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { ArrowLeft, Send } from "lucide-react-native";
 import { useAuthStore } from "@/store/authStore";
 import { messagesService, Message } from "@/lib/api/services/messages";

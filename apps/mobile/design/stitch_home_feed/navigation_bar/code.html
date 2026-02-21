@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BarterDash Live - Navigation</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Space Grotesk -->
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#007bff",
+                "background-light": "#f5f7f8",
+                "background-dark": "#0f1923",
+              },
+              fontFamily: {
+                "display": ["Space Grotesk"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            transition: all 0.2s ease;
+        }
+        .active-icon .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom height for the FAB lift effect */
+        .nav-height {
+            height: 72px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased">
+<!-- Main Content Container (Simulating an App View) -->
+<div class="relative flex flex-col min-h-screen max-w-md mx-auto bg-white dark:bg-slate-900 shadow-2xl overflow-hidden">
+<!-- App Header (Mock) -->
+<header class="flex items-center justify-between px-6 py-5 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xl">swap_horiz</span>
+</div>
+<h1 class="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">BarterDash Live</h1>
+</div>
+<button class="p-2 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg">
+<span class="material-symbols-outlined">search</span>
+</button>
+</header>
+<!-- Placeholder Content -->
+<main class="flex-1 p-6 space-y-6 overflow-y-auto">
+<div class="space-y-4">
+<div class="h-32 w-full bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center">
+<p class="text-slate-400 font-medium">Feed Content Placeholder</p>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="h-48 bg-slate-50 dark:bg-slate-800 rounded-xl p-4 flex flex-col justify-end">
+<div class="h-4 w-2/3 bg-slate-200 dark:bg-slate-700 rounded mb-2"></div>
+<div class="h-3 w-1/2 bg-slate-200 dark:bg-slate-700 rounded"></div>
+</div>
+<div class="h-48 bg-slate-50 dark:bg-slate-800 rounded-xl p-4 flex flex-col justify-end">
+<div class="h-4 w-2/3 bg-slate-200 dark:bg-slate-700 rounded mb-2"></div>
+<div class="h-3 w-1/2 bg-slate-200 dark:bg-slate-700 rounded"></div>
+</div>
+</div>
+<div class="h-32 w-full bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center">
+<p class="text-slate-400 font-medium">Recent Trades</p>
+</div>
+</div>
+</main>
+<!-- Bottom Tab Navigation -->
+<nav class="relative z-50">
+<!-- Navigation Background with Shadow and Border -->
+<div class="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] nav-height flex items-center px-4 pb-2">
+<div class="flex w-full items-center justify-between relative">
+<!-- Home Tab (Active) -->
+<a class="flex flex-1 flex-col items-center justify-center gap-1 active-icon text-primary group" href="#">
+<div class="relative flex items-center justify-center">
+<span class="material-symbols-outlined text-[26px]">home</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-wider">Home</span>
+</a>
+<!-- Search Tab -->
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary transition-colors" href="#">
+<div class="flex items-center justify-center">
+<span class="material-symbols-outlined text-[26px]">search</span>
+</div>
+<span class="text-[10px] font-medium uppercase tracking-wider">Search</span>
+</a>
+<!-- Sell Tab (Spacer for FAB) -->
+<div class="flex-1 flex justify-center -mt-12">
+<a class="flex flex-col items-center gap-2" href="#">
+<div class="w-14 h-14 bg-primary text-white rounded-xl shadow-lg shadow-primary/30 flex items-center justify-center ring-4 ring-white dark:ring-slate-900 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-3xl">add</span>
+</div>
+<span class="text-[10px] font-bold text-primary uppercase tracking-wider">Sell</span>
+</a>
+</div>
+<!-- Activity Tab -->
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary transition-colors" href="#">
+<div class="relative flex items-center justify-center">
+<span class="material-symbols-outlined text-[26px]">notifications</span>
+<!-- Optional Notification Dot -->
+<span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+</div>
+<span class="text-[10px] font-medium uppercase tracking-wider">Activity</span>
+</a>
+<!-- Profile Tab -->
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary transition-colors" href="#">
+<div class="flex items-center justify-center">
+<span class="material-symbols-outlined text-[26px]">person</span>
+</div>
+<span class="text-[10px] font-medium uppercase tracking-wider">Profile</span>
+</a>
+</div>
+</div>
+<!-- Safe Area Bottom (Simulated for Notch) -->
+<div class="h-6 bg-white dark:bg-slate-900"></div>
+</nav>
+</div>
+</body></html>

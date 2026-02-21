@@ -1,232 +1,104 @@
-
-import React, { useState } from "react";
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  StatusBar,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
-import { router } from "expo-router";
-import {
-  Text,
-  Input,
-  InputField,
-  Button,
-  ButtonText,
-  Pressable,
-} from "@gluestack-ui/themed";
-import { useAuthStore } from "@/store/authStore";
-import { COLORS } from "@/constants/colors";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { supabase } from "@/lib/supabase";
+import { useState } from 'react';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Text } from '@/components/ui/text';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function LoginScreen() {
-  const insets = useSafeAreaInsets();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const { signIn } = useAuthStore();
+  const { loginMutation } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const loading = loginMutation.isPending;
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Error", "Please fill in all fields");
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !password) {
+      Alert.alert('Missing fields', 'Enter both email and password.');
       return;
     }
 
-    setLoading(true);
     try {
-      await signIn(email, password);
+      await loginMutation.mutateAsync({
+        email: normalizedEmail,
+        password,
+      });
     } catch (error: any) {
-      Alert.alert("Login Failed", error.message || "Invalid credentials");
-    } finally {
-      setLoading(false);
+      Alert.alert('Login failed', error?.message || 'Invalid credentials.');
     }
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+    <SafeAreaView className="flex-1 bg-background">
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
+        className="flex-1"
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: Math.max(insets.bottom, 20) + 20 }
-          ]}
-          showsVerticalScrollIndicator={false}
+          className="flex-1"
+          contentContainerClassName="flex-grow justify-center px-6 pb-10"
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <View style={styles.content}>
-            {/* Header */}
-            <View style={styles.header}>
-              <Text style={styles.title}>Welcome back</Text>
-              <Text style={styles.subtitle}>Sign in to your account</Text>
-            </View>
+          <View className="rounded-3xl bg-card p-6">
+            <Text variant="h2">Welcome back</Text>
+            <Text color="secondary" className="mt-2">
+              Sign in to continue bidding and buying.
+            </Text>
 
-            {/* Form */}
-            <View style={styles.form}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Email</Text>
-                <Input
-                  variant="rounded"
-                  size="xl"
-                  style={styles.input}
-                  isDisabled={loading}
-                >
-                  <InputField
-                    placeholder="name@example.com"
-                    value={email}
-                    onChangeText={setEmail}
-                    autoCapitalize="none"
-                    keyboardType="email-address"
-                    color={COLORS.textPrimary}
-                    placeholderTextColor={COLORS.textMuted}
-                  />
-                </Input>
-              </View>
+            <Input
+              className="mt-6"
+              label="Email"
+              placeholder="name@example.com"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              editable={!loading}
+            />
+            <Input
+              className="mt-4"
+              label="Password"
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              editable={!loading}
+            />
 
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Password</Text>
-                <Input
-                  variant="rounded"
-                  size="xl"
-                  style={styles.input}
-                  isDisabled={loading}
-                >
-                  <InputField
-                    placeholder="Enter your password"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry
-                    color={COLORS.textPrimary}
-                    placeholderTextColor={COLORS.textMuted}
-                  />
-                </Input>
-                <Pressable
-                  onPress={() => router.push("/(auth)/forgot-password")}
-                  style={styles.forgotPassword}
-                >
-                  <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-                </Pressable>
-              </View>
+            <Button
+              variant="ghost"
+              label="Forgot password?"
+              onPress={() => router.push('/(auth)/forgot-password')}
+              className="mt-2 self-end px-0 py-0"
+              textClassName="text-sm text-primary"
+            />
 
-              <Button
-                size="xl"
-                variant="solid"
-                action="primary"
-                isDisabled={loading}
-                onPress={handleLogin}
-                style={styles.signInButton}
-              >
-                <ButtonText style={styles.signInText} textAlign="center">
-                  {loading ? "Signing in..." : "Sign In"}
-                </ButtonText>
-              </Button>
-            </View>
+            <Button
+              variant="primary"
+              size="lg"
+              onPress={handleLogin}
+              loading={loading}
+              label="Sign In"
+              className="mt-4 rounded-2xl"
+            />
+          </View>
 
-            {/* Footer */}
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>Don't have an account? </Text>
-              <Pressable onPress={() => router.push("/(auth)/register")}>
-                <Text style={styles.signUpText}>Sign Up</Text>
-              </Pressable>
-            </View>
+          <View className="mt-6 flex-row items-center justify-center">
+            <Text color="secondary">Don&apos;t have an account? </Text>
+            <Button
+              variant="ghost"
+              label="Register"
+              onPress={() => router.push('/(auth)/register')}
+              className="px-0 py-0"
+              textClassName="text-primary"
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.luxuryBlack,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: "center",
-  },
-  content: {
-    paddingHorizontal: 24,
-    width: "100%",
-    maxWidth: 500,
-    alignSelf: "center",
-  },
-  header: {
-    marginBottom: 40,
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: COLORS.textPrimary,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-  },
-  form: {
-    gap: 24,
-  },
-  inputGroup: {
-    gap: 8,
-  },
-  label: {
-    color: COLORS.textPrimary,
-    fontSize: 14,
-    fontWeight: "700",
-    marginLeft: 4,
-  },
-  input: {
-    backgroundColor: COLORS.luxuryBlackLight,
-    borderWidth: 1,
-    borderColor: COLORS.darkBorder,
-    height: 56,
-    borderRadius: 16,
-  },
-  forgotPassword: {
-    alignSelf: "flex-end",
-    marginTop: 8,
-  },
-  forgotPasswordText: {
-    color: COLORS.primaryGold,
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  signInButton: {
-    backgroundColor: COLORS.primaryGold,
-    height: 56,
-    borderRadius: 28,
-    marginTop: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 24,
-  },
-  signInText: {
-    color: COLORS.luxuryBlack,
-    fontSize: 16,
-    fontWeight: "800",
-    textAlign: "center",
-  },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 40,
-  },
-  footerText: {
-    color: COLORS.textSecondary,
-    fontSize: 14,
-  },
-  signUpText: {
-    color: COLORS.primaryGold,
-    fontSize: 14,
-    fontWeight: "700",
-  },
-});

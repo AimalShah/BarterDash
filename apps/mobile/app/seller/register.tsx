@@ -19,7 +19,7 @@ import {
   Button,
   ButtonText,
   Spinner,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { useToast } from "@/context/ToastContext";
 import { ChevronLeft } from "lucide-react-native";
 import { sellersService } from "@/lib/api/services/sellers";

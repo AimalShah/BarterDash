@@ -18,8 +18,8 @@ import {
   ArrowLeft,
 } from 'lucide-react-native';
 import { COLORS } from '../../constants/colors';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
-import { Button } from '../ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import { PaymentMethodManager } from './PaymentMethodManager';
 import { PaymentStatusTracker, PaymentStatus } from './PaymentStatusTracker';

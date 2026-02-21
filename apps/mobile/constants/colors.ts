@@ -1,121 +1,126 @@
 /**
- * BarterDash Brand Color Tokens
- * Single source of truth for all colors in the application
- * Dark luxury theme with gold accents
+ * BarterDash brand tokens aligned with ARCHITECTURE.md.
+ * Keep this file as the single color source for both new and legacy screens.
  */
 
-// Brand Colors - Gold
-export const primaryGold = '#F4C542';
-export const secondaryGold = '#E5A920';
-export const goldLight = '#F9D77A';
-export const goldDark = '#C99412';
+// Architecture palette
+export const primaryBlue = '#6391F2';
+export const softBlue = '#B2CBEC';
+export const blueLavender = '#9CA9DE';
+export const mainBackground = '#F2F1F8';
+export const cardWhite = '#FFFFFF';
+export const lightGrey = '#9C9AA6';
+export const primaryText = '#22232D';
+export const secondaryDark = '#2F354E';
+export const warmHighlight = '#F2D468';
+export const softGold = '#E7D7A2';
+export const mutedBlueGrey = '#768CAB';
 
-// Luxury Dark Colors
-export const luxuryBlack = '#0f0f0f';
-export const luxuryBlackLight = '#1a1a1a';
-export const luxuryBlackLighter = '#262626';
-export const navBackground = '#121212';
-export const cardBackground = '#1a1a1a';
-
-// Neutral Dark Colors
-export const darkSurface = '#2a2a2a';
-export const darkBorder = '#333333';
-export const darkBorderLight = 'rgba(255, 255, 255, 0.05)';
-
-// Text Colors
-export const textPrimary = '#ffffff';
-export const textSecondary = '#9ca3af';
-export const textMuted = '#6b7280';
-export const textDarkMuted = '#4b5563';
-
-// Status Colors
-export const liveIndicator = '#dc2626';
+// Status colors
 export const successGreen = '#22c55e';
-export const warningAmber = '#F59E0B';
 export const errorRed = '#EF4444';
+export const warningAmber = '#F59E0B';
+export const infoBlue = primaryBlue;
+
+// Legacy aliases (temporary during migration)
+export const primaryGold = primaryBlue;
+export const secondaryGold = blueLavender;
+export const goldLight = softBlue;
+export const goldDark = mutedBlueGrey;
+export const luxuryBlack = mainBackground;
+export const luxuryBlackLight = cardWhite;
+export const luxuryBlackLighter = '#E8ECF6';
+export const navBackground = cardWhite;
+export const cardBackground = cardWhite;
+export const darkSurface = '#EDEFF7';
+export const darkBorder = '#D5DBE9';
+export const darkBorderLight = '#E7EBF4';
+export const textPrimary = primaryText;
+export const textSecondary = secondaryDark;
+export const textMuted = lightGrey;
+export const textDarkMuted = mutedBlueGrey;
+export const liveIndicator = errorRed;
 
 // Gradients
-export const goldLinear = 'linear-gradient(135deg, #F4C542 0%, #E5A920 100%)';
-export const darkOverlay = 'linear-gradient(to top, #000000, rgba(0,0,0,0))';
+export const goldLinear = `linear-gradient(135deg, ${primaryBlue} 0%, ${blueLavender} 100%)`;
+export const darkOverlay = 'linear-gradient(to top, rgba(34,35,45,0.7), rgba(34,35,45,0))';
 
-// Glow Effects
-export const glowGold = 'rgba(244, 197, 66, 0.2)';
-export const glowGoldStrong = 'rgba(244, 197, 66, 0.4)';
+// Glow / overlays / shadows
+export const glowGold = 'rgba(99, 145, 242, 0.15)';
+export const glowGoldStrong = 'rgba(99, 145, 242, 0.25)';
+export const overlayStrong = 'rgba(34,35,45,0.8)';
+export const overlayMedium = 'rgba(34,35,45,0.5)';
+export const overlaySoft = 'rgba(34,35,45,0.25)';
 
-// Overlays & Shadows
-export const overlayStrong = 'rgba(0,0,0,0.8)';
-export const overlayMedium = 'rgba(0,0,0,0.5)';
-export const overlaySoft = 'rgba(0,0,0,0.25)';
-
-// Shadow styles for React Native
 export const shadowLight = {
-  shadowColor: '#000000',
+  shadowColor: '#22232D',
   shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: 0.3,
+  shadowOpacity: 0.12,
   shadowRadius: 2,
   elevation: 2,
 };
 
 export const shadowMedium = {
-  shadowColor: '#000000',
+  shadowColor: '#22232D',
   shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.4,
-  shadowRadius: 8,
+  shadowOpacity: 0.15,
+  shadowRadius: 10,
   elevation: 4,
 };
 
 export const shadowLarge = {
-  shadowColor: '#000000',
+  shadowColor: '#22232D',
   shadowOffset: { width: 0, height: 8 },
-  shadowOpacity: 0.5,
+  shadowOpacity: 0.2,
   shadowRadius: 16,
   elevation: 8,
 };
 
-// Complete color palette object for easy imports
 export const COLORS = {
-  // Brand
+  // Architecture names
+  primaryBlue,
+  softBlue,
+  blueLavender,
+  mainBackground,
+  cardWhite,
+  lightGrey,
+  primaryText,
+  secondaryDark,
+  warmHighlight,
+  softGold,
+  mutedBlueGrey,
+  infoBlue,
+
+  // Legacy names
   primaryGold,
   secondaryGold,
   goldLight,
   goldDark,
-  
-  // Dark Luxury
   luxuryBlack,
   luxuryBlackLight,
   luxuryBlackLighter,
   navBackground,
   cardBackground,
-  
-  // Surfaces
   darkSurface,
   darkBorder,
   darkBorderLight,
-  
-  // Text
   textPrimary,
   textSecondary,
   textMuted,
   textDarkMuted,
-  
-  // Status
   liveIndicator,
+
+  // Status / fx
   successGreen,
-  warningAmber,
   errorRed,
-  
-  // Gradients (strings for web, objects for RN)
+  warningAmber,
   goldLinear,
   darkOverlay,
-  
-  // Effects
   glowGold,
   glowGoldStrong,
   overlayStrong,
   overlayMedium,
   overlaySoft,
-  
-  // Shadows
   shadowLight,
   shadowMedium,
   shadowLarge,

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007bff",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1923",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center p-4">
+<div class="w-full max-w-md bg-white dark:bg-slate-900 shadow-xl rounded-xl overflow-hidden">
+<!-- Brand Header Section -->
+<div class="relative h-48 w-full bg-primary/10 flex flex-col items-center justify-center p-6 overflow-hidden">
+<div class="absolute inset-0 opacity-20" data-alt="Abstract community trading and bartering network pattern" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDO0FlZOySKVba6XV008JxYPVoFaNz9h_sdOk5r8escfeITGdIoGcIcuREU2bAaBFz2pZONHbvCi6dQpEhKFR_kA6OnV36fppuNvVvc6CJm8zyWC-XJrXYEQB8SVhL6sMWrAz0aFfm0low6MmmZ9cs_TTNEtsND10NTXwbLV7NXPpMuj6-Dck6-WV3epIKWb_pODPEtIYD2a1YZGR9VA1rK86R1q5ZZ2iGhrHK8vom22vjGt3EXOVLAUmHBQypikLvcwWB2PHl1UQn6"); background-size: cover; background-position: center;'></div>
+<div class="relative z-10 flex flex-col items-center">
+<div class="bg-primary text-white p-3 rounded-xl mb-3 shadow-lg">
+<span class="material-symbols-outlined text-3xl">swap_horiz</span>
+</div>
+<h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">BarterDash Live</h1>
+<p class="text-slate-600 dark:text-slate-400 text-sm font-medium">Trade Smarter. Live Better.</p>
+</div>
+</div>
+<div class="p-8">
+<!-- Auth Toggle -->
+<div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-lg mb-8">
+<button class="flex-1 py-2 text-sm font-semibold rounded-md bg-white dark:bg-slate-700 text-primary shadow-sm">
+                    Login
+                </button>
+<button class="flex-1 py-2 text-sm font-semibold rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
+                    Sign Up
+                </button>
+</div>
+<!-- Form Fields -->
+<form class="space-y-5">
+<div>
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5" for="email">Email Address</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">mail</span>
+<input class="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-slate-900 dark:text-white" id="email" placeholder="name@company.com" type="email"/>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-1.5">
+<label class="text-sm font-medium text-slate-700 dark:text-slate-300" for="password">Password</label>
+<a class="text-xs font-semibold text-primary hover:underline" href="#">Forgot?</a>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">lock</span>
+<input class="w-full pl-11 pr-11 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-slate-900 dark:text-white" id="password" placeholder="••••••••" type="password"/>
+<button class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" type="button">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+</div>
+</div>
+<button class="w-full py-3 px-4 bg-primary hover:bg-primary/90 text-white font-bold rounded-lg shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 group" type="submit">
+<span>Sign In to Dashboard</span>
+<span class="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</form>
+<!-- Divider -->
+<div class="relative my-8">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-slate-200 dark:border-slate-700"></div>
+</div>
+<div class="relative flex justify-center text-xs uppercase">
+<span class="bg-white dark:bg-slate-900 px-4 text-slate-500 dark:text-slate-400 font-medium tracking-wider">Or continue with</span>
+</div>
+</div>
+<!-- Social Logins -->
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-2 py-2.5 px-4 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<img alt="Google Logo" class="w-5 h-5" data-alt="Google colorful logo icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBY8rd_5VMfwmDMwKVZgBT-4fn91LX1vtC-kTS_LrVaQQaJr_GI5tJDyBXgwZYSESqdMa6AHMNLQVxfpFY4Se79yfCScbdw5IHV0iC6_Rk20cDZpJZzp4lvTrMGu0r3bkErtsmzi__fhmcm_0Qvngz6B6oeFkQpch0Y6NaeMVxspYbccfw7FAdoosJLETfsFXsPlS7NqfT-gCzxO7qNc0StAkZq08BF6yZChpDGlfJfdy_LXCezfFuZwB8XGw-5nyexHPtj-vwCrg2D"/>
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Google</span>
+</button>
+<button class="flex items-center justify-center gap-2 py-2.5 px-4 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-xl text-slate-900 dark:text-white">ios</span>
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Apple</span>
+</button>
+</div>
+<!-- Footer Info -->
+<div class="mt-8 text-center space-y-4">
+<p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    By continuing, you agree to BarterDash's 
+                    <a class="text-primary hover:underline font-medium" href="#">Terms of Service</a> and 
+                    <a class="text-primary hover:underline font-medium" href="#">Privacy Policy</a>.
+                </p>
+<div class="flex items-center justify-center gap-1.5 text-slate-400 dark:text-slate-500">
+<span class="material-symbols-outlined text-sm">shield_lock</span>
+<span class="text-[10px] font-medium uppercase tracking-widest">End-to-end Encrypted Secure Login</span>
+</div>
+</div>
+</div>
+</div>
+</body></html>

@@ -1,395 +1,117 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { View, StatusBar, ActivityIndicator, Alert } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
-import {
-  Box,
-  Heading,
-  Text,
-  VStack,
-  HStack,
-  Button,
-  ButtonText,
-  Center,
-  Pressable,
-} from "@gluestack-ui/themed";
-import {
-  Mail,
-  ArrowLeft,
-  CheckCircle2,
-} from "lucide-react-native";
-import { supabase } from "@/lib/supabase";
-import apiClient from "@/lib/api/client";
-import { COLORS } from "@/constants/colors";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useAuthStore } from "@/store/authStore";
-import { getEmailVerificationRedirectUri } from "@/lib/auth/emailVerification";
+import { useEffect, useState } from 'react';
+import { Alert, View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Mail, ShieldCheck } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Text } from '@/components/ui/text';
+import { useAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/store/authStore';
+import { COLORS } from '@/constants/colors';
 
 export default function VerifyEmailScreen() {
-  const insets = useSafeAreaInsets();
   const { email: emailParam } = useLocalSearchParams<{ email?: string }>();
-  const [email, setEmail] = useState(emailParam || "");
-  const [isResending, setIsResending] = useState(false);
-  const [isChecking, setIsChecking] = useState(false);
-  const [countdown, setCountdown] = useState(60);
-  const [canResend, setCanResend] = useState(false);
-  const [isAutoChecking, setIsAutoChecking] = useState(false);
+  const { resendVerificationMutation, verificationStatusMutation } = useAuth();
   const { fetchProfile } = useAuthStore();
-  const getActiveSession = useCallback(async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    return session;
-  }, []);
-
-  // Auto-check for email verification every 3 seconds via backend API
-  useEffect(() => {
-    const checkVerification = async () => {
-      try {
-        const session = await getActiveSession();
-        if (!session?.access_token) {
-          return;
-        }
-
-        setIsAutoChecking(true);
-
-        // Call backend API to check verification status
-        const response = await apiClient.get('/auth/verification-status');
-        const { emailVerified } = response.data.data;
-
-        if (emailVerified) {
-          // Email verified! Auto-redirect to profile setup
-          console.log("✅ Email verified via backend! Auto-redirecting...");
-          await fetchProfile();
-          router.replace("/(onboarding)/profile-setup");
-        }
-      } catch (error) {
-        console.error("Auto-check error:", error);
-        // Silently fail - will retry in 3 seconds
-      } finally {
-        setIsAutoChecking(false);
-      }
-    };
-
-    // Check immediately on mount
-    checkVerification();
-
-    // Then check every 3 seconds
-    const interval = setInterval(checkVerification, 3000);
-
-    return () => clearInterval(interval);
-  }, [fetchProfile, getActiveSession, router]);
+  const [email] = useState(emailParam || '');
+  const [otpCode, setOtpCode] = useState('');
+  const [countdown, setCountdown] = useState(60);
 
   useEffect(() => {
-    if (countdown > 0 && !canResend) {
-      const timer = setTimeout(() => {
-        setCountdown(countdown - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else if (countdown === 0) {
-      setCanResend(true);
-    }
-  }, [countdown, canResend]);
+    if (countdown <= 0) return;
+    const timer = setTimeout(() => setCountdown((value) => value - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [countdown]);
 
   const handleResendEmail = async () => {
-    if (!email || !canResend) return;
+    if (!email || countdown > 0 || resendVerificationMutation.isPending) return;
 
-    setIsResending(true);
     try {
-      const { error } = await supabase.auth.resend({
-        type: "signup",
-        email: email,
-        options: {
-          emailRedirectTo: getEmailVerificationRedirectUri(),
-        },
-      });
-
-      if (error) throw error;
-
-      Alert.alert(
-        "Email Sent",
-        "A new verification email has been sent to your inbox.",
-      );
-
-      // Reset countdown
-      setCanResend(false);
+      await resendVerificationMutation.mutateAsync({ email });
       setCountdown(60);
+      Alert.alert('Email sent', 'A new verification email was sent to your inbox.');
     } catch (error: any) {
-      console.error("Resend error:", error);
-      Alert.alert(
-        "Error",
-        error.message ||
-          "Failed to resend verification email. Please try again.",
-      );
-    } finally {
-      setIsResending(false);
+      Alert.alert('Unable to resend', error?.message || 'Please try again.');
     }
   };
 
-  const handleContinue = async () => {
-    setIsChecking(true);
+  const handleVerifyEmail = async () => {
     try {
-      const session = await getActiveSession();
-      if (!session?.access_token) {
+      const isVerified = await verificationStatusMutation.mutateAsync();
+      if (!isVerified) {
         Alert.alert(
-          "Sign In Required",
-          "After verifying your email, sign in to continue onboarding.",
-          [
-            { text: "Cancel", style: "cancel" },
-            {
-              text: "Go to Login",
-              onPress: () => router.replace("/(auth)/login"),
-            },
-          ],
+          'Not verified yet',
+          'Please open the verification link from your email and try again.'
         );
         return;
       }
 
-      // Check verification status via backend API
-      // Backend syncs with Supabase and database
-      const response = await apiClient.get('/auth/verification-status');
-      const { emailVerified } = response.data.data;
-
-      if (emailVerified) {
-        // Email is verified, fetch profile and redirect
-        await fetchProfile();
-
-        Alert.alert(
-          "Email Verified!",
-          "Your email has been verified successfully. Let's set up your profile.",
-          [
-            {
-              text: "Continue",
-              onPress: () => {
-                router.replace("/(onboarding)/profile-setup");
-              },
-            },
-          ],
-        );
-      } else {
-        // Email not verified yet
-        Alert.alert(
-          "Email Not Verified",
-          "Please check your email and click the verification link first. Make sure to check your spam folder.",
-        );
-      }
+      await fetchProfile(true);
+      router.replace('/(onboarding)/profile-setup');
     } catch (error: any) {
-      console.error("Check verification error:", error);
-      Alert.alert(
-        "Error",
-        error.message ||
-          "Failed to check verification status. Please try signing in.",
-      );
-    } finally {
-      setIsChecking(false);
+      Alert.alert('Verification check failed', error?.message || 'Please try again.');
     }
   };
 
-  const handleBackToLogin = () => {
-    router.replace("/(auth)/login");
-  };
-
   return (
-    <View style={{ flex: 1, backgroundColor: COLORS.luxuryBlack }}>
-      <StatusBar barStyle="light-content" />
-      <View style={{ height: insets.top }} />
+    <SafeAreaView className="flex-1 bg-background px-6">
+      <View className="flex-1 justify-center">
+        <View className="rounded-3xl bg-card p-6">
+          <View className="mb-5 h-14 w-14 items-center justify-center rounded-2xl bg-primary-soft">
+            <Mail size={24} color={COLORS.primaryBlue} />
+          </View>
 
-      <Box flex={1} px="$8" justifyContent="center">
-        <VStack space="xl" alignItems="center">
-          {/* Icon */}
-          <Center
-            h={100}
-            w={100}
-            rounded={28}
-            bg={COLORS.luxuryBlackLight}
-            borderWidth={1}
-            borderColor={COLORS.darkBorder}
-            mb="$4"
-          >
-            <Mail size={48} color={COLORS.primaryGold} />
-          </Center>
-
-          {/* Title */}
-          <Heading
-            size="3xl"
-            color={COLORS.textPrimary}
-            fontWeight="$black"
-            textAlign="center"
-          >
-            Verify Your Email
-          </Heading>
-
-          {/* Description */}
-          <Text
-            color={COLORS.textSecondary}
-            size="md"
-            textAlign="center"
-            lineHeight="$xl"
-            px="$4"
-          >
-            We've sent a verification link to{" "}
-            <Text color={COLORS.textPrimary} fontWeight="$bold">
-              {email || "your email"}
-            </Text>
-            . Please check your inbox and click the link to verify your account.
+          <Text variant="h2">Verify your email</Text>
+          <Text color="secondary" className="mt-2">
+            We sent a verification link to {email || 'your email'}.
           </Text>
 
-          {/* Auto-checking indicator */}
-          {isAutoChecking && (
-            <HStack space="sm" alignItems="center" mt="$2">
-              <ActivityIndicator size="small" color={COLORS.primaryGold} />
-              <Text color={COLORS.textMuted} size="sm">
-                Checking verification status...
-              </Text>
-            </HStack>
-          )}
+          <Input
+            className="mt-6"
+            label="Verification code (optional)"
+            placeholder="Enter 6-digit code"
+            value={otpCode}
+            onChangeText={setOtpCode}
+            keyboardType="numeric"
+            maxLength={6}
+          />
 
-          {/* Instructions */}
-          <Box
-            bg={COLORS.luxuryBlackLight}
-            borderWidth={1}
-            borderColor={COLORS.darkBorder}
-            rounded={20}
-            p="$5"
-            w="$full"
-            mt="$4"
-          >
-            <VStack space="md">
-              <HStack space="sm" alignItems="flex-start">
-                <CheckCircle2
-                  size={20}
-                  color={COLORS.successGreen}
-                  style={{ marginTop: 2 }}
-                />
-                <Text color={COLORS.textSecondary} size="sm" flex={1}>
-                  Check your spam/junk folder if you don't see it
-                </Text>
-              </HStack>
-              <HStack space="sm" alignItems="flex-start">
-                <CheckCircle2
-                  size={20}
-                  color={COLORS.successGreen}
-                  style={{ marginTop: 2 }}
-                />
-                <Text color={COLORS.textSecondary} size="sm" flex={1}>
-                  The link expires in 24 hours
-                </Text>
-              </HStack>
-              <HStack space="sm" alignItems="flex-start">
-                <CheckCircle2
-                  size={20}
-                  color={COLORS.successGreen}
-                  style={{ marginTop: 2 }}
-                />
-                <Text color={COLORS.textSecondary} size="sm" flex={1}>
-                  The app checks automatically every 3 seconds
-                </Text>
-              </HStack>
-            </VStack>
-          </Box>
-        </VStack>
-      </Box>
-
-      {/* Bottom Actions */}
-      <Box
-        px="$8"
-        pb={Math.max(insets.bottom, 24)}
-        pt="$6"
-        borderTopWidth={1}
-        borderColor={COLORS.darkBorder}
-        bg={COLORS.luxuryBlack}
-      >
-        <VStack space="md">
-          {/* Continue Button - Check if email is verified */}
-          <Button
-            size="xl"
-            variant="solid"
-            onPress={handleContinue}
-            bg={COLORS.successGreen}
-            rounded="$full"
-            h={56}
-            px="$6"
-            alignItems="center"
-            justifyContent="center"
-            isDisabled={isChecking}
-            sx={{
-              ":active": { opacity: 0.9 },
-            }}
-          >
-            {isChecking ? (
-              <ActivityIndicator color={COLORS.luxuryBlack} size="small" />
-            ) : (
-              <>
-                {/* <LogIn size={20} color={COLORS.luxuryBlack} style={{ marginRight: 8 }} /> */}
-                <ButtonText
-                  fontWeight="$bold"
-                  color={COLORS.luxuryBlack}
-                  textAlign="center"
-                  justifyContent="center"
-                  alignItems="center"
-                >
-                  I've Verified My Email
-                </ButtonText>
-              </>
-            )}
-          </Button>
-
-          <Button
-            size="xl"
-            variant="outline"
-            onPress={handleResendEmail}
-            borderColor={canResend ? COLORS.primaryGold : COLORS.darkBorder}
-            rounded="$full"
-            h={56}
-            px="$6"
-            isDisabled={!canResend || isResending}
-            sx={{
-              ":active": { opacity: 0.9 },
-            }}
-          >
-            {isResending ? (
-              <ActivityIndicator color={COLORS.textPrimary} size="small" />
-            ) : (
-              <>
-                {/*
-                <RefreshCw
-                  size={20}
-                  color={canResend ? COLORS.primaryGold : COLORS.textMuted}
-                  style={{ marginRight: 8 }}
-                /> */}
-                <ButtonText
-                  fontWeight="$bold"
-                  color={canResend ? COLORS.primaryGold : COLORS.textMuted}
-                  textAlign="center"
-                >
-                  {canResend
-                    ? "Resend Verification Email"
-                    : `Resend in ${countdown}s`}
-                </ButtonText>
-              </>
-            )}
-          </Button>
-
-          <Pressable
-            onPress={handleBackToLogin}
-            h={48}
-            justifyContent="center"
-            alignItems="center"
-            flexDirection="row"
-            sx={{
-              ":active": { opacity: 0.7 },
-            }}
-          >
-            <ArrowLeft
-              size={18}
-              color={COLORS.textSecondary}
-              style={{ marginRight: 8 }}
-            />
-            <Text color={COLORS.textSecondary} fontWeight="$bold" size="sm">
-              Back to Login
+          <View className="mt-3 flex-row items-start rounded-2xl bg-primary-soft p-3">
+            <ShieldCheck size={16} color={COLORS.secondaryDark} />
+            <Text color="secondary" className="ml-2 flex-1 text-sm">
+              If code entry is unavailable, use the email link then tap the verify button.
             </Text>
-          </Pressable>
-        </VStack>
-      </Box>
-    </View>
+          </View>
+
+          <Button
+            variant="primary"
+            size="lg"
+            onPress={handleVerifyEmail}
+            loading={verificationStatusMutation.isPending}
+            label="I've Verified My Email"
+            className="mt-5 rounded-2xl"
+          />
+
+          <Button
+            variant="outline"
+            size="lg"
+            onPress={handleResendEmail}
+            disabled={countdown > 0 || resendVerificationMutation.isPending}
+            loading={resendVerificationMutation.isPending}
+            label={countdown > 0 ? `Resend in ${countdown}s` : 'Resend Email'}
+            className="mt-3 rounded-2xl"
+          />
+
+          <Button
+            variant="ghost"
+            label="Back to Login"
+            onPress={() => router.replace('/(auth)/login')}
+            className="mt-4 self-center px-0 py-0"
+            textClassName="text-primary"
+          />
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BarterDash Live - Auction Session</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007bff",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1923",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 overflow-hidden">
+<!-- Main Full-Screen Video Container -->
+<main class="relative h-screen w-full overflow-hidden bg-black">
+<!-- Live Seller Video Background (Placeholder) -->
+<div class="absolute inset-0 z-0 bg-cover bg-center" data-alt="Seller showcasing a rare collectible trading card under professional lighting" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAjoDWAIPzTbhLn4VjSLpEnZ5G1WQFjpSCATWaOZHy02mdG62I_wQIj8E_GSiMa1dn0vPDaGEBxzJChAxfcwVTfDcxM__8awBV7xmncTLdLImxTH64fpsO4rqw7RSBnbo2atxvE-JBM2RVU6Aq6avKYpnE8W2Fi7GYtSgHcHC1B_Ly-LRSOgS17BiqxUt7SeU7W_eOELF__aZgaObAhNsuG2QV8CjaChrcxpCk-RR3GwF8-Lk9vj-5PZ5QghrejY8byuo2ohfOcQO_5');">
+<div class="absolute inset-0 bg-black/20"></div>
+<!-- Top and Bottom Gradients for Legibility -->
+<div class="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/60 to-transparent"></div>
+<div class="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black/80 to-transparent"></div>
+</div>
+<!-- Header Overlay -->
+<header class="absolute top-0 left-0 right-0 z-10 p-4 flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="flex items-center bg-red-600 text-white px-3 py-1 rounded-lg font-bold text-xs uppercase tracking-widest">
+<span class="relative flex h-2 w-2 mr-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+</span>
+                    Live
+                </div>
+<div class="bg-black/40 backdrop-blur-md px-3 py-1 rounded-lg flex items-center gap-2 border border-white/10">
+<span class="material-symbols-outlined text-white text-sm">visibility</span>
+<span class="text-white text-sm font-medium leading-none">1.2k</span>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 flex items-center justify-center bg-black/40 backdrop-blur-md text-white rounded-lg border border-white/10">
+<span class="material-symbols-outlined">share</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center bg-black/40 backdrop-blur-md text-white rounded-lg border border-white/10">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</header>
+<!-- Auction Stats Top Center -->
+<div class="absolute top-20 left-1/2 -translate-x-1/2 z-10 w-full max-w-xs flex flex-col gap-2">
+<div class="bg-white/90 backdrop-blur-xl p-4 rounded-xl shadow-2xl flex flex-col items-center">
+<p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">Time Remaining</p>
+<div class="flex gap-2 mb-3">
+<div class="flex flex-col items-center">
+<div class="bg-slate-100 px-3 py-2 rounded-lg font-bold text-2xl text-primary leading-none">00</div>
+</div>
+<div class="text-2xl font-bold text-slate-300">:</div>
+<div class="flex flex-col items-center">
+<div class="bg-slate-100 px-3 py-2 rounded-lg font-bold text-2xl text-primary leading-none">45</div>
+</div>
+</div>
+<div class="w-full h-px bg-slate-200 mb-3"></div>
+<p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">Current Highest Bid</p>
+<p class="text-3xl font-bold text-slate-900 tracking-tight">$450.00</p>
+</div>
+</div>
+<!-- Scrolling Chat (Bottom Left) -->
+<div class="absolute bottom-24 left-4 z-10 w-72 max-h-64 overflow-hidden flex flex-col gap-2 pointer-events-none"><div class="flex flex-col gap-2.5">
+<!-- Message 1 -->
+<div class="flex gap-3 items-start bg-black/40 backdrop-blur-md p-2.5 rounded-xl border border-white/10 max-w-fit">
+<div class="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0 shadow-lg">C8</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-white/50 mb-0.5">Collector88</span>
+<p class="text-xs text-white leading-relaxed">Is there any surface damage?</p>
+</div>
+</div>
+<!-- Message 2 -->
+<div class="flex gap-3 items-start bg-black/40 backdrop-blur-md p-2.5 rounded-xl border border-white/10 max-w-fit">
+<div class="w-7 h-7 rounded-full bg-gradient-to-br from-slate-500 to-slate-700 flex items-center justify-center text-[10px] font-bold text-white shrink-0 shadow-lg">AM</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-white/50 mb-0.5">AuctionMaster</span>
+<p class="text-xs text-white leading-relaxed">Centering looks like a 10!</p>
+</div>
+</div>
+<!-- System Message -->
+<div class="flex gap-2 items-center bg-primary/30 backdrop-blur-md px-4 py-1.5 rounded-full border border-primary/40 self-start shadow-lg shadow-primary/10">
+<span class="material-symbols-outlined text-[14px] text-white">gavel</span>
+<span class="text-[10px] font-bold text-white uppercase tracking-wider">@PokeFan bid $450.00</span>
+</div>
+</div></div>
+<!-- Product & Action Area (Bottom Right) -->
+<div class="absolute bottom-4 right-4 z-10 flex flex-col items-end gap-4 max-w-xs w-full"><div class="flex flex-col items-end gap-3 w-72">
+<!-- Reactions -->
+<button class="w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center border border-white/20 text-white shadow-2xl hover:scale-105 transition-transform group">
+<span class="material-symbols-outlined group-active:scale-125 transition-transform" style="font-variation-settings: 'FILL' 1; color: #ff4b4b;">favorite</span>
+</button>
+<!-- Product Card -->
+<div class="flex items-center gap-3 bg-white/95 backdrop-blur-xl p-2.5 rounded-2xl shadow-2xl w-full border border-white/20">
+<div class="w-16 h-16 rounded-xl bg-cover bg-center shrink-0 shadow-md ring-1 ring-black/5" data-alt="Product Thumbnail" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBY5c51j4ucdVokMj7TOLnUNd8FkqSzL9ShfBbqXwO41tAV81m-T2UeWwEboiBPcXbyZEjTJHxylISQi-6RGgtWyqBvQAuBys-MkeeHMfQ-xf-iQKDWAvSYoM47D2wvFsyJIVr8ny5PG6E_a8TLBpLs4h6jGMSLNOkXShAzJmO6yJUnq-O2qm_F5snoy_PcKJ5z1hqstOu-bgvb7PDGFlW_egcPFgfbrGdPihwe48OGY7sJmMTZtRahHbr-M44yuEe0YPp1W0gNz32u');"></div>
+<div class="flex-1 min-w-0">
+<p class="text-[11px] font-bold text-slate-900 truncate uppercase tracking-tight">Charizard Holo - PSA 9</p>
+<p class="text-[10px] text-slate-500 font-medium mb-1">Starting: $100.00</p>
+<button class="text-primary text-[9px] font-bold flex items-center uppercase tracking-[0.1em] hover:opacity-80">
+        Details <span class="material-symbols-outlined text-[14px] ml-0.5">arrow_right_alt</span>
+</button>
+</div>
+</div>
+<!-- Bid Action Area -->
+<div class="flex gap-2 w-full">
+<button class="flex-[3] bg-primary hover:bg-primary/90 text-white py-4 rounded-2xl font-bold text-sm tracking-widest shadow-[0_8px_20px_rgba(0,123,255,0.4)] active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 border border-white/10 uppercase">
+<span class="material-symbols-outlined text-lg">gavel</span>
+      Bid $460
+    </button>
+<button class="flex-1 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl shadow-xl flex items-center justify-center border border-white/5 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-xl">add</span>
+</button>
+</div>
+</div></div>
+<!-- Chat Input Placeholder -->
+<div class="absolute bottom-4 left-4 z-10 right-auto"><div class="flex items-center bg-black/60 backdrop-blur-xl rounded-2xl px-5 py-3.5 border border-white/10 w-72 shadow-2xl transition-all focus-within:border-primary/50">
+<input class="bg-transparent border-none text-white text-sm focus:ring-0 placeholder:text-white/30 w-full p-0" placeholder="Join the conversation..." type="text"/>
+<button class="text-white/40 hover:text-primary transition-colors ml-3">
+<span class="material-symbols-outlined text-xl">send</span>
+</button>
+</div></div>
+</main>
+</body></html>

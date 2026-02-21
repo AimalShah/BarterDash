@@ -1,221 +1,163 @@
-import React, { useState } from "react";
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  StatusBar,
-  ScrollView,
-} from "react-native";
-import { router } from "expo-router";
-import {
-  Box,
-  Heading,
-  Text,
-  VStack,
-  Input,
-  InputField,
-  Button,
-  ButtonText,
-  Center,
-  Pressable,
-  FormControl,
-  FormControlLabel,
-  FormControlLabelText,
-} from "@gluestack-ui/themed";
-import { supabase } from "../../lib/supabase";
-import { COLORS } from "../../constants/colors";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useState } from 'react';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
+import { router } from 'expo-router';
+import { Check } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Text } from '@/components/ui/text';
+import { COLORS } from '@/constants/colors';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function RegisterScreen() {
-  const insets = useSafeAreaInsets();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const { registerMutation } = useAuth();
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const loading = registerMutation.isPending;
 
   const handleRegister = async () => {
-    if (!email || !password) {
-      Alert.alert("Error", "Please fill in all fields");
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedName = fullName.trim();
+
+    if (!normalizedName || !normalizedEmail || !password || !confirmPassword) {
+      Alert.alert('Missing fields', 'Please complete all required fields.');
       return;
     }
 
-    setLoading(true);
+    if (password !== confirmPassword) {
+      Alert.alert('Password mismatch', 'Password and confirmation must match.');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Weak password', 'Password must be at least 6 characters.');
+      return;
+    }
+
+    if (!acceptedTerms) {
+      Alert.alert('Terms required', 'You must accept terms to continue.');
+      return;
+    }
+
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
+      const data = await registerMutation.mutateAsync({
+        email: normalizedEmail,
         password,
+        username: normalizedName,
       });
 
-      if (error) throw error;
-
       if (data.session) {
-        router.replace("/(onboarding)/profile-setup");
+        router.replace('/(onboarding)/profile-setup');
         return;
       }
 
-      // If session is not returned, try immediate login (email verification disabled flow)
-      const { data: signInData, error: signInError } =
-        await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-      if (signInError || !signInData.session) {
-        Alert.alert(
-          "Account Created",
-          "Your account was created. Please sign in to continue.",
-          [{ text: "OK", onPress: () => router.replace("/(auth)/login") }],
-        );
-        return;
-      }
-
-      router.replace("/(onboarding)/profile-setup");
+      router.replace({
+        pathname: '/(auth)/verify-email',
+        params: { email: normalizedEmail },
+      });
     } catch (error: any) {
-      Alert.alert("Registration Error", error.message);
-    } finally {
-      setLoading(false);
+      Alert.alert('Registration failed', error?.message || 'Could not create account.');
     }
   };
 
   return (
-    <Box flex={1} bg={COLORS.luxuryBlack}>
-      <StatusBar barStyle="light-content" />
+    <SafeAreaView className="flex-1 bg-background">
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === "ios" ? insets.top : 0}
+        className="flex-1"
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{
-            flexGrow: 1,
-            // Removed heavy top padding to allow justifyContent center to work properly
-            paddingBottom: Math.max(insets.bottom, 16) + 24,
-          }}
+          className="flex-1"
+          contentContainerClassName="flex-grow justify-center px-6 pb-10"
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Added flex={1} and justifyContent='center' here to perfectly center the form */}
-          <Box px="$8" flex={1} justifyContent="center">
-            <VStack space="xl" w="$full">
-              {/* Header: Centered for better visual balance */}
-              <VStack space="xs" mb="$4" alignItems="center">
-                <Heading
-                  size="3xl"
-                  color={COLORS.textPrimary}
-                  fontWeight="$black"
-                  textAlign="center"
-                >
-                  Create Account
-                </Heading>
-                <Text color={COLORS.textSecondary} size="md" textAlign="center">
-                  Join the live shopping revolution
-                </Text>
-              </VStack>
+          <View className="rounded-3xl bg-card p-6">
+            <Text variant="h2">Create account</Text>
+            <Text color="secondary" className="mt-2">
+              Set up your buyer profile to start shopping live.
+            </Text>
 
-              <VStack space="xl">
-                <FormControl>
-                  <FormControlLabel mb="$2">
-                    <FormControlLabelText
-                      color={COLORS.textPrimary}
-                      fontWeight="$bold"
-                      size="sm"
-                    >
-                      Email Address
-                    </FormControlLabelText>
-                  </FormControlLabel>
-                  <Input
-                    variant="outline"
-                    h={56}
-                    borderColor={COLORS.darkBorder}
-                    rounded="$xl"
-                    mb="$2"
-                    justifyContent="center"
-                    bg={COLORS.luxuryBlackLight}
-                    sx={{ ":focus": { borderColor: COLORS.primaryGold } }}
-                  >
-                    <InputField
-                      placeholder="name@example.com"
-                      color={COLORS.textPrimary}
-                      value={email}
-                      onChangeText={setEmail}
-                      autoCapitalize="none"
-                      keyboardType="email-address"
-                      placeholderTextColor={COLORS.textMuted}
-                      style={{ paddingLeft: 16 }}
-                    />
-                  </Input>
-                </FormControl>
+            <Input
+              className="mt-6"
+              label="Full name"
+              placeholder="Jane Doe"
+              value={fullName}
+              onChangeText={setFullName}
+              editable={!loading}
+            />
+            <Input
+              className="mt-4"
+              label="Email"
+              placeholder="name@example.com"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              editable={!loading}
+            />
+            <Input
+              className="mt-4"
+              label="Password"
+              placeholder="Create a password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              editable={!loading}
+            />
+            <Input
+              className="mt-4"
+              label="Confirm password"
+              placeholder="Confirm your password"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              editable={!loading}
+            />
 
-                <FormControl>
-                  <FormControlLabel mb="$2">
-                    <FormControlLabelText
-                      color={COLORS.textPrimary}
-                      fontWeight="$bold"
-                      size="sm"
-                    >
-                      Password
-                    </FormControlLabelText>
-                  </FormControlLabel>
-                  <Input
-                    variant="outline"
-                    h={56}
-                    borderColor={COLORS.darkBorder}
-                    rounded="$xl"
-                    justifyContent="center"
-                    bg={COLORS.luxuryBlackLight}
-                    sx={{ ":focus": { borderColor: COLORS.primaryGold } }}
-                  >
-                    <InputField
-                      placeholder="••••••••"
-                      color={COLORS.textPrimary}
-                      value={password}
-                      onChangeText={setPassword}
-                      secureTextEntry
-                      autoCapitalize="none"
-                      placeholderTextColor={COLORS.textMuted}
-                      style={{ paddingLeft: 16 }}
-                    />
-                  </Input>
-                </FormControl>
+            <Pressable
+              onPress={() => setAcceptedTerms((value) => !value)}
+              className="mt-4 flex-row items-center"
+            >
+              <View
+                className={`mr-3 h-5 w-5 items-center justify-center rounded border ${
+                  acceptedTerms ? 'border-primary bg-primary' : 'border-border bg-white'
+                }`}
+              >
+                {acceptedTerms ? <Check size={13} color={COLORS.cardWhite} /> : null}
+              </View>
+              <Text color="secondary" className="flex-1 text-sm">
+                I agree to the Terms and Privacy Policy.
+              </Text>
+            </Pressable>
 
-                <Button
-                  size="xl"
-                  variant="solid"
-                  isDisabled={loading}
-                  onPress={handleRegister}
-                  bg={COLORS.primaryGold}
-                  rounded="$full"
-                  h={56}
-                  flex={1}
-                  justifyContent="center"
-                  mt="$4"
-                  p="$1"
-                  sx={{ ":active": { opacity: 0.9 } }}
-                >
-                  <ButtonText
-                    fontWeight="$bold"
-                    color={COLORS.luxuryBlack}
-                    textAlign="center"
-                  >
-                    {loading ? "Creating Account..." : "Sign Up"}
-                  </ButtonText>
-                </Button>
-              </VStack>
+            <Button
+              variant="primary"
+              size="lg"
+              onPress={handleRegister}
+              loading={loading}
+              label="Create Account"
+              className="mt-5 rounded-2xl"
+            />
+          </View>
 
-              <Center flexDirection="row" mt="$8">
-                <Text color={COLORS.textSecondary} size="sm">
-                  Already have an account?{" "}
-                </Text>
-                <Pressable onPress={() => router.push("/(auth)/login")}>
-                  <Text color={COLORS.primaryGold} fontWeight="$bold" size="sm">
-                    Sign In
-                  </Text>
-                </Pressable>
-              </Center>
-            </VStack>
-          </Box>
+          <View className="mt-6 flex-row items-center justify-center">
+            <Text color="secondary">Already have an account? </Text>
+            <Button
+              variant="ghost"
+              label="Sign In"
+              onPress={() => router.push('/(auth)/login')}
+              className="px-0 py-0"
+              textClassName="text-primary"
+            />
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </Box>
+    </SafeAreaView>
   );
 }

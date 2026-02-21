@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BarterDash Live - Auction Session</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007bff",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1923",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 overflow-hidden">
+<!-- Main Full-Screen Video Container -->
+<main class="relative h-screen w-full overflow-hidden bg-black">
+<!-- Live Seller Video Background (Placeholder) -->
+<div class="absolute inset-0 z-0 bg-cover bg-center" data-alt="Seller showcasing a rare collectible trading card under professional lighting" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAjoDWAIPzTbhLn4VjSLpEnZ5G1WQFjpSCATWaOZHy02mdG62I_wQIj8E_GSiMa1dn0vPDaGEBxzJChAxfcwVTfDcxM__8awBV7xmncTLdLImxTH64fpsO4rqw7RSBnbo2atxvE-JBM2RVU6Aq6avKYpnE8W2Fi7GYtSgHcHC1B_Ly-LRSOgS17BiqxUt7SeU7W_eOELF__aZgaObAhNsuG2QV8CjaChrcxpCk-RR3GwF8-Lk9vj-5PZ5QghrejY8byuo2ohfOcQO_5');">
+<div class="absolute inset-0 bg-black/20"></div>
+<!-- Top and Bottom Gradients for Legibility -->
+<div class="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/60 to-transparent"></div>
+<div class="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black/80 to-transparent"></div>
+</div>
+<!-- Header Overlay -->
+<header class="absolute top-0 left-0 right-0 z-10 p-4 flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="flex items-center bg-red-600 text-white px-3 py-1 rounded-lg font-bold text-xs uppercase tracking-widest">
+<span class="relative flex h-2 w-2 mr-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+</span>
+                    Live
+                </div>
+<div class="bg-black/40 backdrop-blur-md px-3 py-1 rounded-lg flex items-center gap-2 border border-white/10">
+<span class="material-symbols-outlined text-white text-sm">visibility</span>
+<span class="text-white text-sm font-medium leading-none">1.2k</span>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 flex items-center justify-center bg-black/40 backdrop-blur-md text-white rounded-lg border border-white/10">
+<span class="material-symbols-outlined">share</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center bg-black/40 backdrop-blur-md text-white rounded-lg border border-white/10">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</header>
+<!-- Auction Stats Top Center -->
+<div class="absolute top-16 left-4 z-10 w-44 flex flex-col gap-2">
+<div class="bg-black/40 backdrop-blur-xl p-3 rounded-xl border border-white/10 flex flex-col">
+<div class="flex justify-between items-center mb-1">
+<p class="text-white/50 text-[8px] font-bold uppercase tracking-widest">Time Remaining</p>
+<div class="flex gap-1">
+<span class="text-primary font-bold text-xs">00</span>
+<span class="text-white/30 text-xs">:</span>
+<span class="text-primary font-bold text-xs">45</span>
+</div>
+</div>
+<div class="w-full h-px bg-white/10 my-1"></div>
+<div class="flex justify-between items-center">
+<p class="text-white/50 text-[8px] font-bold uppercase tracking-widest">Highest Bid</p>
+<p class="text-sm font-bold text-white">$450.00</p>
+</div>
+</div>
+</div>
+<!-- Scrolling Chat (Bottom Left) -->
+<div class="absolute bottom-32 right-4 z-10 w-72 max-h-48 overflow-hidden flex flex-col gap-2 pointer-events-none">
+<div class="flex gap-2 items-start bg-black/20 backdrop-blur-sm p-2 rounded-lg border border-white/5 animate-fade-in">
+<div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary shrink-0 border border-primary/30">C8</div>
+<div class="flex flex-col">
+<span class="text-xs font-bold text-white/90">Collector88</span>
+<p class="text-xs text-white/80">Is there any surface damage?</p>
+</div>
+</div>
+<div class="flex gap-2 items-center bg-primary/20 backdrop-blur-sm px-3 py-1 rounded-full border border-primary/30 self-end">
+<span class="material-symbols-outlined text-[14px] text-primary">gavel</span>
+<span class="text-[10px] font-bold text-white uppercase tracking-wider">User @PokeFan bid $450.00</span>
+</div>
+</div>
+<!-- Product & Action Area (Bottom Right) -->
+<div class="absolute bottom-4 right-4 z-10 flex flex-col items-end gap-2 max-w-xs w-full">
+<!-- Reaction Buttons -->
+<div class="absolute bottom-80 right-4 z-10">
+<button class="w-12 h-12 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/20 text-white shadow-lg">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">favorite</span>
+</button>
+</div>
+<!-- Product Card -->
+<div class="absolute top-16 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 bg-black/40 backdrop-blur-xl p-2 rounded-xl border border-white/10 w-64">
+<div class="w-12 h-12 rounded-lg bg-cover bg-center shrink-0 border border-white/10" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBY5c51j4ucdVokMj7TOLnUNd8FkqSzL9ShfBbqXwO41tAV81m-T2UeWwEboiBPcXbyZEjTJHxylISQi-6RGgtWyqBvQAuBys-MkeeHMfQ-xf-iQKDWAvSYoM47D2wvFsyJIVr8ny5PG6E_a8TLBpLs4h6jGMSLNOkXShAzJmO6yJUnq-O2qm_F5snoy_PcKJ5z1hqstOu-bgvb7PDGFlW_egcPFgfbrGdPihwe48OGY7sJmMTZtRahHbr-M44yuEe0YPp1W0gNz32u');"></div>
+<div class="flex-1 min-w-0">
+<p class="text-[10px] font-bold text-white truncate">Charizard Holo - Mint PSA 9</p>
+<button class="mt-0.5 text-primary text-[8px] font-bold flex items-center uppercase tracking-wider">
+VIEW DETAILS <span class="material-symbols-outlined text-[10px] ml-0.5">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Main Bid Button -->
+<div class="flex gap-2 w-full">
+<div class="flex-1 bg-white p-1 rounded-xl shadow-xl border border-slate-200 flex items-center">
+<button class="flex-1 bg-primary text-white py-3 rounded-lg font-bold text-sm tracking-wide shadow-lg shadow-primary/30 active:scale-95 transition-transform flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">gavel</span>
+                        Bid $460.00
+                    </button>
+</div>
+<button class="w-14 h-auto bg-slate-900 text-white rounded-xl shadow-xl flex items-center justify-center">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+<!-- Chat Input Placeholder -->
+<div class="absolute bottom-20 right-4 z-10">
+<div class="flex items-center bg-black/40 backdrop-blur-md rounded-full px-4 py-2 border border-white/10 w-72">
+<input class="bg-transparent border-none text-white text-xs focus:ring-0 placeholder:text-white/50 w-full" placeholder="Say something..." type="text"/>
+<button class="text-white/70 ml-2">
+<span class="material-symbols-outlined text-sm">send</span>
+</button>
+</div>
+</div>
+</main>
+</body></html>

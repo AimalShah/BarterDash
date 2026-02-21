@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, HStack, VStack, Text, Pressable, Center, Heading } from "@gluestack-ui/themed";
+import { Box, HStack, VStack, Text, Pressable, Center, Heading } from "@/components/ui/reusables";
 import { Package, Share2, BarChart3, ChevronRight } from "lucide-react-native";
 import { router } from "expo-router";
 import { COLORS } from "@/constants/colors";

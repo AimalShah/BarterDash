@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, HStack, Text, Pressable, Center } from "@gluestack-ui/themed";
+import { Box, HStack, Text, Pressable, Center } from "@/components/ui/reusables";
 import { COLORS } from "@/constants/colors";
 
 interface UserSectionItemProps {

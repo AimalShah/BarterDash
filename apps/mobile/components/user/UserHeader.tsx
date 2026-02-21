@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, HStack, VStack, Heading, Text, Pressable, Image } from "@gluestack-ui/themed";
+import { Box, HStack, VStack, Heading, Text, Pressable, Image } from "@/components/ui/reusables";
 import { ChevronLeft, Share2, MessageSquare, BadgeCheck } from 'lucide-react-native';
 import { COLORS } from "@/constants/colors";
 

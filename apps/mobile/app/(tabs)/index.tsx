@@ -1,552 +1,150 @@
+import { useCallback, useMemo, useState } from 'react';
+import { Pressable, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
+import { CategoryFilter } from '@/components/home/CategoryFilter';
+import { HeroBanner } from '@/components/home/HeroBanner';
+import HomeHeader from '@/components/home/HomeHeader';
+import { ProductGrid } from '@/components/home/ProductGrid';
+import { StreamGrid } from '@/components/home/StreamGrid';
+import { SkeletonCard } from '@/components/ui/skeleton';
+import { Text } from '@/components/ui/text';
+import { useCategories, useProducts, useStreams } from '@/hooks';
+import { queryKeys } from '@/lib/api/queryKeys';
+import type { HomeProduct } from '@/components/home/ProductCard';
+import type { HomeStream } from '@/components/home/StreamCard';
 
-import React, { useState, useEffect, useCallback } from "react";
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  ScrollView,
-  RefreshControl,
-  StatusBar,
-  ActivityIndicator,
-  StyleSheet,
-  FlatList,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import Animated, { FadeInUp } from "react-native-reanimated";
-import { supabase } from "../../lib/supabase";
-import { streamsService } from "../../lib/api/services/streams";
-import { productsService } from "../../lib/api/services/products";
-import { categoriesService } from "../../lib/api/services/categories";
-import { COLORS } from "../../constants/colors";
-import HomeHeader from "@/components/home/HomeHeader";
-import { useResponsiveLayout } from "../../hooks/useResponsiveLayout";
+type HomeTab = 'shows' | 'products';
 
-export default function HomeScreen() {
-  const router = useRouter();
-  const { width, isTablet, horizontalPadding, cardGap, scaledFont } =
-    useResponsiveLayout();
-  const columnCount = isTablet ? (width >= 1040 ? 4 : 3) : 2;
-  const gridItemWidth =
-    (width - horizontalPadding * 2 - cardGap * (columnCount - 1)) / columnCount;
-  const getGridItemStyle = (index: number) => ({
-    width: gridItemWidth,
-    marginBottom: cardGap,
-    marginRight: (index + 1) % columnCount === 0 ? 0 : cardGap,
-  });
-
-  // State
-  const [activeTab, setActiveTab] = useState<'shows' | 'products'>('shows');
-  const [streams, setStreams] = useState<any[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  useEffect(() => {
-    fetchCategories();
-    fetchData();
-
-    // Realtime subscriptions
-    const streamSub = supabase
-      .channel("streams-home")
-      .on("postgres_changes", { event: "*", schema: "public", table: "streams" }, () => fetchData())
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(streamSub);
-    };
-  }, [selectedCategory, activeTab]);
-
-  const fetchCategories = async () => {
-    try {
-      const data = await categoriesService.findAll();
-      const raw = Array.isArray(data) ? data : [];
-      const normalized = raw
-        .map((c: any) => ({
-          id: String(c?.id ?? ""),
-          name: c?.name ?? "Unknown",
-        }))
-        .filter((c) => c.id);
-      setCategories([{ id: "all", name: "All" }, ...normalized]);
-    } catch (err) {
-      console.error("Error fetching categories:", err);
-      setCategories([{ id: "all", name: "All" }]);
-    }
-  };
-
-  const fetchData = async (isRefreshing = false) => {
-    try {
-      if (isRefreshing) setRefreshing(true);
-      else setLoading(true);
-
-      const query: any = {};
-      if (selectedCategory !== "all") {
-        query.category_id = activeTab === 'shows' ? selectedCategory : undefined;
-        query.category = activeTab === 'products' ? selectedCategory : undefined;
-      }
-
-      if (activeTab === 'shows') {
-        // Fetch Streams (Live first, then Scheduled) - exclude ended/cancelled
-        const allStreams = await streamsService.findAll(query).catch(() => []);
-        // Filter to only include live and scheduled streams (exclude ended/cancelled)
-        const activeStreams = allStreams.filter((stream: any) =>
-          stream.status === 'live' || stream.status === 'scheduled'
-        );
-        // Sort: Live first, then by scheduled date
-        const sorted = activeStreams.sort((a: any, b: any) => {
-          if (a.status === 'live' && b.status !== 'live') return -1;
-          if (a.status !== 'live' && b.status === 'live') return 1;
-          return new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime();
-        });
-        setStreams(sorted);
-      } else {
-        // Fetch Products
-        const allProducts = await productsService.findAll(query).catch(() => []);
-        setProducts(allProducts);
-      }
-
-    } catch (err) {
-      console.error("Error fetching data:", err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const onRefresh = useCallback(() => {
-    fetchData(true);
-  }, [selectedCategory, activeTab]);
-
-  const handleStreamPress = (streamId: string) => {
-    router.push(`/stream/${streamId}`);
-  };
-
-  const handleProductPress = (productId: string) => {
-    router.push(`/product/${productId}`);
-  };
-
-  const renderStreamItem = ({ item, index }: { item: any, index: number }) => (
-    <Animated.View
-      entering={FadeInUp.delay(index * 50)}
-      style={[styles.gridItemContainer, getGridItemStyle(index)]}
-    >
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() => handleStreamPress(item.id)}
-        activeOpacity={0.9}
-      >
-        <Image
-          source={{
-            uri: item.thumbnailUrl || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=500&fit=crop",
-          }}
-          style={styles.cardImage}
-          resizeMode="cover"
-        />
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.9)']}
-          style={styles.cardGradient}
-        />
-
-        {/* Status Badge */}
-        <View style={styles.statusBadgeContainer}>
-          {item.status === 'live' ? (
-            <View style={styles.liveBadge}>
-              <View style={styles.liveDot} />
-              <Text style={styles.liveText}>LIVE</Text>
-            </View>
-          ) : (
-            <View style={styles.scheduledBadge}>
-              <Text style={styles.scheduledText}>
-                {new Date(item.scheduledStart).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-              </Text>
-            </View>
-          )}
-          {item.viewerCount > 0 && (
-            <View style={styles.viewerBadge}>
-              <Ionicons name="eye" size={10} color="white" />
-              <Text style={styles.viewerText}>{item.viewerCount}</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Card Info */}
-        <View style={styles.cardInfo}>
-          <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
-          <View style={styles.userInfo}>
-            <Image
-              source={{ uri: item.seller?.avatarUrl || `https://ui-avatars.com/api/?name=${item.seller?.username || 'User'}` }}
-              style={styles.userAvatar}
-            />
-            <Text style={styles.userName} numberOfLines={1}>@{item.seller?.username || 'user'}</Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-    </Animated.View>
-  );
-
-  const renderProductItem = ({ item, index }: { item: any, index: number }) => (
-    <Animated.View
-      entering={FadeInUp.delay(index * 50)}
-      style={[styles.gridItemContainer, getGridItemStyle(index)]}
-    >
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() => handleProductPress(item.id)}
-        activeOpacity={0.9}
-      >
-        <Image
-          source={{
-            uri: item.images?.[0] || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=500&fit=crop",
-          }}
-          style={styles.cardImage}
-          resizeMode="cover"
-        />
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.8)']}
-          style={styles.cardGradient}
-        />
-
-        <View style={styles.priceBadge}>
-          <Text style={styles.priceText}>${item.price}</Text>
-        </View>
-
-        <View style={styles.cardInfo}>
-          <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
-          <View style={styles.userInfo}>
-            <Image
-              source={{ uri: item.seller?.avatarUrl || `https://ui-avatars.com/api/?name=${item.seller?.username || 'User'}` }}
-              style={styles.userAvatar}
-            />
-            <Text style={styles.userName} numberOfLines={1}>@{item.seller?.username || 'user'}</Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-    </Animated.View>
-  );
-
+function HomeLoadingState() {
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
-      <HomeHeader />
-
-      {/* Tabs */}
-      <View
-        style={[
-          styles.tabContainer,
-          {
-            paddingHorizontal: horizontalPadding,
-            gap: isTablet ? 24 : 20,
-          },
-        ]}
-      >
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'shows' && styles.activeTab]}
-          onPress={() => setActiveTab('shows')}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              { fontSize: scaledFont(isTablet ? 20 : 18, 0.95, 1.15) },
-              activeTab === 'shows' && styles.activeTabText,
-            ]}
-          >
-            Shows
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'products' && styles.activeTab]}
-          onPress={() => setActiveTab('products')}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              { fontSize: scaledFont(isTablet ? 20 : 18, 0.95, 1.15) },
-              activeTab === 'products' && styles.activeTabText,
-            ]}
-          >
-            Products
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Categories Horizontal Scroll - Keeps it minimal */}
-      <View style={styles.categoryContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.categoryContent,
-            { paddingHorizontal: horizontalPadding },
-          ]}
-        >
-          {categories.map((cat) => (
-            <TouchableOpacity
-              key={cat.id}
-              style={[styles.catPill, selectedCategory === cat.id && styles.catPillActive]}
-              onPress={() => setSelectedCategory(cat.id)}
-            >
-              <Text style={[styles.catText, selectedCategory === cat.id && styles.catTextActive]}>
-                {cat.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* Main Content Grid */}
-      {loading && !refreshing ? (
-        <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color={COLORS.primaryGold} />
+    <View className="flex-1 px-4 pb-24 pt-4">
+      <View className="flex-row">
+        <View className="w-1/2 px-2 pb-3">
+          <SkeletonCard />
         </View>
-      ) : (
-        <FlatList
-          key={`home-grid-${columnCount}`}
-          data={activeTab === 'shows' ? streams : products}
-          renderItem={activeTab === 'shows' ? renderStreamItem : renderProductItem}
-          keyExtractor={(item) => item.id}
-          numColumns={columnCount}
-          contentContainerStyle={[
-            styles.gridContent,
-            { paddingHorizontal: horizontalPadding },
-          ]}
-          columnWrapperStyle={columnCount > 1 ? styles.columnWrapper : undefined}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={COLORS.primaryGold}
-              colors={[COLORS.primaryGold]}
-            />
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>No {activeTab} found</Text>
-              <Text style={styles.emptySubText}>Try a different category</Text>
-            </View>
-          }
-        />
-      )}
+        <View className="w-1/2 px-2 pb-3">
+          <SkeletonCard />
+        </View>
+      </View>
+      <View className="flex-row">
+        <View className="w-1/2 px-2 pb-3">
+          <SkeletonCard />
+        </View>
+        <View className="w-1/2 px-2 pb-3">
+          <SkeletonCard />
+        </View>
+      </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.luxuryBlack,
-  },
-  centerContent: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+export default function HomeScreen() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<HomeTab>('shows');
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
-  // Tabs
-  tabContainer: {
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-  tab: {
-    paddingVertical: 8,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  activeTab: {
-    borderBottomColor: COLORS.primaryGold,
-  },
-  tabText: {
-    color: COLORS.textSecondary,
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  activeTabText: {
-    color: COLORS.textPrimary,
-    fontWeight: '800',
-  },
+  const categoriesQuery = useCategories();
+  const streamsQuery = useStreams({
+    category_id: selectedCategory === 'all' ? undefined : selectedCategory,
+  });
+  const productsQuery = useProducts({
+    category: selectedCategory === 'all' ? undefined : selectedCategory,
+  });
 
-  // Categories
-  categoryContainer: {
-    marginBottom: 16,
-    height: 40,
-  },
-  categoryContent: {
-    gap: 12,
-  },
-  catPill: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: COLORS.luxuryBlackLight,
-    borderWidth: 1,
-    borderColor: COLORS.darkBorder,
-  },
-  catPillActive: {
-    backgroundColor: COLORS.primaryGold,
-    borderColor: COLORS.primaryGold,
-  },
-  catText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-  },
-  catTextActive: {
-    color: COLORS.luxuryBlack,
-    fontWeight: '700',
-  },
+  const categories = useMemo(
+    () => [
+      { id: 'all', name: 'All' },
+      ...(categoriesQuery.data || []).map((category) => ({
+        id: String(category.id),
+        name: category.name,
+      })),
+    ],
+    [categoriesQuery.data]
+  );
 
-  // Grid
-  gridContent: {
-    paddingBottom: 100,
-  },
-  columnWrapper: {
-    justifyContent: "flex-start",
-  },
-  gridItemContainer: {
-    minWidth: 0,
-  },
-  card: {
-    width: '100%',
-    aspectRatio: 0.7,
-    borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: COLORS.cardBackground,
-    borderWidth: 1,
-    borderColor: COLORS.darkBorderLight,
-  },
-  cardImage: {
-    width: '100%',
-    height: '100%',
-  },
-  cardGradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '60%',
-  },
+  const streams = useMemo<HomeStream[]>(
+    () =>
+      (streamsQuery.data || [])
+        .filter((stream) => stream.status === 'live' || stream.status === 'scheduled')
+        .sort((a, b) => {
+          if (a.status === 'live' && b.status !== 'live') return -1;
+          if (a.status !== 'live' && b.status === 'live') return 1;
 
-  // Status Badges
-  statusBadgeContainer: {
-    position: 'absolute',
-    top: 10,
-    left: 10,
-    flexDirection: 'row',
-    gap: 6,
-  },
-  liveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.liveIndicator,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    gap: 4,
-  },
-  liveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: 'white',
-  },
-  liveText: {
-    color: 'white',
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  scheduledBadge: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  scheduledText: {
-    color: 'white',
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  viewerBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingHorizontal: 6,
-    paddingVertical: 4,
-    borderRadius: 6,
-    gap: 4,
-  },
-  viewerText: {
-    color: 'white',
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  priceBadge: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: COLORS.primaryGold,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  priceText: {
-    color: COLORS.luxuryBlack,
-    fontSize: 12,
-    fontWeight: '800',
-  },
+          const first = a.scheduledStart ? new Date(a.scheduledStart).getTime() : 0;
+          const second = b.scheduledStart ? new Date(b.scheduledStart).getTime() : 0;
+          return first - second;
+        }),
+    [streamsQuery.data]
+  );
 
-  // Card Info
-  cardInfo: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 12,
-  },
-  cardTitle: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '700',
-    marginBottom: 6,
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6
-  },
-  userAvatar: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'white',
-  },
-  userName: {
-    color: COLORS.textSecondary,
-    fontSize: 12,
-    fontWeight: '600',
-    flex: 1,
-  },
+  const products = useMemo<HomeProduct[]>(() => productsQuery.data || [], [productsQuery.data]);
 
-  // Empty State
-  emptyState: {
-    padding: 40,
-    alignItems: 'center',
-  },
-  emptyText: {
-    color: COLORS.textPrimary,
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  emptySubText: {
-    color: COLORS.textSecondary,
-    fontSize: 14,
-  },
-});
+  const isLoading = activeTab === 'shows' ? streamsQuery.isLoading : productsQuery.isLoading;
+  const isRefreshing = activeTab === 'shows' ? streamsQuery.isRefetching : productsQuery.isRefetching;
+
+  const onRefresh = useCallback(async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.categories }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.streams }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.products }),
+    ]);
+  }, [queryClient]);
+
+  return (
+    <View className="flex-1 bg-background">
+      <HomeHeader />
+      <HeroBanner />
+
+      <View className="mt-5 flex-row px-6">
+        <Pressable
+          onPress={() => setActiveTab('shows')}
+          className={`mr-4 border-b-2 pb-2 ${
+            activeTab === 'shows' ? 'border-primary' : 'border-transparent'
+          }`}
+        >
+          <Text className={activeTab === 'shows' ? 'text-primary' : 'text-secondary'}>
+            Shows
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={() => setActiveTab('products')}
+          className={`border-b-2 pb-2 ${
+            activeTab === 'products' ? 'border-primary' : 'border-transparent'
+          }`}
+        >
+          <Text className={activeTab === 'products' ? 'text-primary' : 'text-secondary'}>
+            Products
+          </Text>
+        </Pressable>
+      </View>
+
+      <CategoryFilter
+        categories={categories}
+        selectedCategory={selectedCategory}
+        onSelectCategory={setSelectedCategory}
+      />
+
+      {isLoading ? <HomeLoadingState /> : null}
+
+      {!isLoading && activeTab === 'shows' ? (
+        <StreamGrid
+          streams={streams}
+          onStreamPress={(id) => router.push(`/stream/${id}`)}
+          refreshing={isRefreshing}
+          onRefresh={onRefresh}
+        />
+      ) : null}
+
+      {!isLoading && activeTab === 'products' ? (
+        <ProductGrid
+          products={products}
+          onProductPress={(id) => router.push(`/product/${id}`)}
+          refreshing={isRefreshing}
+          onRefresh={onRefresh}
+        />
+      ) : null}
+    </View>
+  );
+}

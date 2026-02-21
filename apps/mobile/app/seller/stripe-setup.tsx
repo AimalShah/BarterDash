@@ -14,7 +14,7 @@ import {
     Button,
     ButtonText,
     ButtonSpinner,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import {
     ChevronLeft,
     CreditCard,

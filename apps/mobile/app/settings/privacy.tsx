@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StatusBar, Alert, Linking } from 'react-native';
-import { Box, VStack, Text, Pressable, HStack, Spinner, ScrollView } from '@gluestack-ui/themed';
+import { Box, VStack, Text, Pressable, HStack, Spinner, ScrollView } from '@/components/ui/reusables';
 import { Download, Shield, Eye, Clock, ChevronLeft } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { usersService } from '@/lib/api/services/users';

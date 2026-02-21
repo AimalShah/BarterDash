@@ -15,7 +15,7 @@ import {
   ButtonText,
   ButtonSpinner,
   ScrollView,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import {
   ChevronLeft,
   Shield,

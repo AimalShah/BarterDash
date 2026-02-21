@@ -7,7 +7,7 @@ import {
     Button,
     ButtonText,
     ButtonIcon,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { Play, Video, Mic, MicOff, Camera, Settings } from "lucide-react-native";
 import { COLORS } from "@/constants/colors";
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatusBar, ScrollView } from 'react-native';
+import { StatusBar } from 'react-native';
 import { router } from 'expo-router';
 import {
     Box,
@@ -10,8 +10,9 @@ import {
     Pressable,
     Center,
     Button,
-    ButtonText
-} from '@gluestack-ui/themed';
+    ButtonText,
+    ScrollView,
+} from '@/components/ui/reusables';
 import { X, Settings, Store, CircleHelp, LogOut, ChevronRight, Home } from 'lucide-react-native';
 import { useAuthStore } from '../store/authStore';
 import { COLORS } from '../constants/colors';

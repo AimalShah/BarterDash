@@ -18,7 +18,7 @@ import {
   CheckCircle,
 } from 'lucide-react-native';
 import { COLORS } from '../../constants/colors';
-import { Card, CardContent } from '../ui/Card';
+import { Card, CardContent } from '../ui/card';
 
 interface PaymentMethodValidationProps {
   onValidationChange?: (isValid: boolean, cardData: CardData) => void;

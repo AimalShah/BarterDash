@@ -13,7 +13,7 @@ import {
   Loader,
 } from 'lucide-react-native';
 import { COLORS } from '../../constants/colors';
-import { Card, CardContent } from '../ui/Card';
+import { Card, CardContent } from '../ui/card';
 import LoadingSpinner from '../ui/LoadingSpinner';
 
 export interface PaymentStatus {

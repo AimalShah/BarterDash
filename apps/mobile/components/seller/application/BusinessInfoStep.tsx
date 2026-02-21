@@ -12,7 +12,7 @@ import {
   InputField,
   Pressable,
   Heading,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { Store } from "lucide-react-native";
 import { COLORS } from "../../../constants/colors";
 import { BusinessType } from "../../../hooks/useSellerApplication";

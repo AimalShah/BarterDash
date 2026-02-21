@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BarterDash Live - Notifications</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007bff",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1923",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .unread-indicator {
+            box-shadow: 0 0 0 2px white;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="max-w-md mx-auto bg-white dark:bg-slate-900 min-h-screen flex flex-col shadow-xl">
+<!-- Header -->
+<header class="flex items-center justify-between px-4 py-4 sticky top-0 bg-white dark:bg-slate-900 z-10 border-b border-slate-100 dark:border-slate-800">
+<div class="flex items-center gap-3">
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+<span class="material-symbols-outlined block">arrow_back</span>
+</button>
+<h1 class="text-xl font-bold tracking-tight">Notifications</h1>
+</div>
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+<span class="material-symbols-outlined block">settings</span>
+</button>
+</header>
+<!-- Segmented Control -->
+<div class="px-4 py-3 sticky top-[68px] bg-white dark:bg-slate-900 z-10">
+<div class="flex h-11 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-slate-700 has-[:checked]:shadow-sm has-[:checked]:text-primary text-slate-500 dark:text-slate-400 text-sm font-semibold transition-all">
+<span class="truncate">All</span>
+<input checked="" class="invisible w-0" name="filter" type="radio" value="All"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-slate-700 has-[:checked]:shadow-sm has-[:checked]:text-primary text-slate-500 dark:text-slate-400 text-sm font-semibold transition-all">
+<span class="truncate">Activity</span>
+<input class="invisible w-0" name="filter" type="radio" value="Activity"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-slate-700 has-[:checked]:shadow-sm has-[:checked]:text-primary text-slate-500 dark:text-slate-400 text-sm font-semibold transition-all">
+<span class="truncate">Messages</span>
+<input class="invisible w-0" name="filter" type="radio" value="Messages"/>
+</label>
+</div>
+</div>
+<!-- Notification List -->
+<main class="flex-1 overflow-y-auto px-4 pb-20">
+<!-- Outbid Notification (Activity) -->
+<div class="relative flex flex-col gap-3 py-4 border-b border-slate-50 dark:border-slate-800/50 bg-primary/5 dark:bg-primary/10 rounded-xl px-3 my-2 border border-primary/10">
+<div class="flex gap-4">
+<div class="flex items-center justify-center rounded-xl bg-primary/20 text-primary shrink-0 w-12 h-12">
+<span class="material-symbols-outlined text-2xl">gavel</span>
+</div>
+<div class="flex flex-col flex-1">
+<div class="flex justify-between items-start">
+<p class="text-slate-900 dark:text-white text-sm font-bold leading-snug">You’ve been outbid on <span class="text-primary">'Vintage Camera'</span>!</p>
+<span class="text-[10px] text-slate-400 font-medium whitespace-nowrap ml-2">10m ago</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs mt-1">Current bid is $145.00. Increase your offer to win.</p>
+</div>
+<div class="w-2.5 h-2.5 bg-primary rounded-full mt-1.5 unread-indicator"></div>
+</div>
+<div class="flex gap-2 justify-end">
+<button class="px-4 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary/90 transition-colors">
+                        Bid Now
+                    </button>
+<button class="px-4 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg transition-colors">
+                        Dismiss
+                    </button>
+</div>
+</div>
+<!-- Live Stream Alert (Activity) -->
+<div class="flex items-center gap-4 py-4 border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors rounded-xl px-2">
+<div class="relative shrink-0">
+<div class="w-14 h-14 rounded-full border-2 border-primary p-0.5">
+<img alt="" class="w-full h-full rounded-full object-cover" data-alt="Profile photo of a professional seller" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEHVGD1IM_f6NY49Yj8jLk4lY__quJKi3Bypp5vIXEJlmzhiqFYm3WOfxAnW3JvrylnJeNLd5NddAjhnlC30bg92lp-dV5DPuLz-EG0aucmISFFWLXimvUiCaUY0BgTfi8E2zZTg1-hRzS981lyeEJODVON8gU4KAEbmqO8MUDgC3jaUE6xMfOf4CbH9tzXXD2ZzPShHqxVsvgfeovyEo3z88hLsdUIBtZPhQxLfFLRsOPJpG-FIJcLqmVeIpll0NS33oYKnwa0Wr-"/>
+</div>
+<div class="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider border border-white">Live</div>
+</div>
+<div class="flex flex-col flex-1">
+<div class="flex justify-between items-start">
+<p class="text-slate-900 dark:text-white text-sm font-semibold">TechTrade is now live</p>
+<span class="text-[10px] text-slate-400 font-medium ml-2">24m ago</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs line-clamp-1">Auctioning 50+ rare electronics. Join now!</p>
+</div>
+<div class="w-2.5 h-2.5 bg-primary rounded-full unread-indicator shrink-0"></div>
+</div>
+<!-- Direct Message (Messages) -->
+<div class="flex items-center gap-4 py-4 border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors rounded-xl px-2">
+<div class="shrink-0">
+<img alt="" class="w-14 h-14 rounded-full object-cover" data-alt="Portrait of a female user smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuuei2gMYhSxTcpwJRxhK_ZUP-XRU0AR1izXKY-kig6tWmWOSDIitwQYQ3Gw9fkSiUrpmcQ9nk8wKSGmEnW3-HtMHCGzOXQTfpcS4kxRaIvPd70Qp2sKQwY3kPI_rMykMdK8M4nuFbYj2sX_GOQoiG0eRI1sKERn7WsL9kJn8kOtWZkYPvLFTe16flwLuBX2tuhxt3a09GRV3k_25bjy9yuRFsGjSQ5idIsD3UetPaBDlLyDhWIFO-CdB5buIVBFsAu_sRXnjKoSc2"/>
+</div>
+<div class="flex flex-col flex-1">
+<div class="flex justify-between items-start">
+<p class="text-slate-900 dark:text-white text-sm font-semibold">Sarah Jenkins</p>
+<span class="text-[10px] text-slate-400 font-medium ml-2">2h ago</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs line-clamp-1 italic">"Hey, is the price negotiable for the leather jacket? I can swap it for..."</p>
+</div>
+</div>
+<!-- Trade Successful (Activity) -->
+<div class="flex items-center gap-4 py-4 border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors rounded-xl px-2">
+<div class="flex items-center justify-center rounded-xl bg-green-100 dark:bg-green-900/30 text-green-600 shrink-0 w-12 h-12">
+<span class="material-symbols-outlined text-2xl">handshake</span>
+</div>
+<div class="flex flex-col flex-1">
+<div class="flex justify-between items-start">
+<p class="text-slate-900 dark:text-white text-sm font-semibold">Trade Confirmed!</p>
+<span class="text-[10px] text-slate-400 font-medium ml-2">5h ago</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs">'Leather Jacket' has been successfully traded for 'Wireless Headphones'.</p>
+</div>
+</div>
+<!-- Direct Message 2 (Messages) -->
+<div class="flex items-center gap-4 py-4 border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors rounded-xl px-2 opacity-70">
+<div class="shrink-0">
+<img alt="" class="w-14 h-14 rounded-full object-cover grayscale" data-alt="Profile photo of a male user" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWCdziXoLkXgK3jc-mAM3msflu6lmSIWqPK1AEJ2AAx7qczqnMKIphx02uaRTNa9HKjk5KwWGs4CJYOmX8StpAwJGh-AhGrYgWPcETumxT9LSpCpXCVnJyjyBdRg7iAEM42yQr2HmsBM6S1ZrHuS-0BPyYH9Iqb9St_fpLzviEI70eXBmjWQVhg6peo0UX_bTYDrWXtwcfUhRbf4jXghIHlDsiDptCJFHuDvu-iEn46nD3bei2qTq1VzHhtpnzLdhoSlLUpfQTFDmg"/>
+</div>
+<div class="flex flex-col flex-1">
+<div class="flex justify-between items-start">
+<p class="text-slate-900 dark:text-white text-sm font-semibold">Mike Chen</p>
+<span class="text-[10px] text-slate-400 font-medium ml-2">Yesterday</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs line-clamp-1">Sent you a trade request for the 4K Monitor.</p>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex justify-around items-center h-16 px-4 pb-1">
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span class="text-[10px] font-medium">Explore</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined text-primary">sensors</span>
+<span class="text-[10px] font-medium">Live</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<div class="relative">
+<span class="material-symbols-outlined !fill-1">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+</div>
+<span class="text-[10px] font-bold">Alerts</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</nav>
+</div>
+</body></html>

@@ -7,7 +7,7 @@ import {
   Center,
   Pressable,
   Heading,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { Ionicons } from "@expo/vector-icons";
 import { FileText, Check } from "lucide-react-native";
 import { COLORS } from "../../../constants/colors";

@@ -7,7 +7,7 @@ import {
   Text,
   Heading,
   Center,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { Star, CheckCircle } from "lucide-react-native";
 import { COLORS } from "../../../constants/colors";
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSegments } from 'expo-router';
 import { useAuthStore } from '@/store/authStore';
-import { Center, Spinner, Text } from '@gluestack-ui/themed';
+import { Center, Spinner, Text } from '@/components/ui/reusables';
 import { COLORS } from '@/constants/colors';
 
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {

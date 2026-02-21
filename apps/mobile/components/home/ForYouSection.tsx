@@ -1,4 +1,4 @@
-import { Box, Text, Pressable, FlatList } from "@gluestack-ui/themed";
+import { Box, Text, Pressable, FlatList } from "@/components/ui/reusables";
 import { useQuery } from "@tanstack/react-query";
 import { feedService } from "../../lib/api/services/feed";
 import ProductFeedCard from "../stream/ProductFeedCard";

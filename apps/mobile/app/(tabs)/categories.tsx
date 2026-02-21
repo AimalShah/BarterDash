@@ -16,7 +16,7 @@ import {
     Center,
     Spinner,
     Image,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import {
     Search,
     Shirt,

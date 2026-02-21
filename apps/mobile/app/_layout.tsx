@@ -1,15 +1,12 @@
-import "expo-dev-client";
-import { Stack } from "expo-router";
-import "@/global.css";
-import { ToastProvider } from "../context/ToastContext";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { GluestackUIProvider } from "@gluestack-ui/themed";
-import { AuthGuard } from "../components/guards/AuthGuard";
-import { OnboardingGuard } from "../components/guards/OnboardingGuard";
-import { ErrorBoundary } from "../components/ui/ErrorBoundary";
-import { config } from "../config/gluestack.config";
-import { useFonts } from "expo-font";
-import { StripeProvider } from "@stripe/stripe-react-native";
+import 'expo-dev-client';
+import '@/global.css';
+import { useEffect } from 'react';
+import { ActivityIndicator, View } from 'react-native';
+import { Stack } from 'expo-router';
+import { useFonts } from 'expo-font';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { StripeProvider } from '@stripe/stripe-react-native';
+import { GluestackUIProvider } from '@/components/ui/reusables';
 import {
   PlusJakartaSans_300Light,
   PlusJakartaSans_400Regular,
@@ -17,23 +14,32 @@ import {
   PlusJakartaSans_600SemiBold,
   PlusJakartaSans_700Bold,
   PlusJakartaSans_800ExtraBold,
-} from "@expo-google-fonts/plus-jakarta-sans";
-import { View, ActivityIndicator } from "react-native";
-import { COLORS } from "../constants/colors";
-import { useDeepLinkHandler } from "../hooks/useDeepLinkHandler";
-import { usePushNotificationHandler } from "../hooks/usePushNotificationHandler";
-import { logFeatureFlags } from "../lib/config/featureFlags";
+} from '@expo-google-fonts/plus-jakarta-sans';
+import { COLORS } from '../constants/colors';
+import { ToastProvider } from '../context/ToastContext';
+import { AuthGuard } from '../components/guards/AuthGuard';
+import { OnboardingGuard } from '../components/guards/OnboardingGuard';
+import { ErrorBoundary } from '../components/ui/error-boundary';
+import { useDeepLinkHandler } from '../hooks/useDeepLinkHandler';
+import { usePushNotificationHandler } from '../hooks/usePushNotificationHandler';
+import { logFeatureFlags } from '../lib/config/featureFlags';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      gcTime: 5 * 60_000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+});
 
-// Deep link handler component
-function DeepLinkHandler() {
+function AppBootstrap() {
   useDeepLinkHandler();
-  return null;
-}
-
-// Push notification handler component
-function PushNotificationHandler() {
   usePushNotificationHandler();
   return null;
 }
@@ -48,39 +54,21 @@ export default function RootLayout() {
     PlusJakartaSans_800ExtraBold,
   });
 
-  const stripePublishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
+  const stripePublishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
   const applePayMerchantIdentifier =
-    process.env.EXPO_PUBLIC_STRIPE_APPLE_PAY_MERCHANT_ID || "";
+    process.env.EXPO_PUBLIC_STRIPE_APPLE_PAY_MERCHANT_ID || '';
 
-  if (!stripePublishableKey) {
-    console.warn(
-      "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set. Stripe PaymentSheet will be unavailable."
-    );
-  }
-
-  if (__DEV__ && !applePayMerchantIdentifier) {
-    console.warn(
-      "EXPO_PUBLIC_STRIPE_APPLE_PAY_MERCHANT_ID is not set. Apple Pay will not be available."
-    );
-  }
+  useEffect(() => {
+    logFeatureFlags();
+  }, []);
 
   if (!fontsLoaded) {
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: COLORS.luxuryBlack,
-        }}
-      >
-        <ActivityIndicator size="large" color={COLORS.primaryGold} />
+      <View className="flex-1 items-center justify-center bg-background">
+        <ActivityIndicator size="large" color={COLORS.primaryBlue} />
       </View>
     );
   }
-
-  // Log feature flags status on app start (development only)
-  logFeatureFlags();
 
   return (
     <ErrorBoundary>
@@ -89,53 +77,29 @@ export default function RootLayout() {
         urlScheme="barterdash"
         merchantIdentifier={applePayMerchantIdentifier || undefined}
       >
-        <GluestackUIProvider config={config}>
+        <GluestackUIProvider>
           <QueryClientProvider client={queryClient}>
             <ToastProvider>
-              <DeepLinkHandler />
-              <PushNotificationHandler />
+              <AppBootstrap />
               <AuthGuard>
                 <OnboardingGuard>
                   <Stack
                     screenOptions={{
                       headerShown: false,
-                      contentStyle: { backgroundColor: COLORS.luxuryBlack },
+                      contentStyle: { backgroundColor: COLORS.mainBackground },
                     }}
                   >
-                    <Stack.Screen
-                      name="(auth)"
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="(onboarding)"
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="(tabs)"
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="seller"
-                      options={{ headerShown: false }}
-                    />
-
+                    <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                    <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                    <Stack.Screen name="seller" options={{ headerShown: false }} />
                     <Stack.Screen name="stream/[id]" />
                     <Stack.Screen name="product/[id]" />
-                    <Stack.Screen
-                      name="user/[id]"
-                      options={{ presentation: "card" }}
-                    />
-                    <Stack.Screen
-                      name="social"
-                      options={{ headerShown: false }}
-                    />
-
+                    <Stack.Screen name="user/[id]" options={{ presentation: 'card' }} />
+                    <Stack.Screen name="social" options={{ headerShown: false }} />
                     <Stack.Screen
                       name="menu"
-                      options={{
-                        presentation: "transparentModal",
-                        animation: "fade",
-                      }}
+                      options={{ presentation: 'transparentModal', animation: 'fade' }}
                     />
                   </Stack>
                 </OnboardingGuard>

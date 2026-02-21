@@ -15,7 +15,7 @@ import {
   HStack,
   VStack,
   Text,
-} from '@gluestack-ui/themed';
+} from '@/components/ui/reusables';
 import { TrendingUp, Users, AlertCircle } from 'lucide-react-native';
 import { AuctionTimerCompact } from './AuctionTimer';
 import { COLORS } from '../../constants/colors';

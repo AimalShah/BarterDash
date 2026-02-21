@@ -16,7 +16,7 @@ import {
     Center,
     Spinner,
     Pressable
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { Truck, ChevronLeft } from 'lucide-react-native';
 import { cartService } from '../../lib/api/services/cart';
 import { useRouter } from 'expo-router';

@@ -16,7 +16,7 @@ import {
   CheckboxIcon,
   CheckIcon,
   Image,
-} from '@gluestack-ui/themed';
+} from '@/components/ui/reusables';
 import { ChevronLeft, Package } from 'lucide-react-native';
 import { COLORS } from '../../../../constants/colors';
 import { streamsService, StreamProduct } from '../../../../lib/api/services/streams';

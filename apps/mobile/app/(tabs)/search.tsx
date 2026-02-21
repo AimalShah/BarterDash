@@ -15,7 +15,7 @@ import {
     Center,
     Image,
     Spinner,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import { Search, Filter, Play } from "lucide-react-native";
 import { auctionsService } from "@/lib/api/services/auctions";
 import { categoriesService } from "@/lib/api/services/categories";

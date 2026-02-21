@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSegments } from 'expo-router';
 import { useAuthStore } from '../../store/authStore';
-import { Center, Spinner, VStack, Heading, Text, Box, Button, ButtonText } from '@gluestack-ui/themed';
+import { Center, Spinner, VStack, Heading, Text, Box, Button, ButtonText } from '@/components/ui/reusables';
 import { COLORS } from '@/constants/colors';
 
 export function SellerGuard({ children }: { children: React.ReactNode }) {

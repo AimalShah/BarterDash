@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BarterDash Live - Checkout</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007bff",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1923",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-primary/10">
+<div class="flex items-center justify-between px-4 py-4 max-w-2xl mx-auto">
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-100">arrow_back</span>
+</button>
+<h1 class="text-xl font-bold tracking-tight">Checkout</h1>
+<div class="w-10"></div> <!-- Spacer for symmetry -->
+</div>
+</header>
+<main class="max-w-2xl mx-auto pb-32">
+<!-- Urgency Timer -->
+<div class="mx-4 mt-6 p-4 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">timer</span>
+<p class="text-sm font-medium">Complete your purchase within</p>
+</div>
+<div class="flex gap-1">
+<span class="bg-white dark:bg-slate-800 px-2 py-1 rounded text-primary font-bold">04</span>
+<span class="font-bold">:</span>
+<span class="bg-white dark:bg-slate-800 px-2 py-1 rounded text-primary font-bold">52</span>
+</div>
+</div>
+<!-- Success Message -->
+<div class="px-4 mt-8 flex items-center gap-2">
+<span class="material-symbols-outlined text-yellow-500 fill-1">emoji_events</span>
+<h2 class="text-2xl font-bold">You Won!</h2>
+</div>
+<!-- Item Summary Card -->
+<section class="p-4">
+<div class="bg-white dark:bg-slate-800 rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700">
+<div class="flex flex-col sm:flex-row">
+<div class="w-full sm:w-48 h-48 bg-slate-100 dark:bg-slate-700 relative">
+<img alt="Auction Item" class="w-full h-full object-cover" data-alt="MacBook Pro laptop on a desk" src="https://lh3.googleusercontent.com/aida-public/AB6AXuASCfxf-8v2uq1hrbKVPIJKuQKiEMhoqx7ot8xy82LNrmaAiqJuKikpSq0UFSJwDcSyc9S7bKhvDdQixvFJx6QTlZslpLl1KY-vTM0L9mTGGUe-s321U8dQikxF8Jdf8DajgEUNE90ESB1IdnWF8UB7SM_5PYV3G4gNlJFFzP0Kx8cEDhh197wNo8_v2jYVjzdpYyefRf7YB9h_gtLKr4hTl8cvINBRySCR7u9lefc0KvvWcE_fXUlq--9d6sagwHGcJoOD0w_BqFwy"/>
+<div class="absolute top-2 left-2 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
+                            Lot #882
+                        </div>
+</div>
+<div class="p-4 flex flex-col justify-between flex-1">
+<div>
+<h3 class="text-lg font-bold leading-snug">2023 MacBook Pro M2 Max</h3>
+<p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Space Gray, 32GB RAM, 1TB SSD</p>
+</div>
+<div class="mt-4 flex items-end justify-between">
+<div>
+<p class="text-xs text-slate-400 dark:text-slate-500 uppercase font-bold tracking-widest">Winning Bid</p>
+<p class="text-2xl font-bold text-primary">$2,450.00</p>
+</div>
+<button class="text-primary text-sm font-semibold hover:underline">View Details</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Shipping Selection -->
+<section class="px-4 mt-4">
+<h3 class="text-lg font-bold mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">local_shipping</span>
+                Shipping Selection
+            </h3>
+<div class="grid gap-3">
+<!-- Standard Shipping -->
+<label class="relative flex items-center p-4 cursor-pointer rounded-xl border-2 border-primary bg-primary/5 transition-all">
+<input checked="" class="hidden" name="shipping" type="radio"/>
+<div class="flex-1">
+<div class="flex justify-between items-center">
+<span class="font-bold">Standard Delivery</span>
+<span class="font-bold text-primary">$15.00</span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Estimated: Oct 24 - Oct 26</p>
+</div>
+<div class="ml-4 w-6 h-6 rounded-full border-2 border-primary flex items-center justify-center">
+<div class="w-3 h-3 bg-primary rounded-full"></div>
+</div>
+</label>
+<!-- Express Shipping -->
+<label class="relative flex items-center p-4 cursor-pointer rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 transition-all hover:border-primary/50">
+<input class="hidden" name="shipping" type="radio"/>
+<div class="flex-1">
+<div class="flex justify-between items-center">
+<span class="font-bold">Express Overnight</span>
+<span class="font-bold text-slate-700 dark:text-slate-200">$45.00</span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Estimated: Tomorrow by 12 PM</p>
+</div>
+<div class="ml-4 w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-600"></div>
+</label>
+</div>
+</section>
+<!-- Payment Method -->
+<section class="px-4 mt-8">
+<h3 class="text-lg font-bold mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">payments</span>
+                Payment Method
+            </h3>
+<!-- Apple Pay Quick Action -->
+<button class="w-full bg-black text-white rounded-xl py-4 flex items-center justify-center gap-2 mb-4 hover:bg-slate-900 transition-colors">
+<span class="font-bold text-xl"> Pay</span>
+</button>
+<div class="relative flex items-center py-2 mb-4">
+<div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+<span class="flex-shrink mx-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Or pay with card</span>
+<div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+</div>
+<div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 flex items-center justify-between group cursor-pointer hover:border-primary transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-12 h-8 bg-slate-100 dark:bg-slate-700 rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-500">credit_card</span>
+</div>
+<div>
+<p class="font-bold">Visa ending in 4429</p>
+<p class="text-xs text-slate-500">Expires 12/26</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary">chevron_right</span>
+</div>
+</section>
+<!-- Order Summary Breakdown -->
+<section class="px-4 mt-8">
+<div class="bg-slate-100 dark:bg-slate-800/50 rounded-xl p-6">
+<div class="space-y-3">
+<div class="flex justify-between text-slate-600 dark:text-slate-400">
+<span>Hammer Price</span>
+<span class="font-medium">$2,450.00</span>
+</div>
+<div class="flex justify-between text-slate-600 dark:text-slate-400">
+<span>Buyers Premium (10%)</span>
+<span class="font-medium">$245.00</span>
+</div>
+<div class="flex justify-between text-slate-600 dark:text-slate-400">
+<span>Shipping Fee</span>
+<span class="font-medium">$15.00</span>
+</div>
+<div class="flex justify-between text-slate-600 dark:text-slate-400">
+<span>Estimated Taxes</span>
+<span class="font-medium">$196.00</span>
+</div>
+<div class="border-t border-slate-200 dark:border-slate-700 pt-3 flex justify-between items-center">
+<span class="text-lg font-bold">Total Amount</span>
+<span class="text-2xl font-bold text-primary">$2,906.00</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Sticky Bottom CTA -->
+<footer class="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-background-dark/90 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 p-4 z-50">
+<div class="max-w-2xl mx-auto flex flex-col sm:flex-row gap-4 items-center">
+<div class="hidden sm:block">
+<p class="text-xs text-slate-400 uppercase font-bold tracking-widest">Final Total</p>
+<p class="text-xl font-bold text-slate-900 dark:text-slate-100">$2,906.00</p>
+</div>
+<button class="w-full bg-primary text-white font-bold py-4 px-8 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-600 active:scale-[0.98] transition-all shadow-lg shadow-primary/20">
+<span>Confirm Purchase</span>
+<span class="material-symbols-outlined">shopping_cart_checkout</span>
+</button>
+</div>
+</footer>
+</body></html>

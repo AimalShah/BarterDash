@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BarterDash Live - Home</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007bff",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1923",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Header & Search -->
+<header class="sticky top-0 z-50 bg-white dark:bg-background-dark border-b border-slate-200 dark:border-slate-800">
+<div class="flex items-center px-4 py-3 justify-between gap-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-3xl font-bold">bolt</span>
+<h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">BarterDash</h1>
+</div>
+<div class="flex items-center gap-3">
+<button class="relative p-2 text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-red-500"></span>
+</button>
+<div class="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden border border-primary/20">
+<img alt="Profile" data-alt="User profile avatar circle small" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCi0hkMjh9kSwojhVrtHhfZ2wskhFNH4es0SM_iqW-GK9ycDUtgjvZy79X3TRzPR9cN6taEsaj_tbEpQMm_MkvDJMlDWQz5DSbVDzOmQGcv9_dp2akiUaOBPoMAHUDlok5I_6ZnGRDHtwAZBP_sM0-TTxVIwJbXedD1dMSiyn7UiswpM-CL6RYiWiRMHfdGm2zs4Cisl2_rO8tgmdBTVF9me5O5z8gyuEQLpvb0Y3CMlxwRXHNTwE-Dsp5awmrNeiw2dsvC6RUsIS7v"/>
+</div>
+</div>
+</div>
+<div class="px-4 pb-3">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-slate-400">search</span>
+<input class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl py-2.5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/50 placeholder:text-slate-500" placeholder="Search cards, kicks, or sellers..." type="text"/>
+</div>
+</div>
+<!-- Horizontal Categories -->
+<div class="flex gap-2 overflow-x-auto px-4 pb-3 hide-scrollbar">
+<button class="flex-none px-4 py-1.5 rounded-full bg-primary text-white text-xs font-semibold whitespace-nowrap">All Live</button>
+<button class="flex-none px-4 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-medium whitespace-nowrap">Trading Cards</button>
+<button class="flex-none px-4 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-medium whitespace-nowrap">Sneakers</button>
+<button class="flex-none px-4 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-medium whitespace-nowrap">Comics</button>
+<button class="flex-none px-4 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-medium whitespace-nowrap">Video Games</button>
+<button class="flex-none px-4 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-medium whitespace-nowrap">Figures</button>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto pb-24">
+<!-- Hero Section -->
+<section class="p-4">
+<div class="relative h-56 rounded-xl overflow-hidden group">
+<img alt="Featured Live Auction" class="w-full h-full object-cover" data-alt="Close up of a rare sneaker in dynamic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIoFtNmfgQNO4JKrD7fJDAYCuVtdFR_KF4NmDK7Oc-tx8yFUhQLrFNEoqy_pF2e5F-6LUTMJcA4tZdqrqwzyHNg3O5rblBVX8ZT4Vx7KRv54C3FyBamNY0odLMM6bavwsJ6ZzNDkluQhnRUnu3U6FgSPR4RK1W9BkYbKiNOP7Z9B1na-FMsSAK96VVLF4-wglMoPbMIcVc5hJLiNP0Y1nO6pHKznFBYorE8KkbMn-YNmEWoIdBv-MR6f3GBe01Oq9QQf8kkLjMW4py"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-5">
+<div class="flex items-center gap-2 mb-2">
+<span class="flex items-center gap-1 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">
+<span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse"></span>
+                            Live Now
+                        </span>
+<span class="text-white/80 text-xs font-medium">842 viewers</span>
+</div>
+<h2 class="text-white text-2xl font-bold leading-tight mb-3">Rare Jordan 1 'Chicago' Auction</h2>
+<div class="flex items-center gap-3">
+<button class="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg text-sm font-bold transition-colors">Join Live</button>
+<div class="flex items-center gap-2 text-white/90">
+<img alt="Seller" class="h-6 w-6 rounded-full border border-white/20" data-alt="Seller profile avatar circle small" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDE6_G46Pa5PqzCcg1Zybf0jbtUorIs4RcgH3TBZaJCqhE6L3GywDqEi_zS4ki4C_AFKGSYmnHdc5vwlok66Gw_2A9idjjuV9hUMIFHB4BX4AKUq-gSC43CHpqLxOAk1BHDvgKCX3rZAGkdQOk-ofGQD5iyrfLqGMqDiOpnYil0L9OBfkvKRYnwN6Fq4O_ob6Ysh8XJk2elhi5OsQmNw-cmFp03-64N1TYYwpeObLW5TdIBPqX6oQF4K8wN3eMNLVEC5d2dUFUwbSL5"/>
+<span class="text-xs font-semibold">KicksVault_Inc</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section Title -->
+<div class="px-4 flex items-center justify-between mb-3">
+<h3 class="text-lg font-bold">Trending Now</h3>
+<a class="text-primary text-xs font-bold uppercase tracking-wider" href="#">See All</a>
+</div>
+<!-- Live Grid -->
+<section class="px-4 grid grid-cols-2 gap-4">
+<!-- Live Card 1 -->
+<div class="flex flex-col gap-2">
+<div class="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800">
+<img alt="Pokemon Live Break" class="w-full h-full object-cover" data-alt="Hand holding a shiny holographic pokemon card" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVg8Ul8RmFVMwCFXYXH7bDvBjOpUnXqwqjaUSO31hunpkFxOtFm0R80P62s1rACqOrp4U_To48V6a56gb-rGyxOp9bSSQQI6YxXZwoiEd14ztjeZSA92rOj-pszYDnJMqxfi_4a6NHyv4hmcIOilm1NFHVw30_OsmbssXNo7ZFUECjEQpe6gXf3CHPbGTDVynQZFvzuY4sYyibQiEqBWVky61LIqVygXtNZLh2nHS5EXXGmrtncR1y8XOk7zmpljricoPb87cZzkch"/>
+<div class="absolute top-2 left-2 flex items-center gap-1 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded uppercase">
+                        LIVE
+                    </div>
+<div class="absolute bottom-2 left-2 flex items-center gap-1 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full backdrop-blur-sm">
+<span class="material-symbols-outlined text-xs">visibility</span>
+                        1.2k
+                    </div>
+</div>
+<div class="flex flex-col px-1">
+<p class="text-sm font-bold truncate">Holo Charizard Hunt! 1st Ed</p>
+<div class="flex items-center gap-1.5 mt-0.5">
+<img alt="Seller" class="h-4 w-4 rounded-full" data-alt="Miniature seller avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtAQLPP0hbLubtkzfeaLcDzoXl319CzJF8njtE2BVGDP28dVIlw7hlteNhbdcFze4_zd_ZmaCuNJHOS66CC07YNaltMtvJZqPrSLhapv9cPBu-bFBRKM8JXcY8oYjToeYySVtjlerBEzTwZIJiSBBkaHIcXxAMDYgCu6n3T-KOKrIvmHT9-x9XbFrI5k30mMoe1XJdgpuhAzRVxiH20kBrSsVOG4D5K8O2Wewfi_r_txrwpvo3oSGbgCIg8FSb34xD3rZ-vTpTl4UW"/>
+<span class="text-xs text-slate-500 font-medium">CardCracker99</span>
+<span class="text-[10px] text-yellow-500 flex items-center">4.9<span class="material-symbols-outlined text-[10px] fill-1">star</span></span>
+</div>
+</div>
+</div>
+<!-- Live Card 2 -->
+<div class="flex flex-col gap-2">
+<div class="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800">
+<img alt="Comic Grail Auction" class="w-full h-full object-cover" data-alt="Rare vintage comic books stacked neatly" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCX2eB3SoouvFhs6rtIL0-w6XiDuTQ3y61dHQaFKFdo9xbJmtYz1Mk5d1TWYTeK6L9x-ScKWqq1XECm_hvXAE3Ewo_N9TIP6DftbV4fiGM9XcQ8hmoYyjPcriEDursZtKNa09mFUVB1Z7UQEwoaef35mBMOPqaLF4phPVq2DvXCvSok3fzX3_7pQlhmUVovArw3Mrpcy1NurbSeY4_LwPniLnQi-wKdRyEHRyeVzmdLaPCmvZ0vGrXJXMFhiwRQvxVinEX0tLkzBUvg"/>
+<div class="absolute top-2 left-2 flex items-center gap-1 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded uppercase">
+                        LIVE
+                    </div>
+<div class="absolute bottom-2 left-2 flex items-center gap-1 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full backdrop-blur-sm">
+<span class="material-symbols-outlined text-xs">visibility</span>
+                        456
+                    </div>
+</div>
+<div class="flex flex-col px-1">
+<p class="text-sm font-bold truncate">Golden Age DC Grails</p>
+<div class="flex items-center gap-1.5 mt-0.5">
+<img alt="Seller" class="h-4 w-4 rounded-full" data-alt="Miniature seller avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvukpKC667oIPcHCt-bLYNV4izWwqdzT84uCy2wc9-ZKZotC-UmX00pMTUUq_ntjQayzJxpZ1cL8OKG7TPDsvlrUiL46sP7JYlNeUgRq8s_QxV_1dUyeV3UGtf7mPsRCDYbmJAOR0xlSle7K6oHGLTr9XF55rojOM8GhON1a35HLXqhsZY1l3D6voOqz-5d42NuH3RIm3W4yaXY0deAD2H9UFw8c74NJW7v9ZA0WNQQTIcm0ch682HHMnEufbgVYyJ1kG7FQut8HIq"/>
+<span class="text-xs text-slate-500 font-medium">PanelPusher</span>
+<span class="text-[10px] text-yellow-500 flex items-center">5.0<span class="material-symbols-outlined text-[10px] fill-1">star</span></span>
+</div>
+</div>
+</div>
+<!-- Live Card 3 -->
+<div class="flex flex-col gap-2">
+<div class="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800">
+<img alt="Streetwear Drop" class="w-full h-full object-cover" data-alt="Close up of a limited edition sneaker toe box" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJEBGM1L_QvJ_V8FHLNFTN1FxZ528UXu4NOg_Gm0Ydzw9CGu0RrjG9aQREH1h3PLFtgmJE0HfaBmI5DElybYhf1HOLHGJNvYaHYcP1tSvVIC3ir8rUTN8mPDKpDAnDIbUQuPiGM2nJn2_zS45RnJuMxhbQgiTOuoIBUmxkzYRI4XbFNRQ0vhvvIBK3jlCyIFVIIS05t1NELhb2kkhlW28ffNbJgxuCBlAFmx_D0ke5rPs5wAFWNz26sH0nbEIp9AYUGNT2LMhmCCo_"/>
+<div class="absolute top-2 left-2 flex items-center gap-1 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded uppercase">
+                        LIVE
+                    </div>
+<div class="absolute bottom-2 left-2 flex items-center gap-1 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full backdrop-blur-sm">
+<span class="material-symbols-outlined text-xs">visibility</span>
+                        2.1k
+                    </div>
+</div>
+<div class="flex flex-col px-1">
+<p class="text-sm font-bold truncate">Deadstock Yeezy Mystery Box</p>
+<div class="flex items-center gap-1.5 mt-0.5">
+<img alt="Seller" class="h-4 w-4 rounded-full" data-alt="Miniature seller avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKtGx7gSZjki7By9o1N6yDkG1QihMz4ri-loYlRJPSuyYYQvkBD7C-LVNA4SWYfthXBJvmtCmmAZcuETlhPReIj_8z9PYGVDflbyJg_xyWu1eHJPqEAnXhiWNgNqQbh6k5CiC1Jqr_8gSVLYb8gqo8oH0PpCDxxM_IOtyWdJpnYWXhOn5RXt7tG374W5HLBazdGZYECvf_sDp6HgvD7RGramWk8nzGtAEJ3Td3JEvo7voZtvAH_usoirD87PSiY_4vJLQ_iooxClRo"/>
+<span class="text-xs text-slate-500 font-medium">HypeMarket</span>
+<span class="text-[10px] text-yellow-500 flex items-center">4.8<span class="material-symbols-outlined text-[10px] fill-1">star</span></span>
+</div>
+</div>
+</div>
+<!-- Live Card 4 -->
+<div class="flex flex-col gap-2">
+<div class="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800">
+<img alt="Retro Games" class="w-full h-full object-cover" data-alt="Stack of vintage Nintendo NES game cartridges" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBX8n5dLFNH-xv8HkXOcb_98UvUgGkSRRGG5jaVo7mnUnNzpQCk1mct7Ep1gzc6koX4n_eoBnIW82Ik5U73XPboorKU2tP70AVJkNLZsocZ8jLJreYPUG9qKhkBPqU61O4zFKmN34ZTWWLaPjJVq14RkIeBVxw0h-ZMe_HcXwKeJ71SxutEl30sEKhrsC8vPrcU7k-xL_8nWIwTxuIBOR-DZOvy0CC3ZcHOKjEiYM7Hec7k6hp5tQnh9E4b7MvC_duFHZAEGpT0vHpl"/>
+<div class="absolute top-2 left-2 flex items-center gap-1 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded uppercase">
+                        LIVE
+                    </div>
+<div class="absolute bottom-2 left-2 flex items-center gap-1 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full backdrop-blur-sm">
+<span class="material-symbols-outlined text-xs">visibility</span>
+                        89
+                    </div>
+</div>
+<div class="flex flex-col px-1">
+<p class="text-sm font-bold truncate">Sealed NES Games Auction</p>
+<div class="flex items-center gap-1.5 mt-0.5">
+<img alt="Seller" class="h-4 w-4 rounded-full" data-alt="Miniature seller avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzYR-OE7q3w5-VqbV6aPjG_hCSRwT4nUMWPY_I7ADG3XnH6EvmByRt1RDoNHg6urEv4LD_M5ECLABsDv7RdunDKzeZbFVaJG6pEZtdoQ2uJTP2j4Z2Am6tWApT0HkFv89H8auQxaqsNx8KJ7FwTolWK2WGXi3wF927FPOtdtgs2telJ5lsal2n9khNWxxZjbjy4Z1GJWBjdKAj4nt25u8tiynRAu0fOhopUiBJ-7OZQkrsWkC57JZ4EBjpfociZa5TBNVgjn26N-0L"/>
+<span class="text-xs text-slate-500 font-medium">RetroCollector</span>
+<span class="text-[10px] text-yellow-500 flex items-center">4.7<span class="material-symbols-outlined text-[10px] fill-1">star</span></span>
+</div>
+</div>
+</div>
+</section>
+<!-- Category Grid Section -->
+<div class="px-4 mt-8 flex items-center justify-between mb-3">
+<h3 class="text-lg font-bold">Explore Categories</h3>
+</div>
+<div class="px-4 grid grid-cols-3 gap-3 mb-8">
+<div class="bg-white dark:bg-slate-800 p-3 rounded-xl flex flex-col items-center gap-2 border border-slate-100 dark:border-slate-700 shadow-sm">
+<span class="material-symbols-outlined text-primary text-2xl">style</span>
+<span class="text-[10px] font-bold uppercase tracking-wide">Cards</span>
+</div>
+<div class="bg-white dark:bg-slate-800 p-3 rounded-xl flex flex-col items-center gap-2 border border-slate-100 dark:border-slate-700 shadow-sm">
+<span class="material-symbols-outlined text-primary text-2xl">scooter</span>
+<span class="text-[10px] font-bold uppercase tracking-wide">Kicks</span>
+</div>
+<div class="bg-white dark:bg-slate-800 p-3 rounded-xl flex flex-col items-center gap-2 border border-slate-100 dark:border-slate-700 shadow-sm">
+<span class="material-symbols-outlined text-primary text-2xl">menu_book</span>
+<span class="text-[10px] font-bold uppercase tracking-wide">Comics</span>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-background-dark border-t border-slate-200 dark:border-slate-800 px-2 pb-6 pt-2">
+<div class="max-w-md mx-auto flex items-center justify-between">
+<a class="flex flex-1 flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined fill-1">home</span>
+<span class="text-[10px] font-bold">Home</span>
+</a>
+<a class="flex flex-1 flex-col items-center gap-1 text-slate-500 dark:text-slate-400" href="#">
+<span class="material-symbols-outlined">live_tv</span>
+<span class="text-[10px] font-medium">Live</span>
+</a>
+<a class="flex flex-1 flex-col items-center -mt-6" href="#">
+<div class="bg-primary h-12 w-12 rounded-full flex items-center justify-center text-white shadow-lg shadow-primary/40 border-4 border-white dark:border-background-dark">
+<span class="material-symbols-outlined text-3xl">add</span>
+</div>
+<span class="text-[10px] font-medium text-slate-500 mt-1">Create</span>
+</a>
+<a class="flex flex-1 flex-col items-center gap-1 text-slate-500 dark:text-slate-400" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span class="text-[10px] font-medium">Browse</span>
+</a>
+<a class="flex flex-1 flex-col items-center gap-1 text-slate-500 dark:text-slate-400" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Account</span>
+</a>
+</div>
+</nav>
+</body></html>

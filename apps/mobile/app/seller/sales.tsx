@@ -14,7 +14,7 @@ import {
     Image,
     Badge,
     BadgeText,
-} from "@gluestack-ui/themed";
+} from "@/components/ui/reusables";
 import {
     ChevronLeft,
     Package,

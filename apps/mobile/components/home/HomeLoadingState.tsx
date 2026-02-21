@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, VStack, Text, HStack, Spinner, Center } from "@gluestack-ui/themed";
+import { Box, VStack, Text, HStack, Spinner, Center } from "@/components/ui/reusables";
 import { StatusBar } from "react-native";
 import { COLORS } from "@/constants/colors";
 
