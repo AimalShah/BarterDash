@@ -1,249 +1,352 @@
-import React, { useState, useEffect } from "react";
-import { ScrollView, FlatList } from "react-native";
-import { useRouter } from "expo-router";
+import { useMemo, useState } from 'react';
 import {
-    Box,
-    Heading,
-    Text,
-    VStack,
-    HStack,
-    Input,
-    InputField,
-    InputSlot,
-    InputIcon,
-    Pressable,
-    Center,
-    Image,
-    Spinner,
-} from "@/components/ui/reusables";
-import { Search, Filter, Play } from "lucide-react-native";
-import { auctionsService } from "@/lib/api/services/auctions";
-import { categoriesService } from "@/lib/api/services/categories";
-import StreamCard from "@/components/stream/StreamCard";
-import { Auction, Category } from "@/types";
-import { COLORS } from '../../constants/colors';
-import { useResponsiveLayout } from "../../hooks/useResponsiveLayout";
+  Image,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { Flame, Star } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { useCategories, useProducts, useStreams } from '@/hooks';
+import { COLORS } from '@/constants/colors';
+import {
+  StitchCard,
+  StitchChip,
+  StitchHeader,
+  StitchPage,
+  StitchSearchBar,
+  StitchSectionTitle,
+} from '@/components/design';
 
 export default function SearchScreen() {
-    const router = useRouter();
-    const { width, isTablet, horizontalPadding, cardGap } = useResponsiveLayout();
-    const [query, setQuery] = useState("");
-    const [results, setResults] = useState<Auction[]>([]);
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [activeCategory, setActiveCategory] = useState<string>("all");
-    const [loading, setLoading] = useState(false);
-    const columns = isTablet ? (width >= 1040 ? 4 : 3) : 2;
-    const itemWidth =
-        (width - horizontalPadding * 2 - cardGap * (columns - 1)) / columns;
+  const [query, setQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState('all');
 
-    useEffect(() => {
-        fetchCategories();
-    }, []);
+  const categoriesQuery = useCategories();
+  const streamsQuery = useStreams({
+    category_id: activeCategory === 'all' ? undefined : activeCategory,
+    search: query || undefined,
+  });
+  const productsQuery = useProducts({
+    category: activeCategory === 'all' ? undefined : activeCategory,
+    search: query || undefined,
+  });
 
-    useEffect(() => {
-        const delayDebounceFn = setTimeout(() => {
-            if (query || activeCategory !== "all") {
-                performSearch();
-            } else {
-                setResults([]);
-            }
-        }, 500);
+  const categories = useMemo(
+    () => [{ id: 'all', name: 'All' }, ...(categoriesQuery.data || []).map((cat) => ({ id: String(cat.id), name: cat.name }))],
+    [categoriesQuery.data]
+  );
 
-        return () => clearTimeout(delayDebounceFn);
-    }, [query, activeCategory]);
+  const streams = streamsQuery.data || [];
+  const products = productsQuery.data || [];
 
-    const fetchCategories = async () => {
-        try {
-            const data = await categoriesService.findAll();
-            const raw = Array.isArray(data) ? data : [];
-            const normalized = raw
-                .map((c: any) => ({
-                    id: String(c?.id ?? ""),
-                    name: c?.name ?? "Unknown",
-                    slug: c?.slug ?? "",
-                }))
-                .filter((c) => c.id) as Category[];
-            setCategories([
-                { id: "all", name: "All", slug: "all" } as Category,
-                ...normalized,
-            ]);
-        } catch (error) {
-            console.error("Error fetching categories:", error);
-        }
-    };
+  const isRefreshing = streamsQuery.isRefetching || productsQuery.isRefetching || categoriesQuery.isRefetching;
 
-    const performSearch = async () => {
-        try {
-            setLoading(true);
-            const params: any = {};
-            if (query) params.title = query;
-            if (activeCategory !== "all") params.category_id = activeCategory;
+  return (
+    <StitchPage
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={() => {
+            streamsQuery.refetch();
+            productsQuery.refetch();
+            categoriesQuery.refetch();
+          }}
+          tintColor={COLORS.primaryBlue}
+        />
+      }
+    >
+      <StitchHeader title="Search & Discovery" subtitle="Find streams and products" />
 
-            const data = await auctionsService.findAll(params);
-            setResults(data || []);
-        } catch (error) {
-            console.error("Search error:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
+      <View style={styles.searchWrap}>
+        <StitchSearchBar
+          value={query}
+          onChangeText={setQuery}
+          placeholder="Search for sneakers, cards, or live breaks..."
+          onFilterPress={() => undefined}
+        />
+      </View>
 
-    const renderResultItem = ({ item, index }: { item: Auction; index: number }) => (
-        <Box
-            mb="$6"
-            style={{
-                width: itemWidth,
-                marginRight: (index + 1) % columns === 0 ? 0 : cardGap,
-            }}
-        >
-            <StreamCard stream={item} isLive={item.status === "live"} />
-        </Box>
-    );
+      <View style={styles.chipsWrap}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+          {categories.map((category) => (
+            <StitchChip
+              key={category.id}
+              label={category.name}
+              active={activeCategory === category.id}
+              onPress={() => setActiveCategory(category.id)}
+            />
+          ))}
+        </ScrollView>
+      </View>
 
-    return (
-        <Box flex={1} bg={COLORS.luxuryBlack}>
-            <Box safeAreaTop />
-            <Box
-                pt="$8"
-                pb="$6"
-                borderBottomWidth={1}
-                borderColor={COLORS.darkBorder}
-                style={{ paddingHorizontal: horizontalPadding }}
-            >
-                <HStack alignItems="center" space="md">
-                    <Input
-                        variant="outline"
-                        h={56}
-                        bg={COLORS.luxuryBlack}
-                        borderColor={COLORS.darkBorder}
-                        rounded="$sm"
-                        flex={1}
-                        borderWidth={1}
-                    >
-                        <InputSlot pl="$3">
-                            <Search size={20} color={COLORS.textPrimary} />
-                        </InputSlot>
-                        <InputField
-                            placeholder="SEARCH STREAMS..."
-                            value={query}
-                            onChangeText={setQuery}
-                            color={COLORS.textPrimary}
-                            placeholderTextColor={COLORS.textSecondary}
-                            style={{ fontWeight: "700", fontSize: 13 }}
-                            autoCapitalize="none"
-                        />
-                    </Input>
-                    <Pressable
-                        h={56}
-                        w={56}
-                        bg={COLORS.luxuryBlack}
-                        rounded="$sm"
-                        alignItems="center"
-                        justifyContent="center"
-                        borderWidth={1}
-                        borderColor={COLORS.darkBorder}
-                    >
-                        <Filter size={20} color={COLORS.textPrimary} />
-                    </Pressable>
-                </HStack>
-            </Box>
+      <View style={styles.contentPad}>
+        <StitchCard style={styles.trendingCard}>
+          <View style={styles.trendingHead}>
+            <View style={styles.trendingTitleWrap}>
+              <Flame size={18} color="#F97316" />
+              <Text style={styles.trendingTitle}>Trending Now</Text>
+            </View>
+            <Pressable onPress={() => router.push('/products')}>
+              <Text style={styles.trendingAction}>See all</Text>
+            </Pressable>
+          </View>
 
-            <Box py="$6" borderBottomWidth={1} borderColor={COLORS.darkBorder}>
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ paddingHorizontal: horizontalPadding }}
-                >
-                    {categories &&
-                        categories.length > 0 &&
-                        categories.map((cat) => (
-                            <Pressable
-                                key={String(cat.id)}
-                                onPress={() => setActiveCategory(String(cat.id))}
-                                mr="$3"
-                                px="$6"
-                                h={40}
-                                rounded="$sm"
-                                borderWidth={1}
-                                borderColor={COLORS.darkBorder}
-                                bg={
-                                    activeCategory === String(cat.id) ? COLORS.primaryGold : COLORS.luxuryBlack
-                                }
-                                alignItems="center"
-                                justifyContent="center"
-                            >
-                                <Text
-                                    size="xs"
-                                    fontWeight="$black"
-                                    textTransform="uppercase"
-                                    color={
-                                        activeCategory === String(cat.id) ? COLORS.luxuryBlack : COLORS.textPrimary
-                                    }
-                                >
-                                    {cat.name}
-                                </Text>
-                            </Pressable>
-                        ))}
-                </ScrollView>
-            </Box>
+          <View style={styles.trendingGrid}>
+            {[
+              { label: 'Jordan 4 SB', type: 'Trending' },
+              { label: 'Pokemon 151', type: 'Hot Item' },
+              { label: 'Vintage Wax', type: 'Live Break' },
+              { label: 'Charizard PSA 10', type: 'Top Trade' },
+            ].map((item) => (
+              <View key={item.label} style={styles.trendingChipCard}>
+                <Text style={styles.trendingChipMeta}>{item.type}</Text>
+                <Text style={styles.trendingChipTitle}>{item.label}</Text>
+              </View>
+            ))}
+          </View>
+        </StitchCard>
 
-            <Box flex={1}>
-                {loading ? (
-                    <Center flex={1}>
-                        <Spinner size="large" color={COLORS.primaryGold} />
-                        <Text mt="$4" fontWeight="$black" size="xs" textTransform="uppercase" color={COLORS.textPrimary}>SEARCHING...</Text>
-                    </Center>
-                ) : results && results.length > 0 ? (
-                    <FlatList
-                        key={`search-grid-${columns}`}
-                        data={results}
-                        renderItem={renderResultItem}
-                        keyExtractor={(item) => item.id}
-                        numColumns={columns}
-                        columnWrapperStyle={columns > 1 ? { justifyContent: "flex-start" } : undefined}
-                        contentContainerStyle={{
-                            paddingTop: 24,
-                            paddingHorizontal: horizontalPadding,
-                            paddingBottom: 100,
-                        }}
-                    />
-                ) : (
-                    <Center flex={1} px="$10">
-                        <Box
-                            h="$24"
-                            w="$24"
-                            bg={COLORS.luxuryBlackLight}
-                            opacity={0.5}
-                            rounded="$sm"
-                            alignItems="center"
-                            justifyContent="center"
-                            mb="$6"
-                            borderWidth={1}
-                            borderColor={COLORS.darkBorder}
-                        >
-                            <Search size={40} color={COLORS.textPrimary} />
-                        </Box>
-                        <Text size="lg" color={COLORS.textPrimary} fontWeight="$black" textAlign="center" textTransform="uppercase">
-                            {query ? "NO RESULTS FOUND" : "EXPLORE BARTERDASH"}
-                        </Text>
-                        <Text color={COLORS.textSecondary} textAlign="center" mt="$2" fontWeight="$bold" size="sm">
-                            {query
-                                ? "TRY DIFFERENT KEYWORDS OR CATEGORIES."
-                                : "SEARCH FOR YOUR FAVORITE ITEMS OR LIVE AUCTIONS."}
-                        </Text>
-                        <Pressable
-                            mt="$8"
-                            px="$8"
-                            py="$3"
-                            bg={COLORS.primaryGold}
-                            rounded="$sm"
-                            onPress={() => { setQuery(""); setActiveCategory("all"); }}
-                        >
-                            <Text color={COLORS.luxuryBlack} fontWeight="$black" size="xs" textTransform="uppercase">CLEAR SEARCH</Text>
-                        </Pressable>
-                    </Center>
-                )}
-            </Box>
-        </Box>
-    );
+        <View style={styles.sectionTop}>
+          <StitchSectionTitle title="Results" />
+        </View>
+
+        <View style={styles.resultsGrid}>
+          {streams.slice(0, 4).map((stream) => (
+            <Pressable key={`stream-${stream.id}`} style={styles.resultItem} onPress={() => router.push(`/stream/${stream.id}`)}>
+              <StitchCard style={styles.resultCardLive}>
+                <Image
+                  source={{
+                    uri:
+                      stream.thumbnailUrl ||
+                      (stream as any).thumbnail_url ||
+                      'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=1200',
+                  }}
+                  style={styles.resultImage}
+                />
+                <View style={styles.livePill}>
+                  <Text style={styles.livePillText}>LIVE</Text>
+                </View>
+                <Text style={styles.resultTitle} numberOfLines={1}>{stream.title}</Text>
+                <Text style={styles.resultMeta} numberOfLines={1}>@{stream.seller?.username || 'seller'}</Text>
+                <Pressable style={styles.streamCta} onPress={() => router.push(`/stream/${stream.id}`)}>
+                  <Text style={styles.streamCtaText}>Join Stream</Text>
+                </Pressable>
+              </StitchCard>
+            </Pressable>
+          ))}
+
+          {products.slice(0, 6).map((product) => (
+            <Pressable key={`product-${product.id}`} style={styles.resultItem} onPress={() => router.push(`/product/${product.id}`)}>
+              <StitchCard style={styles.resultCardProduct}>
+                <Image
+                  source={{
+                    uri:
+                      product.images?.[0] ||
+                      (product as any).thumbnail_url ||
+                      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1200',
+                  }}
+                  style={styles.productImage}
+                />
+                <Text style={styles.resultTitle} numberOfLines={1}>{product.title}</Text>
+                <View style={styles.priceRow}>
+                  <Text style={styles.priceLabel}>Est. Value</Text>
+                  <Text style={styles.priceValue}>${Number(product.price || 0).toFixed(2)}</Text>
+                </View>
+                <View style={styles.reviewRow}>
+                  <View style={styles.reviewLeft}>
+                    <Star size={11} color="#EAB308" fill="#EAB308" />
+                    <Text style={styles.reviewText}>4.9</Text>
+                  </View>
+                  <Text style={styles.watchText}>Watch</Text>
+                </View>
+              </StitchCard>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+    </StitchPage>
+  );
 }
+
+const styles = StyleSheet.create({
+  searchWrap: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+  },
+  chipsWrap: {
+    paddingTop: 12,
+  },
+  chipRow: {
+    paddingHorizontal: 16,
+  },
+  contentPad: {
+    paddingHorizontal: 16,
+    paddingTop: 14,
+  },
+  trendingCard: {
+    marginBottom: 16,
+  },
+  trendingHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  trendingTitleWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  trendingTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.primaryText,
+  },
+  trendingAction: {
+    color: COLORS.primaryBlue,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  trendingGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -4,
+  },
+  trendingChipCard: {
+    width: '50%',
+    marginHorizontal: 4,
+    marginBottom: 8,
+    backgroundColor: '#F8FAFF',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+  },
+  trendingChipMeta: {
+    color: COLORS.lightGrey,
+    fontSize: 10,
+    textTransform: 'uppercase',
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  trendingChipTitle: {
+    color: COLORS.primaryText,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  sectionTop: {
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  resultsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -6,
+  },
+  resultItem: {
+    width: '50%',
+    paddingHorizontal: 6,
+    marginBottom: 12,
+  },
+  resultCardLive: {
+    padding: 8,
+    borderColor: '#B7D0F8',
+    borderWidth: 2,
+  },
+  resultCardProduct: {
+    padding: 8,
+  },
+  resultImage: {
+    height: 150,
+    width: '100%',
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  livePill: {
+    position: 'absolute',
+    top: 14,
+    left: 14,
+    borderRadius: 6,
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  livePillText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+  },
+  resultTitle: {
+    color: COLORS.primaryText,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  resultMeta: {
+    color: COLORS.lightGrey,
+    fontSize: 11,
+    marginTop: 2,
+  },
+  streamCta: {
+    marginTop: 8,
+    backgroundColor: COLORS.primaryBlue,
+    borderRadius: 8,
+    paddingVertical: 7,
+    alignItems: 'center',
+  },
+  streamCtaText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  productImage: {
+    height: 120,
+    width: '100%',
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  priceRow: {
+    marginTop: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  priceLabel: {
+    color: COLORS.lightGrey,
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  priceValue: {
+    color: COLORS.primaryBlue,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  reviewRow: {
+    marginTop: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  reviewLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  reviewText: {
+    color: COLORS.lightGrey,
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  watchText: {
+    color: COLORS.lightGrey,
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+});

@@ -20,6 +20,10 @@ export interface User {
     bidAlerts: boolean;
     emailNotifications: boolean;
   };
+  email_verified?: boolean;
+  age_verified?: boolean;
+  emailVerified?: boolean;
+  ageVerified?: boolean;
   created_at: string;
 }
 

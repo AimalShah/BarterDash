@@ -1,54 +1,52 @@
-import React, { useState, useEffect } from "react";
-import { StatusBar, Alert, ScrollView, Platform } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from 'react';
 import {
-  Box,
-  Center,
-  Heading,
-  HStack,
+  Alert,
+  Image,
   Pressable,
-  Spinner,
-  Button,
-  ButtonText,
-  VStack,
-  Input,
-  InputField,
-  Textarea,
-} from "@/components/ui/reusables";
-import { streamsService, Stream } from "../../../../lib/api/services/streams";
-import { categoriesService } from "../../../../lib/api/services/categories";
-import { ChevronLeft } from "lucide-react-native";
-import * as ImagePicker from "expo-image-picker";
-import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
-import { ThumbnailUpload } from "../../../../components/seller/ThumbnailUpload";
-import { CategoryPicker } from "../../../../components/seller/CategoryPicker";
-import { COLORS } from "../../../../constants/colors";
-import { supabase } from "../../../../lib/supabase";
-import { decode } from "base64-arraybuffer";
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  Platform,
+} from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
+import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import { decode } from 'base64-arraybuffer';
+import { COLORS } from '@/constants/colors';
+import { categoriesService, type Category } from '@/lib/api/services/categories';
+import { streamsService, type Stream } from '@/lib/api/services/streams';
+import { supabase } from '@/lib/supabase';
+import {
+  StitchCard,
+  StitchChip,
+  StitchHeader,
+  StitchPage,
+  StitchPrimaryButton,
+} from '@/components/design';
 
 export default function EditStreamScreen() {
   const { id: streamId } = useLocalSearchParams<{ id: string }>();
-  const router = useRouter();
 
-   const [stream, setStream] = useState<Stream | null>(null);
-   const [categories, setCategories] = useState<any[]>([]);
-   const [title, setTitle] = useState("");
-   const [description, setDescription] = useState("");
-   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
-   const [localImage, setLocalImage] = useState<string | null>(null);
-   const [scheduleStart, setScheduleStart] = useState<Date>(new Date());
-   const [loading, setLoading] = useState(true);
-   const [saving, setSaving] = useState(false);
-   const [uploadingImage, setUploadingImage] = useState(false);
+  const [stream, setStream] = useState<Stream | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  const [localImage, setLocalImage] = useState<string | null>(null);
+  const [scheduleStart, setScheduleStart] = useState<Date>(new Date());
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
-  useEffect(() => {
-    if (streamId) {
-      fetchStreamAndCategories();
+  const fetchStreamAndCategories = useCallback(async () => {
+    if (!streamId) {
+      setLoading(false);
+      return;
     }
-  }, [streamId]);
 
-  const fetchStreamAndCategories = async () => {
     try {
       const [streamData, categoriesData] = await Promise.all([
         streamsService.findById(streamId),
@@ -58,59 +56,27 @@ export default function EditStreamScreen() {
       setStream(streamData);
       setCategories(categoriesData || []);
 
-      // Set form values
-      setTitle(streamData.title || "");
-      setDescription(streamData.description || "");
-      setSelectedCategory(streamData.categoryId);
-      setThumbnailUrl(streamData.thumbnailUrl);
+      setTitle(streamData.title || '');
+      setDescription(streamData.description || '');
+      setSelectedCategory(streamData.categoryId || null);
+      setThumbnailUrl(streamData.thumbnailUrl || null);
+
       if (streamData.scheduledStart) {
         setScheduleStart(new Date(streamData.scheduledStart));
       }
     } catch (error) {
-      console.error("Error fetching stream:", error);
-      Alert.alert("Error", "Failed to load stream details");
+      console.error('Error fetching stream:', error);
+      Alert.alert('Error', 'Failed to load stream details.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [streamId]);
 
-  const onDateChange = (event: any, selectedDate?: Date) => {
-    if (Platform.OS === "android") {
-      if (event.type === "set" && selectedDate) {
-        setScheduleStart(selectedDate);
-      }
-    } else {
-      if (selectedDate) {
-        setScheduleStart(selectedDate);
-      }
-    }
-  };
+  useEffect(() => {
+    fetchStreamAndCategories();
+  }, [fetchStreamAndCategories]);
 
-  const showDatePicker = () => {
-    if (Platform.OS === "android") {
-      DateTimePickerAndroid.open({
-        value: scheduleStart,
-        onChange: (event, date) => {
-          if (event.type === "set" && date) {
-            DateTimePickerAndroid.open({
-              value: date,
-              onChange: (tEvent, tDate) => {
-                if (tEvent.type === "set" && tDate) {
-                  setScheduleStart(tDate);
-                }
-              },
-              mode: "time",
-              is24Hour: true,
-            });
-          }
-        },
-        mode: "date",
-        minimumDate: new Date(),
-      });
-    }
-  };
-
-  const pickImage = async () => {
+  const pickImage = useCallback(async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         allowsEditing: true,
@@ -119,261 +85,294 @@ export default function EditStreamScreen() {
         base64: true,
       });
 
-      if (result.canceled) return;
+      if (result.canceled) {
+        return;
+      }
 
       const selectedAsset = result.assets[0];
-      if (selectedAsset.base64) {
-        setLocalImage(selectedAsset.uri);
-        setUploadingImage(true);
+      if (!selectedAsset?.base64 || !streamId) {
+        return;
+      }
 
-        // Upload to Supabase storage
-        const fileExt = selectedAsset.uri.split('.').pop() || 'jpg';
-        const fileName = `${streamId}/thumbnail-${Date.now()}.${fileExt}`;
-        const filePath = `stream-thumbnails/${fileName}`;
+      setLocalImage(selectedAsset.uri);
+      setUploadingImage(true);
 
-        const { data, error } = await supabase.storage
-          .from('stream-images')
-          .upload(filePath, decode(selectedAsset.base64), {
-            contentType: `image/${fileExt}`,
-            upsert: true,
-          });
+      const fileExt = selectedAsset.uri.split('.').pop() || 'jpg';
+      const fileName = `${streamId}/thumbnail-${Date.now()}.${fileExt}`;
+      const filePath = `stream-thumbnails/${fileName}`;
 
-        if (error) {
-          console.error('Upload error:', error);
-          Alert.alert('Upload Error', 'Failed to upload thumbnail. Please try again.');
-          setUploadingImage(false);
+      const { error } = await supabase.storage
+        .from('stream-images')
+        .upload(filePath, decode(selectedAsset.base64), {
+          contentType: `image/${fileExt}`,
+          upsert: true,
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      const { data: urlData } = supabase.storage.from('stream-images').getPublicUrl(filePath);
+      setThumbnailUrl(urlData.publicUrl);
+    } catch (error) {
+      console.error('Error picking/uploading image:', error);
+      Alert.alert('Upload Error', 'Failed to upload thumbnail.');
+    } finally {
+      setUploadingImage(false);
+    }
+  }, [streamId]);
+
+  const showDatePicker = useCallback(() => {
+    if (Platform.OS !== 'android') {
+      return;
+    }
+
+    DateTimePickerAndroid.open({
+      value: scheduleStart,
+      mode: 'date',
+      minimumDate: new Date(),
+      onChange: (event, date) => {
+        if (event.type !== 'set' || !date) {
           return;
         }
 
-        // Get public URL
-        const { data: urlData } = supabase.storage
-          .from('stream-images')
-          .getPublicUrl(filePath);
+        DateTimePickerAndroid.open({
+          value: date,
+          mode: 'time',
+          is24Hour: true,
+          onChange: (timeEvent, timeDate) => {
+            if (timeEvent.type !== 'set' || !timeDate) {
+              return;
+            }
+            setScheduleStart(timeDate);
+          },
+        });
+      },
+    });
+  }, [scheduleStart]);
 
-        setThumbnailUrl(urlData.publicUrl);
-        Alert.alert('Success', 'Thumbnail uploaded successfully');
-        setUploadingImage(false);
-      }
-    } catch (error) {
-      console.error('Error picking/uploading image:', error);
-      Alert.alert('Error', 'Failed to process image. Please try again.');
-      setUploadingImage(false);
+  const handleSave = useCallback(async () => {
+    if (!streamId) {
+      return;
     }
-  };
 
-  const handleSave = async () => {
     if (!title.trim()) {
-      Alert.alert("Error", "Please enter a stream title");
+      Alert.alert('Error', 'Please enter a stream title.');
       return;
     }
 
     if (!selectedCategory) {
-      Alert.alert("Error", "Please select a category");
+      Alert.alert('Error', 'Please select a category.');
       return;
-
-      setSaving(true);
-      try {
-        await streamsService.update(streamId, {
-          title: title.trim(),
-          description: description.trim(),
-          categoryId: selectedCategory,
-          scheduledStart: scheduleStart.toISOString(),
-          thumbnailUrl: thumbnailUrl || undefined,
-        });
-
-        Alert.alert("Success", "Stream updated successfully", [
-          { text: "OK", onPress: () => router.replace(`/seller/stream/${streamId}`) },
-        ]);
-      } catch (error: any) {
-        Alert.alert("Error", error.message || "Failed to update stream");
-      } finally {
-        setSaving(false);
-      }
     }
-  };
+
+    setSaving(true);
+    try {
+      await streamsService.update(streamId, {
+        title: title.trim(),
+        description: description.trim(),
+        categoryId: selectedCategory,
+        scheduledStart: scheduleStart.toISOString(),
+        thumbnailUrl: thumbnailUrl || undefined,
+      });
+
+      Alert.alert('Success', 'Stream updated successfully.', [
+        { text: 'OK', onPress: () => router.replace(`/seller/stream/${streamId}`) },
+      ]);
+    } catch (error: any) {
+      Alert.alert('Error', error?.message || 'Failed to update stream.');
+    } finally {
+      setSaving(false);
+    }
+  }, [streamId, title, selectedCategory, description, scheduleStart, thumbnailUrl]);
 
   if (loading) {
     return (
-      <Box flex={1} bg={COLORS.luxuryBlack}>
-        <Center flex={1}>
-          <VStack space="lg" alignItems="center">
-            <Spinner size="large" color={COLORS.primaryGold} />
-            <Text fontWeight="$bold" color={COLORS.textSecondary}>
-              Loading Stream...
-            </Text>
-          </VStack>
-        </Center>
-      </Box>
+      <StitchPage scroll={false} contentStyle={styles.centerWrap}>
+        <Text style={styles.loadingTitle}>Loading Stream...</Text>
+        <Text style={styles.loadingSubtitle}>Preparing edit form</Text>
+      </StitchPage>
     );
   }
 
   if (!stream) {
     return (
-      <Box flex={1} bg={COLORS.luxuryBlack}>
-        <Center flex={1} px="$10">
-          <VStack space="2xl" alignItems="center">
-            <Heading color={COLORS.textPrimary} size="2xl">
-              Stream Not Found
-            </Heading>
-            <Text color={COLORS.textSecondary} textAlign="center">
-              The stream you're looking for could not be found.
-            </Text>
-            <Button
-              size="xl"
-              onPress={() => router.replace('/seller/dashboard')}
-              bg={COLORS.primaryGold}
-              rounded="$full"
-              h={56}
-              px="$6"
-            >
-              <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
-                Back to Dashboard
-              </ButtonText>
-            </Button>
-          </VStack>
-        </Center>
-      </Box>
+      <StitchPage scroll={false} contentStyle={styles.centerWrap}>
+        <StitchHeader title="Edit Stream" onBack={() => router.back()} />
+        <Text style={styles.loadingTitle}>Stream Not Found</Text>
+        <Text style={styles.loadingSubtitle}>This stream could not be loaded.</Text>
+      </StitchPage>
     );
   }
 
   return (
-    <Box flex={1} bg={COLORS.luxuryBlack}>
-      <StatusBar barStyle="light-content" />
+    <StitchPage contentStyle={{ paddingBottom: 120 }}>
+      <StitchHeader title="Edit Stream" subtitle="Update stream details" onBack={() => router.back()} />
 
-      {/* Header */}
-      <Box px="$6" py="$4" borderBottomWidth={1} borderColor={COLORS.darkBorder}>
-        <HStack alignItems="center" space="sm">
-          <Pressable
-            onPress={() => router.back()}
-            h={44}
-            w={44}
-            rounded="$sm"
-            alignItems="center"
-            justifyContent="center"
-            borderWidth={1}
-            borderColor={COLORS.primaryGold}
-            bg={COLORS.luxuryBlackLight}
-          >
-            <ChevronLeft size={24} color={COLORS.primaryGold} />
+      <ScrollView style={styles.contentPad} showsVerticalScrollIndicator={false}>
+        <StitchCard style={styles.cardSpacing}>
+          <Text style={styles.label}>Thumbnail</Text>
+          <Pressable style={styles.thumbnailWrap} onPress={pickImage}>
+            {localImage || thumbnailUrl ? (
+              <Image source={{ uri: localImage || (thumbnailUrl as string) }} style={styles.thumbnail} />
+            ) : (
+              <View style={styles.thumbnailPlaceholder}>
+                <Text style={styles.placeholderText}>Tap to add thumbnail</Text>
+              </View>
+            )}
           </Pressable>
-          <VStack>
-            <Heading size="md" color={COLORS.textPrimary}>
-              Edit Stream
-            </Heading>
-            <Text size="xs" color={COLORS.textMuted}>
-              Update your stream details
-            </Text>
-          </VStack>
-        </HStack>
-      </Box>
+          <Text style={styles.helper}>{uploadingImage ? 'Uploading image...' : '16:9 thumbnail recommended'}</Text>
+        </StitchCard>
 
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-        <VStack space="xl" p="$6">
-          {/* Thumbnail Upload */}
-          <ThumbnailUpload
-            localImage={localImage}
-            uploading={uploadingImage}
-            onPickImage={pickImage}
+        <StitchCard style={styles.cardSpacing}>
+          <Text style={styles.label}>Category</Text>
+          <View style={styles.chipWrap}>
+            {categories.map((category) => (
+              <StitchChip
+                key={category.id}
+                label={category.name}
+                active={selectedCategory === category.id}
+                onPress={() => setSelectedCategory(category.id)}
+              />
+            ))}
+          </View>
+        </StitchCard>
+
+        <StitchCard style={styles.cardSpacing}>
+          <Text style={styles.label}>Title</Text>
+          <TextInput
+            value={title}
+            onChangeText={setTitle}
+            placeholder="Enter stream title"
+            placeholderTextColor={COLORS.lightGrey}
+            style={styles.input}
           />
 
-          {/* Category Picker */}
-          <CategoryPicker
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onSelect={setSelectedCategory}
+          <Text style={styles.label}>Description</Text>
+          <TextInput
+            value={description}
+            onChangeText={setDescription}
+            placeholder="Describe your stream"
+            placeholderTextColor={COLORS.lightGrey}
+            style={[styles.input, styles.textArea]}
+            multiline
           />
 
-          {/* Stream Title */}
-          <VStack space="sm">
-            <Text fontWeight="$bold" color={COLORS.textPrimary} size="sm">
-              Stream Title *
+          <Text style={styles.label}>Schedule</Text>
+          <Pressable style={styles.scheduleButton} onPress={showDatePicker}>
+            <Text style={styles.scheduleText}>
+              {scheduleStart.toLocaleString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+              })}
             </Text>
-            <Input
-              variant="outline"
-              size="lg"
-              borderColor={COLORS.darkBorder}
-              borderWidth={1}
-              rounded="$lg"
-              bg={COLORS.luxuryBlackLight}
-            >
-              <InputField
-                placeholder="Enter a catchy title for your stream"
-                value={title}
-                onChangeText={setTitle}
-                fontSize={16}
-                color={COLORS.textPrimary}
-                placeholderTextColor={COLORS.textMuted}
-              />
-            </Input>
-          </VStack>
+          </Pressable>
+          <Text style={styles.helper}>Tap to change schedule (Android)</Text>
+        </StitchCard>
 
-          {/* Description */}
-          <VStack space="sm">
-            <Text fontWeight="$bold" color={COLORS.textPrimary} size="sm">
-              Description
-            </Text>
-            <Textarea
-              size="lg"
-              borderColor={COLORS.darkBorder}
-              borderWidth={1}
-              rounded="$lg"
-              h={120}
-              bg={COLORS.luxuryBlackLight}
-            >
-              <TextareaInput
-                placeholder="Describe what you'll be streaming about..."
-                value={description}
-                onChangeText={setDescription}
-                fontSize={16}
-                multiline
-                color={COLORS.textPrimary}
-                placeholderTextColor={COLORS.textMuted}
-              />
-            </Textarea>
-          </VStack>
-
-          {/* Schedule */}
-          <VStack space="sm">
-            <Text fontWeight="$bold" color={COLORS.textPrimary} size="sm">
-              Schedule
-            </Text>
-            <Pressable
-              onPress={showDatePicker}
-              p="$4"
-              borderWidth={1}
-              borderColor={COLORS.darkBorder}
-              rounded="$lg"
-              bg={COLORS.luxuryBlackLight}
-            >
-              <Text color={COLORS.textPrimary}>
-                {scheduleStart.toLocaleString("en-US", {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "2-digit",
-                })}
-              </Text>
-            </Pressable>
-          </VStack>
-
-          {/* Save Button */}
-          <Button
-            size="xl"
-            onPress={handleSave}
-            bg={COLORS.primaryGold}
-            rounded="$full"
-            h={56}
-            isDisabled={saving}
-            mt="$4"
-            px="$6"
-          >
-            <ButtonText fontWeight="$black" size="md" color={COLORS.luxuryBlack} textAlign="center">
-              {saving ? "Saving..." : "Save Changes"}
-            </ButtonText>
-          </Button>
-        </VStack>
+        <StitchPrimaryButton
+          label={saving ? 'Saving...' : 'Save Changes'}
+          onPress={handleSave}
+          disabled={saving || uploadingImage}
+        />
       </ScrollView>
-    </Box>
+    </StitchPage>
   );
 }
+
+const styles = StyleSheet.create({
+  centerWrap: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  loadingTitle: {
+    color: COLORS.primaryText,
+    fontSize: 24,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  loadingSubtitle: {
+    marginTop: 8,
+    color: COLORS.lightGrey,
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  contentPad: {
+    paddingHorizontal: 16,
+    paddingTop: 14,
+  },
+  cardSpacing: {
+    marginBottom: 12,
+  },
+  label: {
+    color: COLORS.primaryText,
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    marginBottom: 6,
+    letterSpacing: 0.7,
+  },
+  thumbnailWrap: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#D8E0EB',
+    backgroundColor: '#EEF2F7',
+  },
+  thumbnail: {
+    width: '100%',
+    height: 180,
+  },
+  thumbnailPlaceholder: {
+    height: 180,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  placeholderText: {
+    color: COLORS.lightGrey,
+    fontSize: 14,
+  },
+  helper: {
+    marginTop: 6,
+    color: COLORS.lightGrey,
+    fontSize: 12,
+  },
+  chipWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -4,
+  },
+  input: {
+    height: 44,
+    borderWidth: 1,
+    borderColor: '#D8E0EB',
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    color: COLORS.primaryText,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+  textArea: {
+    minHeight: 100,
+    textAlignVertical: 'top',
+    paddingTop: 10,
+  },
+  scheduleButton: {
+    height: 44,
+    borderWidth: 1,
+    borderColor: '#D8E0EB',
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+  },
+  scheduleText: {
+    color: COLORS.primaryText,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+});

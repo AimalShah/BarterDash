@@ -17,7 +17,7 @@ import {
     RefreshCw,
     XCircle,
 } from 'lucide-react-native';
-import { EscrowTransaction } from '../../lib/api/services/escrow';
+import { EscrowTransaction } from '../lib/api/services/escrow';
 import { COLORS } from '@/constants/colors';
 
 interface EscrowStatusCardProps {

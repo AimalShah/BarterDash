@@ -1,141 +1,189 @@
-import React, { useState } from 'react';
-import { StatusBar, Alert, Linking } from 'react-native';
-import { Box, VStack, Text, Pressable, HStack, Spinner, ScrollView } from '@/components/ui/reusables';
-import { Download, Shield, Eye, Clock, ChevronLeft } from 'lucide-react-native';
+import { useState } from 'react';
+import { Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import { Clock, Download, Eye, Shield } from 'lucide-react-native';
 import { usersService } from '@/lib/api/services/users';
-import { COLORS } from '../../constants/colors';
+import { COLORS } from '@/constants/colors';
+import { StitchCard, StitchHeader, StitchPage, StitchPrimaryButton } from '@/components/design';
+
+function InfoCard({
+  icon,
+  title,
+  subtitle,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <StitchCard style={styles.infoCard}>
+      <View style={styles.infoRow}>
+        <View style={styles.infoIcon}>{icon}</View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.infoTitle}>{title}</Text>
+          <Text style={styles.infoSubtitle}>{subtitle}</Text>
+        </View>
+      </View>
+    </StitchCard>
+  );
+}
 
 export default function PrivacySettingsScreen() {
   const [isExporting, setIsExporting] = useState(false);
   const [lastExport, setLastExport] = useState<Date | null>(null);
 
-  const handleExportData = async () => {
-    Alert.alert(
-      'Download Your Data',
-      "We'll prepare a copy of all your data. This may take a few minutes.",
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Request Export',
-          onPress: async () => {
-            setIsExporting(true);
-            try {
-              const result = await usersService.exportData();
-              setLastExport(new Date());
-              
-              Alert.alert(
-                'Export Ready',
-                'Your data is ready for download. The link expires in 1 hour.',
-                [
-                  {
-                    text: 'Download Now',
-                    onPress: () => Linking.openURL(result.download_url),
-                  },
-                  { text: 'Later' },
-                ]
-              );
-            } catch (error: any) {
-              if (error.response?.data?.error?.code === 'RATE_LIMITED') {
-                Alert.alert(
-                  'Please Wait',
-                  'You can only request one export per 24 hours.',
-                );
-              } else {
-                Alert.alert('Error', 'Failed to export data. Please try again.');
-              }
-            } finally {
-              setIsExporting(false);
+  function handleExport() {
+    Alert.alert('Download your data', 'We will prepare your account export. This can take a few minutes.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Request export',
+        onPress: async () => {
+          setIsExporting(true);
+          try {
+            const result = await usersService.exportData();
+            setLastExport(new Date());
+            Alert.alert('Export ready', 'Your download link is ready and expires in 1 hour.', [
+              { text: 'Download', onPress: () => Linking.openURL(result.download_url) },
+              { text: 'Later' },
+            ]);
+          } catch (error: any) {
+            if (error?.response?.data?.error?.code === 'RATE_LIMITED') {
+              Alert.alert('Please wait', 'You can request one export every 24 hours.');
+            } else {
+              Alert.alert('Error', 'Unable to export data right now.');
             }
-          },
+          } finally {
+            setIsExporting(false);
+          }
         },
-      ]
-    );
-  };
+      },
+    ]);
+  }
 
   return (
-    <Box flex={1} bg={COLORS.luxuryBlack}>
-      <StatusBar barStyle="light-content" />
-      
-      <Box px="$6" py="$4" borderBottomWidth={1} borderColor={COLORS.darkBorder}>
-        <HStack alignItems="center">
-          <Pressable onPress={() => router.back()} mr="$4" h={40} w={40} rounded={500} alignItems="center" justifyContent="center" bg={COLORS.luxuryBlackLight} sx={{ ":active": { bg: COLORS.darkSurface } }}>
-            <ChevronLeft size={22} color={COLORS.textPrimary} />
-          </Pressable>
-          <Text color={COLORS.textPrimary} fontWeight="$bold" size="xl">Privacy & Visibility</Text>
-        </HStack>
-      </Box>
+    <StitchPage>
+      <StitchHeader title="Privacy & Visibility" onBack={() => router.back()} />
 
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-        <VStack p="$6" space="lg">
-          <Box bg={COLORS.luxuryBlackLight} p="$5" rounded="$2xl" borderWidth={1} borderColor={COLORS.darkBorder}>
-            <HStack alignItems="center" space="md" mb="$4">
-              <Box h={44} w={44} rounded={16} bg={COLORS.primaryGold + '20'} alignItems="center" justifyContent="center">
-                <Download size={24} color={COLORS.primaryGold} />
-              </Box>
-              <Text color={COLORS.textPrimary} fontWeight="$bold" size="lg">
-                Download Your Data
-              </Text>
-            </HStack>
-            <Text color={COLORS.textSecondary} size="sm" mb="$4">
-              Get a copy of all your personal data stored in BarterDash, including your profile, orders, bids, messages, and more.
-            </Text>
-            <Pressable
-              onPress={handleExportData}
-              disabled={isExporting}
-              bg={COLORS.primaryGold}
-              py="$4"
-              rounded="$xl"
-              alignItems="center"
-              sx={{ ":active": { opacity: 0.8 } }}
-            >
-              {isExporting ? (
-                <HStack space="sm" alignItems="center">
-                  <Spinner size="small" color={COLORS.luxuryBlack} />
-                  <Text color={COLORS.luxuryBlack} fontWeight="$bold">Preparing Export...</Text>
-                </HStack>
-              ) : (
-                <Text color={COLORS.luxuryBlack} fontWeight="$bold">Request Data Export</Text>
-              )}
-            </Pressable>
-            {lastExport && (
-              <HStack alignItems="center" space="xs" mt="$3" justifyContent="center">
-                <Clock size={14} color={COLORS.textMuted} />
-                <Text color={COLORS.textMuted} size="xs">
-                  Last export: {lastExport.toLocaleDateString()}
-                </Text>
-              </HStack>
-            )}
-          </Box>
+      <View style={styles.contentPad}>
+        <StitchCard style={styles.mainCard}>
+          <View style={styles.mainHeader}>
+            <View style={styles.downloadIconWrap}>
+              <Download size={24} color={COLORS.primaryBlue} />
+            </View>
+            <Text style={styles.mainTitle}>Download your data</Text>
+          </View>
 
-          <VStack space="md">
-            <InfoCard
-              icon={<Eye size={20} color={COLORS.textSecondary} />}
-              title="What's Included"
-              description="Profile, orders, bids, products, messages, social connections, and financial records"
-            />
-            <InfoCard
-              icon={<Shield size={20} color={COLORS.textSecondary} />}
-              title="Privacy First"
-              description="Exports are generated on-demand and the download link expires after 1 hour"
-            />
-          </VStack>
-        </VStack>
-      </ScrollView>
-    </Box>
+          <Text style={styles.mainSubtitle}>
+            Get a copy of your profile, orders, bids, products, conversations, and account history.
+          </Text>
+
+          <StitchPrimaryButton
+            label={isExporting ? 'Preparing Export...' : 'Request Data Export'}
+            onPress={handleExport}
+            disabled={isExporting}
+          />
+
+          {lastExport ? (
+            <View style={styles.lastExportRow}>
+              <Clock size={14} color={COLORS.lightGrey} />
+              <Text style={styles.lastExportText}>Last export: {lastExport.toLocaleDateString()}</Text>
+            </View>
+          ) : null}
+        </StitchCard>
+
+        <View style={styles.infoWrap}>
+          <InfoCard
+            icon={<Eye size={16} color={COLORS.primaryBlue} />}
+            title="What's included"
+            subtitle="Account profile, orders, bids, chats, social connections, and billing records."
+          />
+          <InfoCard
+            icon={<Shield size={16} color={COLORS.primaryBlue} />}
+            title="Privacy first"
+            subtitle="Export links are generated on demand and expire quickly for safety."
+          />
+        </View>
+      </View>
+    </StitchPage>
   );
 }
 
-function InfoCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
-  return (
-    <Box bg={COLORS.luxuryBlackLight} p="$4" rounded="$xl" borderWidth={1} borderColor={COLORS.darkBorder}>
-      <HStack space="md">
-        {icon}
-        <VStack flex={1}>
-          <Text color={COLORS.textPrimary} fontWeight="$bold" size="sm">{title}</Text>
-          <Text color={COLORS.textSecondary} size="xs" mt="$1">{description}</Text>
-        </VStack>
-      </HStack>
-    </Box>
-  );
-}
+const styles = StyleSheet.create({
+  contentPad: {
+    paddingHorizontal: 16,
+    paddingTop: 18,
+    paddingBottom: 120,
+  },
+  mainCard: {
+    padding: 16,
+  },
+  mainHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 10,
+  },
+  downloadIconWrap: {
+    height: 42,
+    width: 42,
+    borderRadius: 12,
+    backgroundColor: '#E8F0FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mainTitle: {
+    color: COLORS.primaryText,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  mainSubtitle: {
+    color: COLORS.lightGrey,
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: 14,
+  },
+  lastExportRow: {
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  lastExportText: {
+    color: COLORS.lightGrey,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  infoWrap: {
+    marginTop: 14,
+    gap: 10,
+  },
+  infoCard: {
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  infoIcon: {
+    height: 30,
+    width: 30,
+    borderRadius: 9,
+    backgroundColor: '#E8F0FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  infoTitle: {
+    color: COLORS.primaryText,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  infoSubtitle: {
+    color: COLORS.lightGrey,
+    fontSize: 12,
+    marginTop: 2,
+    lineHeight: 16,
+  },
+});

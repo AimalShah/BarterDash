@@ -141,7 +141,7 @@ export function useStreamConnection(streamId: string) {
 
     const user = {
       id: profile.id,
-      name: profile.username || profile.full_name || profile.fullName || 'Host',
+      name: profile.username || profile.full_name || 'Host',
     };
 
     const tokenProvider = async () => {
@@ -173,7 +173,7 @@ export function useStreamConnection(streamId: string) {
         });
       }
     };
-  }, [profile?.id, profile?.username, profile?.full_name, profile?.fullName, streamId]);
+  }, [profile?.id, profile?.username, profile?.full_name, streamId]);
 
   const joinStream = async () => {
     if (!streamClient) {

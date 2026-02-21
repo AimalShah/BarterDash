@@ -1,441 +1,401 @@
-import React from 'react';
-import { StatusBar, Alert, ActivityIndicator } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
-import {
-    Box,
-    ScrollView,
-    Image,
-    Pressable,
-    Heading,
-    Text,
-    VStack,
-    HStack,
-    Center,
-    Button,
-    ButtonText
-} from '@/components/ui/reusables';
-import { ChevronLeft, Share2, Heart, Truck, ShieldCheck, User, Gavel, ChevronRight, ShoppingCart, Zap } from 'lucide-react-native';
-import { useAuthStore } from '@/store/authStore';
-import { productsService } from '@/lib/api/services/products';
+import { useState } from 'react';
+import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { CheckCircle2, Heart, MessageCircle, ShieldCheck, Share2 } from 'lucide-react-native';
+import { useProductById } from '@/hooks/useProducts';
 import { cartService } from '@/lib/api/services/cart';
-import { Product } from '@/types';
-import { Spinner } from '@/components/ui/reusables';
-import { COLORS } from '../../constants/colors';
-
-const getApiErrorMessage = (
-    error: any,
-    fallback: string,
-): string => {
-    return (
-        error?.response?.data?.error?.message ||
-        error?.response?.data?.message ||
-        error?.message ||
-        fallback
-    );
-};
+import { productsService } from '@/lib/api/services/products';
+import { COLORS } from '@/constants/colors';
+import {
+  StitchCard,
+  StitchHeader,
+  StitchPage,
+  StitchPrimaryButton,
+  StitchSecondaryButton,
+} from '@/components/design';
 
 export default function ProductDetailScreen() {
-    const { id } = useLocalSearchParams();
-    const { profile } = useAuthStore();
-    const [product, setProduct] = React.useState<Product | null>(null);
-    const [loading, setLoading] = React.useState(true);
-    const [actionLoading, setActionLoading] = React.useState<string | null>(null);
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const productQuery = useProductById(id);
+  const product = productQuery.data as any;
 
-    React.useEffect(() => {
-        if (id) {
-            fetchProduct();
-        }
-    }, [id]);
+  const [loadingAction, setLoadingAction] = useState<'cart' | 'buy' | null>(null);
 
-    const fetchProduct = async () => {
-        try {
-            setLoading(true);
-            const data = await productsService.findById(id as string);
-            setProduct(data);
-        } catch (error) {
-            console.error('Error fetching product details:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+  async function handleAddToCart() {
+    if (!product?.id) return;
 
-    const getPurchaseBlockReason = (target: Product | null): string | null => {
-        if (!target) return 'Product not found.';
-
-        const sellerId = (target as any).seller_id || (target as any).sellerId;
-        if (profile?.id && sellerId && profile.id === sellerId) {
-            return 'You cannot buy your own product.';
-        }
-
-        const status = (target as any).status;
-        if (status && status !== 'active') {
-            return 'This item is not currently available for purchase.';
-        }
-
-        const quantity = (target as any).quantity;
-        const soldQuantity = (target as any).soldQuantity ?? (target as any).sold_quantity ?? 0;
-        if (quantity !== null && quantity !== undefined) {
-            const remaining = Number(quantity) - Number(soldQuantity);
-            if (!Number.isNaN(remaining) && remaining < 1) {
-                return 'This item is out of stock.';
-            }
-        }
-
-        return null;
-    };
-
-    const handleAddToBag = async () => {
-        if (!product) return;
-        const blockedReason = getPurchaseBlockReason(product);
-        if (blockedReason) {
-            Alert.alert('Unavailable', blockedReason);
-            return;
-        }
-
-        try {
-            setActionLoading('cart');
-            await cartService.addItem(product.id);
-            Alert.alert('Added to Bag', 'Item has been added to your shopping bag', [
-                { text: 'Continue Shopping', style: 'default' },
-                { text: 'View Bag', onPress: () => router.push('/(tabs)/cart') }
-            ]);
-        } catch (error: any) {
-            console.error('Error adding to bag:', error);
-            Alert.alert(
-                'Unable to Add to Bag',
-                getApiErrorMessage(error, 'Failed to add item to bag'),
-            );
-        } finally {
-            setActionLoading(null);
-        }
-    };
-
-    const handleBuyNow = async () => {
-        if (!product) return;
-        const blockedReason = getPurchaseBlockReason(product);
-        if (blockedReason) {
-            Alert.alert('Unavailable', blockedReason);
-            return;
-        }
-
-        try {
-            setActionLoading('buy');
-            const result = await productsService.buyNow(product.id);
-            router.push(`/checkout/${result.order.id}`);
-        } catch (error: any) {
-            console.error('Error with buy now:', error);
-            Alert.alert(
-                'Unable to Buy Now',
-                getApiErrorMessage(error, 'Failed to process purchase'),
-            );
-        } finally {
-            setActionLoading(null);
-        }
-    };
-
-    const handlePlaceBid = () => {
-        if (!product) return;
-        const streamId = (product as any).streamId || (product as any).stream_id;
-        if (streamId) {
-            router.push(`/stream/${streamId}`);
-        } else {
-            Alert.alert('Coming Soon', 'Bidding will be available during live streams');
-        }
-    };
-
-    const handleBuyout = async () => {
-        if (!product) return;
-        const buyoutPrice = (product as any).buyout_price || (product as any).buyNowPrice;
-        Alert.alert(
-            'Buy Now',
-            `Purchase this item immediately for $${buyoutPrice}?`,
-            [
-                { text: 'Cancel', style: 'cancel' },
-                { 
-                    text: 'Buy Now', 
-                    style: 'default',
-                    onPress: handleBuyNow
-                }
-            ]
-        );
-    };
-
-    if (loading) {
-        return (
-            <Center flex={1} bg={COLORS.luxuryBlack}>
-                <Spinner size="large" color={COLORS.primaryGold} />
-            </Center>
-        );
+    try {
+      setLoadingAction('cart');
+      await cartService.addItem(product.id, 1);
+      Alert.alert('Added to cart', 'This item is now in your cart.', [
+        { text: 'Continue' },
+        { text: 'View cart', onPress: () => router.push('/(tabs)/cart') },
+      ]);
+    } catch (error: any) {
+      Alert.alert('Unable to add item', error?.message || 'Please try again.');
+    } finally {
+      setLoadingAction(null);
     }
+  }
 
-    if (!product) {
-        return (
-            <Center flex={1} bg={COLORS.luxuryBlack}>
-                <Text color={COLORS.textPrimary}>Product not found</Text>
-            </Center>
-        );
+  async function handleBuyNow() {
+    if (!product?.id) return;
+
+    try {
+      setLoadingAction('buy');
+      const result = await productsService.buyNow(product.id);
+      router.push(`/checkout/${result.order.id}`);
+    } catch (error: any) {
+      Alert.alert('Unable to buy now', error?.message || 'Please try again.');
+    } finally {
+      setLoadingAction(null);
     }
+  }
 
-    const sellerName = (product as any).seller?.username || (product as any).seller_name || 'Verified Seller';
-    const isOwner = profile?.id === (product.seller_id || (product as any).sellerId);
-    const purchaseBlockReason = getPurchaseBlockReason(product);
-    const canPurchase = !purchaseBlockReason;
-
+  if (productQuery.isLoading) {
     return (
-        <Box flex={1} bg={COLORS.luxuryBlack}>
-            <StatusBar barStyle="light-content" />
-            <ScrollView flex={1} showsVerticalScrollIndicator={false}>
-                <Box position="relative">
-                    {/* Header Actions */}
-                    <Box position="absolute" top="$12" left="$6" zIndex={10}>
-                        <Pressable
-                            onPress={() => router.back()}
-                            h={44}
-                            w={44}
-                            bg={COLORS.luxuryBlackLight}
-                            borderWidth={1}
-                            borderColor={COLORS.darkBorder}
-                            alignItems="center"
-                            justifyContent="center"
-                        >
-                            <ChevronLeft size={24} color={COLORS.textPrimary} />
-                        </Pressable>
-                    </Box>
-                    <Box position="absolute" top="$12" right="$6" zIndex={10} flexDirection="row">
-                        <HStack space="md">
-                            <Pressable
-                                h={44}
-                                w={44}
-                                bg={COLORS.luxuryBlackLight}
-                                borderWidth={1}
-                                borderColor={COLORS.darkBorder}
-                                alignItems="center"
-                                justifyContent="center"
-                            >
-                                <Share2 size={20} color={COLORS.textPrimary} />
-                            </Pressable>
-                            <Pressable
-                                h={44}
-                                w={44}
-                                bg={COLORS.luxuryBlackLight}
-                                borderWidth={1}
-                                borderColor={COLORS.darkBorder}
-                                alignItems="center"
-                                justifyContent="center"
-                            >
-                                <Heart size={20} color={COLORS.textPrimary} />
-                            </Pressable>
-                        </HStack>
-                    </Box>
-
-                    {/* image gallery */}
-                    <Box h={450} w="$full" bg={COLORS.luxuryBlackLight}>
-                        {product.images && product.images.length > 0 ? (
-                            <Image
-                                source={{ uri: product.images[0] }}
-                                alt={product.title}
-                                w="100%"
-                                h="100%"
-                                resizeMode="cover"
-                            />
-                        ) : (
-                            <Center h="100%" w="100%" borderWidth={1} borderColor={COLORS.darkBorder}>
-                                <Text color={COLORS.textPrimary} fontWeight="$bold">NO IMAGES</Text>
-                            </Center>
-                        )}
-                    </Box>
-
-                    <Box p="$8" bg={COLORS.luxuryBlack} borderTopWidth={2} borderColor={COLORS.darkBorder}>
-                        <HStack justifyContent="space-between" alignItems="center" mb="$8">
-                            <Box bg={COLORS.primaryGold} px="$4" py="$1.5" rounded="$sm">
-                                <Text color={COLORS.luxuryBlack} size="2xs" fontWeight="$black" textTransform="uppercase">
-                                    {(product as any).status === 'live' ? 'LIVE AUCTION' : 'MARKETPLACE'}
-                                </Text>
-                            </Box>
-                            {(product as any).ends_at && (
-                                <Text color={COLORS.textSecondary} size="2xs" fontWeight="$black" textTransform="uppercase">
-                                    Ends {new Date((product as any).ends_at).toLocaleDateString()}
-                                </Text>
-                            )}
-                        </HStack>
-
-                        <Heading color={COLORS.textPrimary} size="4xl" fontWeight="$black" mb="$4" style={{ letterSpacing: -1 }}>{product.title}</Heading>
-                        <HStack alignItems="baseline" space="xs" mb="$10">
-                            <Text color={COLORS.primaryGold} size="4xl" fontWeight="$black">${product.price || (product as any).current_price || '0.00'}</Text>
-                            <Text color={COLORS.textMuted} size="sm" fontWeight="$bold" textTransform="uppercase">{(product as any).status === 'live' ? 'Current bid' : 'Listing Price'}</Text>
-                        </HStack>
-
-                        {/* Seller Info */}
-                        <Pressable
-                            onPress={() => {
-                                const sellerId = product.seller_id || (product as any).sellerId;
-                                if (sellerId) router.push(`/user/${sellerId}`);
-                            }}
-                            mb="$10"
-                            p="$5"
-                            bg={COLORS.luxuryBlackLight}
-                            borderWidth={1}
-                            borderColor={COLORS.darkBorder}
-                            flexDirection="row"
-                            alignItems="center"
-                            sx={{
-                                gap: 16
-                            }}
-                        >
-                            <Center h={56} w={56} bg={COLORS.luxuryBlackLighter} borderWidth={1} borderColor={COLORS.darkBorder}>
-                                {(product as any).seller?.avatar_url ? (
-                                    <Image
-                                        source={{ uri: (product as any).seller.avatar_url }}
-                                        alt={sellerName}
-                                        h="100%"
-                                        w="100%"
-                                    />
-                                ) : (
-                                    <User size={28} color={COLORS.textPrimary} />
-                                )}
-                            </Center>
-                            <VStack flex={1}>
-                                <Text color={COLORS.textPrimary} fontWeight="$black" size="lg" textTransform="uppercase">{sellerName}</Text>
-                                <Text color={COLORS.textMuted} size="xs" fontWeight="$bold" textTransform="uppercase">{product.condition || 'CERTIFIED'}</Text>
-                            </VStack>
-                            <ChevronRight size={20} color={COLORS.textPrimary} />
-                        </Pressable>
-
-                        <Text color={COLORS.textPrimary} size="xs" fontWeight="$black" mb="$4" textTransform="uppercase" letterSpacing={1.2}>Description</Text>
-                        <Text color={COLORS.textSecondary} size="md" lineHeight="$xl" mb="$12" fontWeight="$medium">
-                            {product.description || 'No description provided.'}
-                        </Text>
-
-                        <VStack space="xl" mb="$12">
-                            <HStack alignItems="center" space="md">
-                                <Truck size={20} color={COLORS.primaryGold} />
-                                <Text color={COLORS.textPrimary} size="md" fontWeight="$bold">Ships from New York, USA</Text>
-                            </HStack>
-                            <HStack alignItems="center" space="md">
-                                <ShieldCheck size={20} color={COLORS.primaryGold} />
-                                <Text color={COLORS.textPrimary} size="md" fontWeight="$bold">Authenticity Guaranteed</Text>
-                            </HStack>
-                        </VStack>
-                    </Box>
-                </Box>
-            </ScrollView>
-
-            {/* Bottom Action Bar */}
-            <Box bg={COLORS.luxuryBlack} borderTopWidth={1} borderColor={COLORS.darkBorder} px="$8" py="$4">
-                {isOwner ? (
-                    <HStack space="md" alignItems="center">
-                        <VStack flex={1}>
-                            <Text color={COLORS.textMuted} size="2xs" textTransform="uppercase" fontWeight="$black" letterSpacing={1} mb="$1">
-                                LISTING
-                            </Text>
-                            <Text color={COLORS.primaryGold} size="2xl" fontWeight="$black">${product.price || '0.00'}</Text>
-                        </VStack>
-                        <Button
-                            onPress={() => router.push(`/seller/product/${product.id}/edit`)}
-                            flex={2}
-                            h={56}
-                            bg={COLORS.luxuryBlackLight}
-                            borderColor={COLORS.primaryGold}
-                            borderWidth={2}
-                            rounded="$full"
-                            px="$4"
-                        >
-                            <ButtonText color={COLORS.primaryGold} fontWeight="$black" textTransform="uppercase" textAlign="center">Edit Listing</ButtonText>
-                        </Button>
-                    </HStack>
-                ) : (product as any).status === 'live' ? (
-                    <HStack space="md" alignItems="center">
-                        <VStack flex={1}>
-                            <Text color={COLORS.textMuted} size="2xs" textTransform="uppercase" fontWeight="$black" letterSpacing={1} mb="$1">
-                                CURRENT BID
-                            </Text>
-                            <Text color={COLORS.primaryGold} size="2xl" fontWeight="$black">${(product as any).current_price || product.price || '0.00'}</Text>
-                        </VStack>
-                        {((product as any).buyout_price || (product as any).buyNowPrice) && (
-                            <Button
-                                onPress={handleBuyout}
-                                flex={1}
-                                h={56}
-                                bg={COLORS.successGreen}
-                                rounded="$full"
-                                px="$2"
-                                isDisabled={actionLoading !== null}
-                            >
-                                {actionLoading === 'buy' ? (
-                                    <ActivityIndicator color={COLORS.textPrimary} />
-                                ) : (
-                                    <ButtonText color={COLORS.textPrimary} fontWeight="$black" textTransform="uppercase" textAlign="center">
-                                        Buy ${(product as any).buyout_price || (product as any).buyNowPrice}
-                                    </ButtonText>
-                                )}
-                            </Button>
-                        )}
-                        <Button
-                            onPress={handlePlaceBid}
-                            flex={1}
-                            h={56}
-                            bg={COLORS.primaryGold}
-                            rounded="$full"
-                            px="$2"
-                            isDisabled={actionLoading !== null}
-                        >
-                            <ButtonText color={COLORS.luxuryBlack} fontWeight="$black" textTransform="uppercase" textAlign="center">Place Bid</ButtonText>
-                        </Button>
-                    </HStack>
-                ) : (
-                    <HStack space="md" alignItems="center">
-                        <VStack flex={1}>
-                            <Text color={COLORS.textMuted} size="2xs" textTransform="uppercase" fontWeight="$black" letterSpacing={1} mb="$1">
-                                TOTAL
-                            </Text>
-                            <Text color={COLORS.primaryGold} size="2xl" fontWeight="$black">${product.price || '0.00'}</Text>
-                            {!canPurchase && (
-                                <Text color={COLORS.warningAmber} size="2xs" mt="$1">
-                                    {purchaseBlockReason}
-                                </Text>
-                            )}
-                        </VStack>
-                        <Button
-                            onPress={handleAddToBag}
-                            flex={1}
-                            h={56}
-                            bg={COLORS.luxuryBlackLight}
-                            borderColor={COLORS.primaryGold}
-                            borderWidth={2}
-                            rounded="$full"
-                            px="$2"
-                            isDisabled={actionLoading !== null || !canPurchase}
-                        >
-                            {actionLoading === 'cart' ? (
-                                <ActivityIndicator color={COLORS.primaryGold} />
-                            ) : (
-                                <HStack alignItems="center" justifyContent="center" space="xs">
-                                    <ShoppingCart size={16} color={COLORS.primaryGold} />
-                                    <ButtonText color={COLORS.primaryGold} fontWeight="$black" textTransform="uppercase" textAlign="center">Add to Bag</ButtonText>
-                                </HStack>
-                            )}
-                        </Button>
-                        <Button
-                            onPress={handleBuyNow}
-                            flex={1}
-                            h={56}
-                            bg={COLORS.primaryGold}
-                            rounded="$full"
-                            px="$2"
-                            isDisabled={actionLoading !== null || !canPurchase}
-                        >
-                            {actionLoading === 'buy' ? (
-                                <ActivityIndicator color={COLORS.luxuryBlack} />
-                            ) : (
-                                <HStack alignItems="center" justifyContent="center" space="xs">
-                                    <Zap size={16} color={COLORS.luxuryBlack} />
-                                    <ButtonText color={COLORS.luxuryBlack} fontWeight="$black" textTransform="uppercase" textAlign="center">Buy Now</ButtonText>
-                                </HStack>
-                            )}
-                        </Button>
-                    </HStack>
-                )}
-            </Box>
-        </Box>
+      <StitchPage scroll={false} contentStyle={styles.centerWrap}>
+        <Text style={styles.loadingText}>Loading item details...</Text>
+      </StitchPage>
     );
+  }
+
+  if (!product) {
+    return (
+      <StitchPage scroll={false} contentStyle={styles.centerWrap}>
+        <Text style={styles.emptyText}>Product not found.</Text>
+      </StitchPage>
+    );
+  }
+
+  const image = product.images?.[0] || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1400';
+  const sellerName = product.seller?.username || product.seller_name || 'Verified Seller';
+  const price = Number(product.price || product.buyNowPrice || 0);
+
+  return (
+    <StitchPage contentStyle={{ paddingBottom: 150 }}>
+      <StitchHeader
+        title="Item Details"
+        onBack={() => router.back()}
+        rightNode={
+          <View style={styles.headerActions}>
+            <View style={styles.iconBtn}><Share2 size={15} color={COLORS.primaryBlue} /></View>
+            <View style={styles.iconBtn}><Heart size={15} color={COLORS.primaryBlue} /></View>
+          </View>
+        }
+      />
+
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <Image source={{ uri: image }} style={styles.heroImage} />
+
+        <View style={styles.mainPad}>
+          <StitchCard style={styles.liveBanner}>
+            <View style={styles.liveBannerRow}>
+              <View>
+                <Text style={styles.liveBannerTitle}>Upcoming Live Session</Text>
+                <Text style={styles.liveBannerText}>Sunday Sneaker Grails @ 6:00 PM</Text>
+              </View>
+              <Pressable onPress={() => router.push('/(tabs)/index')}>
+                <Text style={styles.liveBannerLink}>View</Text>
+              </Pressable>
+            </View>
+          </StitchCard>
+
+          <Text style={styles.productTitle}>{product.title}</Text>
+          <View style={styles.priceRow}>
+            <Text style={styles.price}>${price.toFixed(2)}</Text>
+            <Text style={styles.priceMeta}>Market Value</Text>
+          </View>
+
+          <StitchCard style={styles.sellerCard}>
+            <View style={styles.sellerLeft}>
+              <View style={styles.sellerAvatar}>
+                <Text style={styles.sellerInitial}>{sellerName[0]?.toUpperCase() || 'S'}</Text>
+              </View>
+              <View>
+                <View style={styles.sellerNameRow}>
+                  <Text style={styles.sellerName}>@{sellerName}</Text>
+                  <ShieldCheck size={14} color={COLORS.primaryBlue} />
+                </View>
+                <Text style={styles.sellerMeta}>4.9 rating · 120 trades</Text>
+              </View>
+            </View>
+
+            <Pressable style={styles.followBtn} onPress={() => router.push(`/user/${product.seller_id || product.seller?.id}`)}>
+              <Text style={styles.followBtnText}>Profile</Text>
+            </Pressable>
+          </StitchCard>
+
+          <View style={styles.specGrid}>
+            <StitchCard style={styles.specCard}>
+              <Text style={styles.specLabel}>Condition</Text>
+              <Text style={styles.specValue}>{product.condition || 'Like New'}</Text>
+            </StitchCard>
+            <StitchCard style={styles.specCard}>
+              <Text style={styles.specLabel}>Category</Text>
+              <Text style={styles.specValue}>{product.category?.name || 'Collectibles'}</Text>
+            </StitchCard>
+            <StitchCard style={styles.specCard}>
+              <Text style={styles.specLabel}>Ships From</Text>
+              <Text style={styles.specValue}>{product.location || 'New York, NY'}</Text>
+            </StitchCard>
+            <StitchCard style={styles.specCard}>
+              <Text style={styles.specLabel}>Authenticity</Text>
+              <View style={styles.verifiedRow}>
+                <CheckCircle2 size={14} color="#16A34A" />
+                <Text style={styles.verifiedText}>Verified</Text>
+              </View>
+            </StitchCard>
+          </View>
+
+          <View style={styles.descriptionBlock}>
+            <Text style={styles.sectionTitle}>About this item</Text>
+            <Text style={styles.descriptionText}>
+              {product.description ||
+                'Great condition collectible with complete accessories. This listing follows BarterDash authenticity standards and ships securely.'}
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+
+      <View style={styles.bottomBar}>
+        <View style={styles.actionHalf}>
+          <StitchSecondaryButton
+            label={loadingAction === 'cart' ? 'Adding...' : 'Add to Cart'}
+            onPress={handleAddToCart}
+            disabled={loadingAction !== null}
+          />
+        </View>
+        <View style={styles.actionHalf}>
+          <StitchPrimaryButton
+            label={loadingAction === 'buy' ? 'Processing...' : 'Buy Now'}
+            onPress={handleBuyNow}
+            disabled={loadingAction !== null}
+          />
+        </View>
+      </View>
+
+      <Pressable style={styles.contactFab} onPress={() => router.push('/(tabs)/inbox')}>
+        <MessageCircle size={18} color="#FFFFFF" />
+      </Pressable>
+    </StitchPage>
+  );
 }
+
+const styles = StyleSheet.create({
+  centerWrap: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: COLORS.lightGrey,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  emptyText: {
+    color: COLORS.primaryText,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  iconBtn: {
+    height: 32,
+    width: 32,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#DCE4F1',
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroImage: {
+    width: '100%',
+    height: 340,
+  },
+  mainPad: {
+    paddingHorizontal: 16,
+    paddingTop: 14,
+  },
+  liveBanner: {
+    marginBottom: 14,
+    backgroundColor: '#ECF4FF',
+  },
+  liveBannerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  liveBannerTitle: {
+    color: COLORS.primaryText,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  liveBannerText: {
+    marginTop: 2,
+    color: COLORS.lightGrey,
+    fontSize: 12,
+  },
+  liveBannerLink: {
+    color: COLORS.primaryBlue,
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  productTitle: {
+    color: COLORS.primaryText,
+    fontSize: 28,
+    fontWeight: '700',
+    lineHeight: 34,
+  },
+  priceRow: {
+    marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 8,
+  },
+  price: {
+    color: COLORS.primaryBlue,
+    fontSize: 28,
+    fontWeight: '700',
+  },
+  priceMeta: {
+    color: COLORS.lightGrey,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  sellerCard: {
+    marginTop: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  sellerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  sellerAvatar: {
+    height: 44,
+    width: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E8F0FE',
+  },
+  sellerInitial: {
+    color: COLORS.primaryBlue,
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  sellerNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  sellerName: {
+    color: COLORS.primaryText,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  sellerMeta: {
+    marginTop: 2,
+    color: COLORS.lightGrey,
+    fontSize: 11,
+  },
+  followBtn: {
+    borderWidth: 1,
+    borderColor: '#C5D9FB',
+    backgroundColor: '#EEF4FF',
+    borderRadius: 9,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  followBtnText: {
+    color: COLORS.primaryBlue,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  specGrid: {
+    marginTop: 14,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -5,
+  },
+  specCard: {
+    width: '50%',
+    paddingHorizontal: 10,
+    marginBottom: 10,
+    marginHorizontal: 5,
+    flex: 1,
+  },
+  specLabel: {
+    color: COLORS.lightGrey,
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    fontWeight: '700',
+    marginBottom: 5,
+  },
+  specValue: {
+    color: COLORS.primaryText,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  verifiedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  verifiedText: {
+    color: '#15803D',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  descriptionBlock: {
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    color: COLORS.primaryText,
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  descriptionText: {
+    color: COLORS.lightGrey,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  bottomBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 10,
+  },
+  actionHalf: {
+    flex: 1,
+  },
+  contactFab: {
+    position: 'absolute',
+    right: 16,
+    bottom: 88,
+    height: 44,
+    width: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.primaryBlue,
+  },
+});

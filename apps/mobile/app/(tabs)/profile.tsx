@@ -1,266 +1,300 @@
-import React, { useEffect, useState } from 'react';
-import { ScrollView, StatusBar, RefreshControl, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useEffect, useState } from 'react';
+import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import {
-    Settings,
-    LogOut,
-    Play,
-    Plus,
-    ClipboardList,
-    Wallet,
-    HelpCircle,
-    Trophy,
-} from 'lucide-react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Heart, HelpCircle, LogOut, Settings, ShieldCheck, Store } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { socialService } from '@/lib/api/services/social';
 import { sellersService } from '@/lib/api/services/sellers';
-import { useToast } from '@/context/ToastContext';
 import { COLORS } from '@/constants/colors';
-import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
-
-// Components
-import { ProfileHeader } from '@/components/profile/ProfileHeader';
-import { ProfileStats } from '@/components/profile/ProfileStats';
-import { ProfileMenuItems } from '@/components/profile/ProfileMenuItems';
-import { SellerDashboardCTA } from '@/components/profile/SellerDashboardCTA';
-import { QuickActions } from '@/components/profile/QuickActions';
+import {
+  StitchCard,
+  StitchHeader,
+  StitchPage,
+  StitchPrimaryButton,
+  StitchSecondaryButton,
+  StitchStat,
+} from '@/components/design';
 
 interface ProfileStats {
-    followers: number;
-    following: number;
-    items: number;
-    revenue?: string;
-    rating?: string;
+  followers: number;
+  following: number;
+  purchases: number;
 }
 
 export default function ProfileScreen() {
-    const { horizontalPadding, isTablet, scaledFont } = useResponsiveLayout();
-    const { profile, signOut, fetchProfile } = useAuthStore();
-    const { showError, showSuccess } = useToast();
-    const legacyProfile = profile as any;
-    const [stats, setStats] = useState<ProfileStats>({
-        followers: 0,
-        following: 0,
-        items: 0,
-    });
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
-    const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
+  const { profile, fetchProfile, signOut } = useAuthStore();
+  const [refreshing, setRefreshing] = useState(false);
+  const [stats, setStats] = useState<ProfileStats>({ followers: 0, following: 0, purchases: 0 });
 
-    const isSeller =
-        profile?.role === 'SELLER' ||
-        profile?.is_seller === true ||
-        legacyProfile?.isSeller === true;
+  const isSeller = profile?.role === 'SELLER' || profile?.is_seller === true;
 
-    useEffect(() => {
-        loadProfileData();
-    }, [profile?.id]);
+  useEffect(() => {
+    void loadStats();
+  }, [profile?.id]);
 
-    const loadProfileData = async () => {
-        if (!profile?.id) {
-            setLoading(false);
-            return;
-        }
+  async function loadStats() {
+    if (!profile?.id) return;
 
-        try {
-            setLoading(true);
-            const socialStats = await socialService.getStats(profile.id);
-            const applicationStatus = await sellersService.getApplicationStatus().catch(() => null);
-            let sellerStats = null;
-            if (isSeller) {
-                try {
-                    sellerStats = await sellersService.getDashboard();
-                } catch (e) {
-                    console.log('Seller dashboard not available');
-                }
-            }
+    try {
+      const social = await socialService.getStats(profile.id);
+      let purchases = 0;
 
-            const rawStatus = applicationStatus?.application?.status;
-            const statusLabel = rawStatus ? rawStatus.replace(/_/g, ' ') : (isSeller ? 'approved' : null);
-            setVerificationStatus(statusLabel);
+      if (isSeller) {
+        const sellerData = await sellersService.getDashboard().catch(() => null);
+        purchases = Number(sellerData?.total_auctions || 0);
+      }
 
-            setStats({
-                followers: socialStats.followers_count,
-                following: socialStats.following_count,
-                items: sellerStats?.total_auctions || 0,
-                revenue: sellerStats ? `$${sellerStats.total_revenue?.toLocaleString() || '0'}` : undefined,
-                rating: sellerStats?.rating?.toString() || '0.0',
-            });
-        } catch (error) {
-            console.error('Error loading profile data:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleRefresh = async () => {
-        try {
-            setRefreshing(true);
-            await fetchProfile();
-            await loadProfileData();
-            showSuccess('Profile updated');
-        } catch (error) {
-            showError('Failed to refresh profile');
-        } finally {
-            setRefreshing(false);
-        }
-    };
-
-    const handleLogout = async () => {
-        try {
-            await signOut();
-            router.replace('/(auth)/landing');
-        } catch (error) {
-            showError('Failed to sign out');
-        }
-    };
-
-    const username = profile?.username || 'User';
-    const displayName = profile?.full_name || legacyProfile?.fullName || username;
-    const avatarUrl = profile?.avatar_url || legacyProfile?.avatarUrl;
-
-    if (loading && !refreshing) {
-        return (
-            <SafeAreaView style={styles.container}>
-                <StatusBar barStyle="light-content" />
-                <View style={styles.loadingContainer}>
-                    <Text style={styles.loadingText}>LOADING STUDIO...</Text>
-                </View>
-            </SafeAreaView>
-        );
+      setStats({
+        followers: Number(social.followers_count || 0),
+        following: Number(social.following_count || 0),
+        purchases,
+      });
+    } catch (error) {
+      setStats({ followers: 0, following: 0, purchases: 0 });
     }
+  }
 
-    const QUICK_ACTIONS = [
-        { icon: <Play size={20} color={COLORS.luxuryBlack} />, label: "GO LIVE", color: COLORS.primaryGold, onPress: () => router.push('/seller/go-live') },
-        { icon: <Plus size={20} color={COLORS.luxuryBlack} />, label: "NEW STREAM", color: COLORS.primaryGold, onPress: () => router.push('/seller/create-stream') },
-        { icon: <ClipboardList size={20} color={COLORS.luxuryBlack} />, label: "ORDERS", color: COLORS.primaryGold, onPress: () => router.push('/seller/sales') },
-        { icon: <Wallet size={20} color={COLORS.luxuryBlack} />, label: "EARNINGS", color: COLORS.primaryGold, onPress: () => router.push('/seller/earnings') },
-    ];
+  async function onRefresh() {
+    setRefreshing(true);
+    await fetchProfile();
+    await loadStats();
+    setRefreshing(false);
+  }
 
-    const MENU_ITEMS = [
-        { icon: <Trophy size={18} color={COLORS.textPrimary} />, label: "MY BIDS", onPress: () => router.push('/(tabs)/my-bids') },
-        { icon: <HelpCircle size={18} color={COLORS.textPrimary} />, label: "HELP & SUPPORT", onPress: () => router.push('/help-support') },
-        { icon: <Settings size={18} color={COLORS.textPrimary} />, label: "ACCOUNT SETTINGS", onPress: () => router.push('/settings') },
-    ];
+  async function onSignOut() {
+    await signOut();
+    router.replace('/(auth)/landing');
+  }
 
-    return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="light-content" />
+  const avatar = profile?.avatar_url;
+  const displayName = profile?.full_name || profile?.username || 'BarterDash User';
+  const handle = profile?.username ? `@${profile.username}` : '@barterdash_user';
 
-            <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={false}
-                stickyHeaderIndices={[0]}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={handleRefresh}
-                        tintColor={COLORS.primaryGold}
-                    />
-                }
-            >
-                <View style={{ backgroundColor: COLORS.luxuryBlack }}>
-                    <ProfileHeader
-                        isSeller={isSeller}
-                        username={username}
-                        displayName={displayName}
-                        avatarUrl={avatarUrl}
-                        verificationStatus={verificationStatus}
-                        refreshing={refreshing}
-                        onRefresh={handleRefresh}
-                        onSettings={() => router.push('/settings')}
-                    />
-                </View>
+  return (
+    <StitchPage
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primaryBlue} />}
+      contentStyle={{ paddingBottom: 120 }}
+    >
+      <StitchHeader
+        title="Buyer Profile"
+        subtitle="Manage your account"
+        rightNode={
+          <Pressable style={styles.iconButton} onPress={() => router.push('/settings')}>
+            <Settings size={16} color={COLORS.primaryBlue} />
+          </Pressable>
+        }
+      />
 
-                <ProfileStats
-                    isSeller={isSeller}
-                    followers={stats.followers}
-                    following={stats.following}
-                    items={stats.items}
-                    rating={stats.rating}
-                    onFollowersPress={() => profile?.id && router.push(`/social/followers/${profile.id}`)}
-                    onFollowingPress={() => profile?.id && router.push(`/social/following/${profile.id}`)}
-                />
+      <View style={styles.profileTop}>
+        <View style={styles.avatarWrap}>
+          {avatar ? <Image source={{ uri: avatar }} style={styles.avatar} /> : <View style={styles.avatarFallback}><Text style={styles.avatarFallbackText}>{displayName[0]?.toUpperCase() || 'U'}</Text></View>}
+        </View>
 
-                <SellerDashboardCTA
-                    isSeller={isSeller}
-                    onDashboardPress={() => router.push('/seller/dashboard')}
-                    onRegisterPress={() => router.push('/seller/register')}
-                />
+        <Text style={styles.name}>{displayName}</Text>
+        <Text style={styles.handle}>{handle}</Text>
 
-                <QuickActions isSeller={isSeller} actions={QUICK_ACTIONS} />
+        <Text style={styles.bio}>
+          Lover of rare finds and good deals. Discovering the best live auctions every week.
+        </Text>
 
-                <ProfileMenuItems menuItems={MENU_ITEMS} />
+        <View style={styles.actionRow}>
+          <View style={styles.actionButtonHalf}>
+            <StitchPrimaryButton label="Edit Profile" onPress={() => router.push('/settings')} />
+          </View>
+          <View style={styles.actionButtonHalf}>
+            <StitchSecondaryButton
+              label={isSeller ? 'Seller Dashboard' : 'Become Seller'}
+              onPress={() => router.push(isSeller ? '/seller/dashboard' : '/seller/register')}
+            />
+          </View>
+        </View>
+      </View>
 
-                <TouchableOpacity
-                    style={[
-                        styles.logoutButton,
-                        {
-                            marginHorizontal: horizontalPadding,
-                            maxWidth: isTablet ? 520 : undefined,
-                            alignSelf: "center",
-                            width: "100%",
-                        },
-                    ]}
-                    onPress={handleLogout}
-                    activeOpacity={0.8}
-                >
-                    <LogOut size={18} color={COLORS.textPrimary} />
-                    <Text style={[styles.logoutText, { fontSize: scaledFont(14, 0.95, 1.05) }]}>
-                        SIGN OUT
-                    </Text>
-                </TouchableOpacity>
-            </ScrollView>
-        </SafeAreaView>
-    );
+      <View style={styles.statsRow}>
+        <StitchStat label="Purchases" value={stats.purchases} />
+        <View style={styles.statGap} />
+        <StitchStat label="Followers" value={stats.followers} />
+        <View style={styles.statGap} />
+        <StitchStat label="Following" value={stats.following} />
+      </View>
+
+      <View style={styles.sectionPad}>
+        <StitchCard>
+          <Pressable style={styles.menuItem} onPress={() => router.push('/(tabs)/my-bids')}>
+            <View style={styles.menuLeft}>
+              <View style={styles.menuIcon}><Heart size={16} color={COLORS.primaryBlue} /></View>
+              <Text style={styles.menuText}>Wishlist</Text>
+            </View>
+            <Text style={styles.menuArrow}>›</Text>
+          </Pressable>
+
+          <Pressable style={styles.menuItem} onPress={() => router.push('/seller/sales')}>
+            <View style={styles.menuLeft}>
+              <View style={styles.menuIcon}><Store size={16} color={COLORS.primaryBlue} /></View>
+              <Text style={styles.menuText}>Order History</Text>
+            </View>
+            <Text style={styles.menuArrow}>›</Text>
+          </Pressable>
+
+          <Pressable style={styles.menuItem} onPress={() => router.push('/help-support')}>
+            <View style={styles.menuLeft}>
+              <View style={styles.menuIcon}><HelpCircle size={16} color={COLORS.primaryBlue} /></View>
+              <Text style={styles.menuText}>Help Center</Text>
+            </View>
+            <Text style={styles.menuArrow}>›</Text>
+          </Pressable>
+
+          <Pressable style={styles.menuItem} onPress={() => router.push('/settings/privacy')}>
+            <View style={styles.menuLeft}>
+              <View style={styles.menuIcon}><ShieldCheck size={16} color={COLORS.primaryBlue} /></View>
+              <Text style={styles.menuText}>Privacy & Security</Text>
+            </View>
+            <Text style={styles.menuArrow}>›</Text>
+          </Pressable>
+        </StitchCard>
+      </View>
+
+      <View style={styles.signOutPad}>
+        <Pressable style={styles.signOutButton} onPress={onSignOut}>
+          <LogOut size={16} color="#DC2626" />
+          <Text style={styles.signOutText}>Sign Out</Text>
+        </Pressable>
+      </View>
+    </StitchPage>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.luxuryBlack,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: COLORS.luxuryBlack,
-    },
-    loadingText: {
-        color: COLORS.primaryGold,
-        fontSize: 12,
-        fontWeight: '900',
-        letterSpacing: 2,
-    },
-    scrollView: {
-        flex: 1,
-    },
-    scrollContent: {
-        paddingBottom: 120,
-        justifyContent: 'flex-start',
-        alignItems: 'stretch',
-    },
-    logoutButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginTop: 40,
-        marginBottom: 40,
-        height: 56,
-        borderWidth: 1,
-        borderColor: COLORS.darkBorder,
-        borderRadius: 28, // Rounded
-        backgroundColor: COLORS.luxuryBlackLight,
-    },
-    logoutText: {
-        color: COLORS.errorRed, // Red for logout
-        fontSize: 14,
-        fontWeight: '900',
-        marginLeft: 12,
-        textTransform: 'uppercase',
-        letterSpacing: 1,
-    },
+  iconButton: {
+    height: 34,
+    width: 34,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#DCE4F1',
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileTop: {
+    paddingHorizontal: 18,
+    paddingTop: 20,
+    alignItems: 'center',
+  },
+  avatarWrap: {
+    borderRadius: 18,
+    borderWidth: 3,
+    borderColor: '#E4EDFF',
+    padding: 2,
+  },
+  avatar: {
+    height: 108,
+    width: 108,
+    borderRadius: 16,
+  },
+  avatarFallback: {
+    height: 108,
+    width: 108,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E9F0FF',
+  },
+  avatarFallbackText: {
+    color: COLORS.primaryBlue,
+    fontSize: 36,
+    fontWeight: '700',
+  },
+  name: {
+    marginTop: 12,
+    fontSize: 24,
+    fontWeight: '700',
+    color: COLORS.primaryText,
+  },
+  handle: {
+    marginTop: 3,
+    color: COLORS.primaryBlue,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  bio: {
+    marginTop: 10,
+    color: COLORS.lightGrey,
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+    paddingHorizontal: 12,
+  },
+  actionRow: {
+    marginTop: 14,
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
+  },
+  actionButtonHalf: {
+    width: '48%',
+  },
+  statsRow: {
+    paddingHorizontal: 18,
+    marginTop: 16,
+    flexDirection: 'row',
+    alignItems: 'stretch',
+  },
+  statGap: {
+    width: 8,
+  },
+  sectionPad: {
+    paddingHorizontal: 18,
+    marginTop: 16,
+  },
+  menuItem: {
+    height: 54,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEF2F7',
+  },
+  menuLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  menuIcon: {
+    height: 32,
+    width: 32,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E9F0FF',
+  },
+  menuText: {
+    color: COLORS.primaryText,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  menuArrow: {
+    color: COLORS.lightGrey,
+    fontSize: 22,
+    fontWeight: '500',
+  },
+  signOutPad: {
+    paddingHorizontal: 18,
+    marginTop: 18,
+  },
+  signOutButton: {
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    backgroundColor: '#FFF1F2',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  signOutText: {
+    color: '#DC2626',
+    fontSize: 14,
+    fontWeight: '700',
+  },
 });

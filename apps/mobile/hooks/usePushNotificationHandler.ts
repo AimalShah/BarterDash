@@ -22,8 +22,8 @@ Notifications.setNotificationHandler({
 export function usePushNotificationHandler() {
   const router = useRouter();
   const { showToast } = useToast();
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
+  const notificationListener = useRef<Notifications.Subscription | null>(null);
+  const responseListener = useRef<Notifications.Subscription | null>(null);
 
   useEffect(() => {
     // Set up Android notification channel

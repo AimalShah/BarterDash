@@ -1,20 +1,18 @@
-import React, { useEffect, useState } from "react";
-import { StatusBar, FlatList, RefreshControl } from "react-native";
-import { useLocalSearchParams, router } from "expo-router";
+import { useCallback, useEffect, useState } from 'react';
 import {
-  Box,
-  Heading,
-  Text,
-  VStack,
-  HStack,
-  Pressable,
-  Center,
-  Spinner,
   Image,
-} from "@/components/ui/reusables";
-import { ChevronLeft } from "lucide-react-native";
-import { socialService } from "@/lib/api/services/social";
-import { COLORS } from "@/constants/colors";
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { UserRoundCheck } from 'lucide-react-native';
+import { socialService } from '@/lib/api/services/social';
+import { COLORS } from '@/constants/colors';
+import { StitchCard, StitchEmpty, StitchHeader, StitchPage } from '@/components/design';
 
 type SocialUser = { id: string; username: string; avatar_url?: string };
 
@@ -24,101 +22,149 @@ export default function FollowersListScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const load = async (isRefresh = false) => {
-    if (!id) return;
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-    try {
-      const data = await socialService.getFollowers(id);
-      const users = Array.isArray(data?.followers) ? data.followers : [];
-      setList(users);
-    } catch (e) {
-      console.error("Followers list error:", e);
-      setList([]);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  const load = useCallback(
+    async (isRefresh = false) => {
+      if (!id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        if (isRefresh) {
+          setRefreshing(true);
+        } else {
+          setLoading(true);
+        }
+
+        const data = await socialService.getFollowers(id);
+        const users = Array.isArray(data?.followers) ? data.followers : [];
+        setList(users);
+      } catch (error) {
+        console.error('Followers list error:', error);
+        setList([]);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [id]
+  );
 
   useEffect(() => {
     load();
-  }, [id]);
+  }, [load]);
+
+  if (loading) {
+    return (
+      <StitchPage scroll={false} contentStyle={styles.centerWrap}>
+        <Text style={styles.loadingTitle}>Loading Followers...</Text>
+        <Text style={styles.loadingSubtitle}>Fetching people who follow this profile</Text>
+      </StitchPage>
+    );
+  }
 
   return (
-    <Box flex={1} bg={COLORS.luxuryBlack}>
-      <StatusBar barStyle="light-content" />
-      <Box h="$10" />
-
-      {/* Header */}
-      <Box px="$6" py="$4" borderBottomWidth={1} borderColor={COLORS.darkBorder}>
-        <HStack alignItems="center">
-          <Pressable
-            onPress={() => router.back()}
-            h={44}
-            w={44}
-            rounded={500}
-            alignItems="center"
-            justifyContent="center"
-            bg={COLORS.luxuryBlackLight}
-            mr="$3"
-            sx={{ ":active": { bg: COLORS.luxuryBlackLighter } }}
-          >
-            <ChevronLeft size={24} color={COLORS.textPrimary} />
-          </Pressable>
-          <Heading color={COLORS.textPrimary} size="xl" fontWeight="$black">Followers</Heading>
-        </HStack>
-      </Box>
-
-      {loading && !refreshing ? (
-        <Center flex={1}>
-          <Spinner size="large" color={COLORS.textPrimary} />
-        </Center>
-      ) : (
-        <FlatList
-          data={list}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingBottom: 40 }}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={COLORS.textPrimary} />
-          }
-          ListEmptyComponent={
-            <Center py="$16" px="$6">
-              <Text color={COLORS.textSecondary} textAlign="center" fontWeight="$medium">No followers yet.</Text>
-            </Center>
-          }
+    <StitchPage
+      contentStyle={{ paddingBottom: 120 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={() => load(true)}
+          tintColor={COLORS.primaryBlue}
         />
-      )}
-    </Box>
+      }
+    >
+      <StitchHeader title="Followers" subtitle={`${list.length} accounts`} onBack={() => router.back()} />
+
+      <View style={styles.contentPad}>
+        {list.length === 0 ? (
+          <StitchCard>
+            <StitchEmpty title="No Followers Yet" subtitle="No one has followed this user yet." />
+          </StitchCard>
+        ) : (
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {list.map((item) => (
+              <Pressable key={item.id} style={styles.itemWrap} onPress={() => router.push(`/user/${item.id}`)}>
+                <StitchCard>
+                  <View style={styles.row}>
+                    {item.avatar_url ? (
+                      <Image source={{ uri: item.avatar_url }} style={styles.avatar} />
+                    ) : (
+                      <View style={styles.avatarFallback}>
+                        <UserRoundCheck size={16} color={COLORS.primaryBlue} />
+                      </View>
+                    )}
+
+                    <View style={styles.info}>
+                      <Text style={styles.username}>@{item.username || 'user'}</Text>
+                      <Text style={styles.meta}>Follower</Text>
+                    </View>
+                  </View>
+                </StitchCard>
+              </Pressable>
+            ))}
+          </ScrollView>
+        )}
+      </View>
+    </StitchPage>
   );
 }
 
-const renderItem = ({ item }: { item: SocialUser }) => (
-  <Pressable
-    onPress={() => router.push(`/user/${item.id}`)}
-    px="$6"
-    py="$4"
-    borderBottomWidth={1}
-    borderColor={COLORS.darkBorder}
-    sx={{ ":active": { bg: COLORS.luxuryBlackLighter } }}
-  >
-    <HStack alignItems="center">
-      {item.avatar_url ? (
-        <Image
-          source={{ uri: item.avatar_url }}
-          alt={item.username}
-          w={48}
-          h={48}
-          rounded={500}
-          bg={COLORS.luxuryBlackLighter}
-        />
-      ) : (
-        <Center w={48} h={48} rounded={500} bg={COLORS.luxuryBlackLighter}>
-          <Text color={COLORS.textPrimary} fontWeight="$black">{item.username?.[0]?.toUpperCase() ?? "?"}</Text>
-        </Center>
-      )}
-      <Text color={COLORS.textPrimary} fontWeight="$bold" ml="$4" flex={1}>@{item.username || "user"}</Text>
-    </HStack>
-  </Pressable>
-);
+const styles = StyleSheet.create({
+  centerWrap: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  loadingTitle: {
+    color: COLORS.primaryText,
+    fontSize: 24,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  loadingSubtitle: {
+    marginTop: 8,
+    color: COLORS.lightGrey,
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  contentPad: {
+    paddingHorizontal: 16,
+    paddingTop: 14,
+  },
+  itemWrap: {
+    marginBottom: 10,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 999,
+    backgroundColor: '#E2E8F0',
+  },
+  avatarFallback: {
+    width: 48,
+    height: 48,
+    borderRadius: 999,
+    backgroundColor: '#E8F1FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  info: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  username: {
+    color: COLORS.primaryText,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  meta: {
+    marginTop: 2,
+    color: COLORS.lightGrey,
+    fontSize: 12,
+  },
+});

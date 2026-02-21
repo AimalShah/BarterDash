@@ -265,7 +265,6 @@ export default function ViewerStreamViewStream({
             <LivestreamPlayer
               callType="livestream"
               callId={streamId}
-              testID="viewer-stream-video"
               ViewerLivestream={ViewerLivestreamNoControls}
             />
           </StreamVideo>

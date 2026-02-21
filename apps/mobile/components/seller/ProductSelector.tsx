@@ -13,9 +13,9 @@ import { COLORS } from "../../constants/colors";
 interface Product {
   id: string;
   title: string;
-  buyNowPrice?: string;
-  startingBid?: string;
-  price?: string;
+  buyNowPrice?: string | number;
+  startingBid?: string | number;
+  price?: string | number;
 }
 
 interface ProductSelectorProps {

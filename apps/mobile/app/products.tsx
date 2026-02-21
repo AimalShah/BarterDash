@@ -1,258 +1,283 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { FlatList, RefreshControl, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useMemo, useState } from 'react';
 import {
-    Box,
-    Heading,
-    Text,
-    VStack,
-    HStack,
-    Input,
-    InputField,
-    InputSlot,
-    InputIcon,
-    Pressable,
-    Center,
-    Image,
-    Spinner,
-} from "@/components/ui/reusables";
-import { Search, Filter, ShoppingBag, Play, ChevronLeft } from 'lucide-react-native';
-import { productsService } from '@/lib/api/services/products';
-import { auctionsService } from '@/lib/api/services/auctions';
-import { Product, Auction } from '@/types';
-import StreamCard from '@/components/stream/StreamCard';
-import { COLORS } from '../constants/colors';
+  Image,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Filter, Play, ShoppingBag } from 'lucide-react-native';
+import { useProducts, useStreams } from '@/hooks';
+import { COLORS } from '@/constants/colors';
+import {
+  StitchCard,
+  StitchEmpty,
+  StitchHeader,
+  StitchPage,
+  StitchSearchBar,
+  StitchSectionTitle,
+} from '@/components/design';
 
 export default function ProductsScreen() {
-    const { category, name } = useLocalSearchParams<{ category?: string; name?: string }>();
-    const [products, setProducts] = useState<Product[]>([]);
-    const [streams, setStreams] = useState<Auction[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
-    const [search, setSearch] = useState('');
+  const params = useLocalSearchParams<{ category?: string; name?: string }>();
+  const categoryId = typeof params.category === 'string' ? params.category : undefined;
+  const categoryName = typeof params.name === 'string' ? params.name : undefined;
 
-    const fetchData = useCallback(async (isRefreshing = false) => {
-        try {
-            if (isRefreshing) setRefreshing(true);
-            else setLoading(true);
+  const [search, setSearch] = useState('');
 
-            const query: any = {};
-            if (search) {
-                query.search = search;
-            }
+  const streamsQuery = useStreams({
+    status: 'live',
+    category_id: categoryId,
+    search: search || undefined,
+    limit: 8,
+  });
 
-            // Fetch products and streams with their respective category filter parameter names
-            const [productsData, streamsData] = await Promise.all([
-                productsService.findAll({ ...query, category: category }),
-                auctionsService.findAll({ ...query, category: category, status: 'live' })
-            ]);
+  const productsQuery = useProducts({
+    category: categoryId,
+    search: search || undefined,
+  });
 
-            setProducts(productsData || []);
-            setStreams(streamsData || []);
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    }, [category, search]);
+  const streams = streamsQuery.data || [];
+  const products = productsQuery.data || [];
+  const isLoading = streamsQuery.isLoading || productsQuery.isLoading;
+  const isRefreshing = streamsQuery.isRefetching || productsQuery.isRefetching;
 
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+  const title = useMemo(() => categoryName || (categoryId ? 'Category Results' : 'Marketplace'), [
+    categoryId,
+    categoryName,
+  ]);
 
-    const renderProductItem = ({ item }: { item: Product }) => (
-        <Pressable
-            onPress={() => router.push(`/product/${item.id}`)}
-            w="48%"
-            mb="$5"
-            bg={COLORS.cardBackground}
-            rounded="$3xl"
-            borderWidth={1}
-            borderColor={COLORS.darkBorder}
-            overflow="hidden"
-            sx={{
-                ":active": { opacity: 0.9 }
-            }}
-            shadowColor={COLORS.luxuryBlack}
-            shadowOpacity={0.05}
-            shadowRadius={4}
-            elevation={2}
-        >
-            <Box aspectRatio={1} bg={COLORS.luxuryBlackLight} position="relative">
-                {item.images?.[0] ? (
+  return (
+    <StitchPage
+      contentStyle={{ paddingBottom: 120 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={() => {
+            streamsQuery.refetch();
+            productsQuery.refetch();
+          }}
+          tintColor={COLORS.primaryBlue}
+        />
+      }
+    >
+      <StitchHeader title={title} subtitle="Browse live lots + products" onBack={() => router.back()} />
+
+      <View style={styles.searchWrap}>
+        <StitchSearchBar
+          value={search}
+          onChangeText={setSearch}
+          placeholder="Search in this category..."
+          onFilterPress={() => undefined}
+        />
+      </View>
+
+      <View style={styles.contentPad}>
+        {streams.length > 0 ? (
+          <>
+            <View style={styles.sectionTop}>
+              <StitchSectionTitle title="Live Right Now" />
+            </View>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.liveRow}>
+              {streams.map((stream) => (
+                <Pressable
+                  key={stream.id}
+                  style={styles.liveCardWrap}
+                  onPress={() => router.push(`/stream/${stream.id}`)}
+                >
+                  <StitchCard style={styles.liveCard}>
                     <Image
-                        source={{ uri: item.images[0] }}
-                        alt={item.title}
-                        w="100%"
-                        h="100%"
-                        resizeMode="cover"
+                      source={{
+                        uri:
+                          (stream as any).thumbnailUrl ||
+                          (stream as any).thumbnail_url ||
+                          'https://images.unsplash.com/photo-1519741497674-611481863552?w=1000',
+                      }}
+                      style={styles.liveImage}
                     />
-                ) : (
-                    <Center w="100%" h="100%">
-                        <ShoppingBag size={32} color={COLORS.textSecondary} />
-                    </Center>
-                )}
-                {item.condition && (
-                    <Box
-                        position="absolute"
-                        top="$2"
-                        left="$2"
-                        bg={COLORS.luxuryBlack}
-                        px="$2"
-                        py="$0.5"
-                        rounded="$full"
-                    >
-                        <Text color={COLORS.textPrimary} size="2xs" fontWeight="$bold" textTransform="uppercase">
-                            {item.condition}
-                        </Text>
-                    </Box>
-                )}
-            </Box>
-            <Box p="$3">
-                <Text numberOfLines={1} color={COLORS.textPrimary} fontWeight="$bold" size="md" mb="$1">
-                    {item.title}
-                </Text>
-                <HStack justifyContent="space-between" alignItems="center">
-                    <Text color={COLORS.primaryGold} fontWeight="$black" size="lg">
-                        ${item.price}
+                    <View style={styles.liveBadge}>
+                      <Play size={10} color="#FFFFFF" fill="#FFFFFF" />
+                      <Text style={styles.liveBadgeText}>LIVE</Text>
+                    </View>
+                    <Text style={styles.liveTitle} numberOfLines={1}>
+                      {stream.title}
                     </Text>
-                    <Pressable
-                        onPress={(e) => {
-                            e.stopPropagation();
-                            const sellerId = item.seller_id || (item.seller as any)?.id;
-                            if (sellerId) router.push(`/user/${sellerId}`);
-                        }}
-                        hitSlop={8}
-                    >
-                        <Text color={COLORS.textSecondary} size="xs">
-                            @{item.seller?.username || 'user'}
-                        </Text>
-                    </Pressable>
-                </HStack>
-            </Box>
-        </Pressable>
-    );
+                    <Text style={styles.liveMeta} numberOfLines={1}>
+                      @{stream.seller?.username || 'seller'}
+                    </Text>
+                  </StitchCard>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </>
+        ) : null}
 
-    const renderHeader = () => (
-        <VStack space="lg" pt="$4">
-            {streams.length > 0 && (
-                <Box px="$6">
-                    <HStack justifyContent="space-between" alignItems="center" mb="$3">
-                        <HStack space="xs" alignItems="center">
-                            <Box w="$2" h="$2" rounded="$full" bg={COLORS.liveIndicator} />
-                            <Text size="sm" fontWeight="$bold" color={COLORS.textPrimary} textTransform="uppercase" letterSpacing={1}>Live Streams</Text>
-                        </HStack>
-                    </HStack>
-                    <FlatList
-                        data={streams}
-                        renderItem={({ item }) => (
-                            <Box w={300} mr="$4">
-                                <StreamCard stream={item} isLive={true} />
-                            </Box>
-                        )}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        keyExtractor={(item) => item.id}
-                    />
-                </Box>
-            )}
+        <View style={styles.sectionTop}>
+          <StitchSectionTitle title={`Products (${products.length})`} />
+        </View>
 
-            <Box px="$6" mb="$2">
-                <Text size="sm" fontWeight="$bold" color={COLORS.textPrimary} textTransform="uppercase" letterSpacing={1}>
-                    {products.length} Products
-                </Text>
-            </Box>
-        </VStack>
-    );
+        {isLoading ? (
+          <StitchCard>
+            <StitchEmpty title="Loading Products..." subtitle="Pulling latest listings for you" />
+          </StitchCard>
+        ) : products.length === 0 ? (
+          <StitchCard>
+            <StitchEmpty title="No Items Found" subtitle="Try a different search or check back later." />
+          </StitchCard>
+        ) : (
+          <View style={styles.grid}>
+            {products.map((product) => (
+              <Pressable
+                key={product.id}
+                style={styles.gridItem}
+                onPress={() => router.push(`/product/${product.id}`)}
+              >
+                <StitchCard style={styles.productCard}>
+                  {(product as any).images?.[0] ? (
+                    <Image source={{ uri: (product as any).images?.[0] }} style={styles.productImage} />
+                  ) : (
+                    <View style={styles.productImageFallback}>
+                      <ShoppingBag size={24} color={COLORS.lightGrey} />
+                    </View>
+                  )}
 
-    return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.luxuryBlack }} edges={['top']}>
-            <Box flex={1} bg={COLORS.luxuryBlack}>
-                <Box px="$6" py="$4" borderBottomWidth={1} borderColor={COLORS.darkBorder}>
-                    <HStack alignItems="center" space="md" mb="$5">
-                        <Pressable
-                            onPress={() => router.back()}
-                            h={44}
-                            w={44}
-                            bg={COLORS.luxuryBlackLight}
-                            rounded={500}
-                            alignItems="center"
-                            justifyContent="center"
-                        >
-                            <ChevronLeft size={24} color={COLORS.textPrimary} />
-                        </Pressable>
-                        <VStack flex={1}>
-                            <Heading size="xl" color={COLORS.textPrimary} fontWeight="$bold">
-                                {name || (category ? 'Category' : 'Marketplace')}
-                            </Heading>
-                            {category && <Text size="xs" color={COLORS.textSecondary}>Filtered results</Text>}
-                        </VStack>
-                        <Pressable
-                            h={44}
-                            w={44}
-                            bg={COLORS.luxuryBlack}
-                            rounded={500}
-                            alignItems="center"
-                            justifyContent="center"
-                            borderWidth={1}
-                            borderColor={COLORS.darkBorder}
-                        >
-                            <Filter size={20} color={COLORS.textPrimary} />
-                        </Pressable>
-                    </HStack>
+                  <Text style={styles.productTitle} numberOfLines={1}>
+                    {product.title}
+                  </Text>
 
-                    <Input
-                        variant="outline"
-                        h={50}
-                        bg={COLORS.luxuryBlackLight}
-                        borderColor={COLORS.darkBorder}
-                        rounded={500}
-                    >
-                        <InputSlot pl="$4">
-                            <InputIcon as={Search} size="sm" color={COLORS.textSecondary} />
-                        </InputSlot>
-                        <InputField
-                            placeholder="Search in this category..."
-                            value={search}
-                            onChangeText={setSearch}
-                            color={COLORS.textPrimary}
-                            placeholderTextColor={COLORS.textSecondary}
-                        />
-                    </Input>
-                </Box>
-
-                {loading && !refreshing ? (
-                    <Center flex={1}>
-                        <Spinner size="large" color={COLORS.primaryGold} />
-                    </Center>
-                ) : (
-                    <FlatList
-                        ListHeaderComponent={renderHeader}
-                        data={products}
-                        renderItem={renderProductItem}
-                        keyExtractor={(item) => item.id}
-                        numColumns={2}
-                        columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: 10 }}
-                        refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={() => fetchData(true)} tintColor={COLORS.primaryGold} />
-                        }
-                        ListEmptyComponent={
-                            <Center flex={1} mt="$20" px="$10">
-                                <ShoppingBag size={64} color={COLORS.darkBorder} />
-                                <Text color={COLORS.textSecondary} size="lg" fontWeight="$bold" mt="$4" textAlign="center">
-                                    No items found
-                                </Text>
-                                <Text color={COLORS.textMuted} textAlign="center" mt="$2">
-                                    Check back later or try a different search.
-                                </Text>
-                            </Center>
-                        }
-                        contentContainerStyle={{ paddingBottom: 100 }}
-                    />
-                )}
-            </Box>
-        </SafeAreaView>
-    );
+                  <View style={styles.productBottomRow}>
+                    <Text style={styles.productPrice}>${Number(product.price || 0).toFixed(2)}</Text>
+                    <View style={styles.filterChip}>
+                      <Filter size={10} color={COLORS.primaryBlue} />
+                      <Text style={styles.filterChipText}>Sort</Text>
+                    </View>
+                  </View>
+                </StitchCard>
+              </Pressable>
+            ))}
+          </View>
+        )}
+      </View>
+    </StitchPage>
+  );
 }
+
+const styles = StyleSheet.create({
+  searchWrap: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+  },
+  contentPad: {
+    paddingHorizontal: 16,
+    paddingTop: 14,
+  },
+  sectionTop: {
+    marginBottom: 8,
+  },
+  liveRow: {
+    paddingBottom: 14,
+  },
+  liveCardWrap: {
+    width: 210,
+    marginRight: 10,
+  },
+  liveCard: {
+    padding: 8,
+  },
+  liveImage: {
+    width: '100%',
+    height: 118,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  liveBadge: {
+    position: 'absolute',
+    top: 14,
+    left: 14,
+    borderRadius: 999,
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  liveBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.7,
+  },
+  liveTitle: {
+    color: COLORS.primaryText,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  liveMeta: {
+    color: COLORS.lightGrey,
+    fontSize: 11,
+    marginTop: 2,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -6,
+  },
+  gridItem: {
+    width: '50%',
+    paddingHorizontal: 6,
+    marginBottom: 12,
+  },
+  productCard: {
+    padding: 8,
+  },
+  productImage: {
+    width: '100%',
+    height: 132,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  productImageFallback: {
+    width: '100%',
+    height: 132,
+    borderRadius: 10,
+    marginBottom: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EEF2F7',
+  },
+  productTitle: {
+    color: COLORS.primaryText,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  productBottomRow: {
+    marginTop: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  productPrice: {
+    color: COLORS.primaryBlue,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderRadius: 999,
+    backgroundColor: '#E8F1FF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  filterChipText: {
+    color: COLORS.primaryBlue,
+    fontSize: 10,
+    fontWeight: '700',
+  },
+});

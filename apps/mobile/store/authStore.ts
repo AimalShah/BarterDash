@@ -195,19 +195,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     isEmailVerified: () => {
         const state = get();
-        return !!state.profile?.email_verified;
+        return !!(state.profile?.email_verified || state.profile?.emailVerified);
     },
 
     isAgeVerified: () => {
         const state = get();
-        return !!state.profile?.age_verified;
+        return !!(state.profile?.age_verified || state.profile?.ageVerified);
     },
 
     canCompleteOnboarding: () => {
         const state = get();
         return !!(
-            state.profile?.email_verified === true &&
-            state.profile?.age_verified === true
+            (state.profile?.email_verified === true || state.profile?.emailVerified === true) &&
+            (state.profile?.age_verified === true || state.profile?.ageVerified === true)
         );
     },
 

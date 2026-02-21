@@ -1,13 +1,12 @@
 import { useState, useCallback, useEffect } from "react";
 import { productsService } from "../lib/api/services/products";
+import type { Product as ApiProduct } from "../types";
 
-interface Product {
-  id: string;
-  title: string;
-  buyNowPrice?: string;
-  startingBid?: string;
-  price?: string;
-}
+type Product = ApiProduct & {
+  buyNowPrice?: string | number;
+  startingBid?: string | number;
+  price?: string | number;
+};
 
 interface UseProductSelectionReturn {
   products: Product[];

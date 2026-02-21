@@ -1,372 +1,399 @@
-import React, { useState, useEffect } from "react";
-import { StatusBar, Alert, ScrollView, Image } from "react-native";
-import { router } from "expo-router";
-import {
-    Box,
-    Heading,
-    HStack,
-    VStack,
-    Pressable,
-    Spinner,
-    Button,
-    ButtonText,
-    Text,
-    Input,
-    InputField,
-    Textarea,
-    TextareaInput,
-} from "@/components/ui/reusables";
-import { ChevronLeft, Camera, X } from "lucide-react-native";
-import * as ImagePicker from "expo-image-picker";
-import { decode } from "base64-arraybuffer";
-import { supabase } from "../../lib/supabase";
-import { productsService } from "../../lib/api/services/products";
-import { categoriesService } from "../../lib/api/services/categories";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { COLORS } from '../../constants/colors';
+import { useEffect, useState } from 'react';
+import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { router } from 'expo-router';
+import { Camera, Plus, X } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { decode } from 'base64-arraybuffer';
+import { categoriesService } from '@/lib/api/services/categories';
+import { productsService } from '@/lib/api/services/products';
+import { supabase } from '@/lib/supabase';
+import { COLORS } from '@/constants/colors';
+import { StitchHeader, StitchPage, StitchPrimaryButton, StitchSecondaryButton } from '@/components/design';
 
 export default function AddProductScreen() {
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [price, setPrice] = useState("");
-    const [condition, setCondition] = useState<string>("new");
-    const [categories, setCategories] = useState<any[]>([]);
-    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-    const [images, setImages] = useState<string[]>([]);
-    const [uploading, setUploading] = useState(false);
-    const [loading, setLoading] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
+  const [condition, setCondition] = useState('new');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [images, setImages] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-    useEffect(() => {
-        fetchCategories();
-    }, []);
+  useEffect(() => {
+    void loadCategories();
+  }, []);
 
-    const fetchCategories = async () => {
-        try {
-            const data = await categoriesService.findAll();
-            setCategories(data || []);
-        } catch (error) {
-            console.error("Error fetching categories:", error);
-        }
-    };
+  async function loadCategories() {
+    try {
+      const data = await categoriesService.findAll();
+      setCategories(Array.isArray(data) ? data : []);
+    } catch (error) {
+      setCategories([]);
+    }
+  }
 
-    const pickImage = async () => {
-        if (images.length >= 5) {
-            Alert.alert("Limit Reached", "Maximum 5 images allowed");
-            return;
-        }
+  async function pickImage() {
+    if (images.length >= 5) {
+      Alert.alert('Image limit', 'You can upload up to 5 images.');
+      return;
+    }
 
-        const result = await ImagePicker.launchImageLibraryAsync({
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 0.8,
-            base64: true,
-        });
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      quality: 0.8,
+      base64: true,
+    });
 
-        if (result.canceled) return;
+    if (result.canceled) return;
 
-        const asset = result.assets[0];
-        await uploadImage(asset);
-    };
+    await uploadImage(result.assets[0]);
+  }
 
-    const uploadImage = async (asset: ImagePicker.ImagePickerAsset) => {
-        try {
-            setUploading(true);
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error("Not authenticated");
+  async function uploadImage(asset: ImagePicker.ImagePickerAsset) {
+    if (!asset.base64) return;
 
-            const fileExt = asset.uri.split(".").pop()?.toLowerCase() || "jpg";
-            const filePath = `products/${user.id}/${Date.now()}.${fileExt}`;
+    try {
+      setUploading(true);
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) throw new Error('You must be logged in.');
 
-            if (!asset.base64) throw new Error("Failed to read image data.");
+      const ext = asset.uri.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `products/${data.user.id}/${Date.now()}.${ext}`;
 
-            const { error: uploadError } = await supabase.storage
-                .from("products")
-                .upload(filePath, decode(asset.base64), {
-                    contentType: asset.mimeType ?? "image/jpeg",
-                    upsert: true,
-                });
+      const { error } = await supabase.storage.from('products').upload(path, decode(asset.base64), {
+        contentType: asset.mimeType || 'image/jpeg',
+        upsert: true,
+      });
 
-            if (uploadError) throw uploadError;
+      if (error) throw error;
 
-            const { data: { publicUrl } } = supabase.storage.from("products").getPublicUrl(filePath);
-            setImages([...images, publicUrl]);
-        } catch (error: any) {
-            console.error("Image upload error:", error);
-            Alert.alert("Upload Error", error.message || "Failed to upload image.");
-        } finally {
-            setUploading(false);
-        }
-    };
+      const { data: publicData } = supabase.storage.from('products').getPublicUrl(path);
+      setImages((current) => [...current, publicData.publicUrl]);
+    } catch (error: any) {
+      Alert.alert('Upload error', error?.message || 'Failed to upload image.');
+    } finally {
+      setUploading(false);
+    }
+  }
 
-    const removeImage = (index: number) => {
-        setImages(images.filter((_, i) => i !== index));
-    };
+  function removeImage(index: number) {
+    setImages((current) => current.filter((_, idx) => idx !== index));
+  }
 
-    const handleSubmit = async () => {
-        if (!title.trim()) {
-            Alert.alert("Missing Field", "Please enter a product title.");
-            return;
-        }
-        if (!price.trim()) {
-            Alert.alert("Missing Field", "Please enter a price.");
-            return;
-        }
+  async function saveProduct() {
+    if (!title.trim()) {
+      Alert.alert('Missing title', 'Please add a product title.');
+      return;
+    }
 
-        setLoading(true);
-        try {
-            await productsService.create({
-                title: title.trim(),
-                description: description.trim(),
-                categoryId: selectedCategory || undefined,
-                condition: condition as any,
-                buyNowPrice: price,
-                images,
-            });
+    if (!price.trim()) {
+      Alert.alert('Missing price', 'Please add a product price.');
+      return;
+    }
 
-            Alert.alert("Success", "Product created successfully!", [
-                { text: "OK", onPress: () => router.replace('/seller/inventory') }
-            ]);
-        } catch (error: any) {
-            console.error("Error creating product:", error);
-            Alert.alert("Error", error.message || "Failed to create product");
-        } finally {
-            setLoading(false);
-        }
-    };
+    setSaving(true);
+    try {
+      await productsService.create({
+        title: title.trim(),
+        description: description.trim(),
+        categoryId: selectedCategory || undefined,
+        condition: condition as any,
+        buyNowPrice: price,
+        images,
+      });
 
-    const conditions = [
-        { value: "new", label: "New" },
-        { value: "like_new", label: "Like New" },
-        { value: "good", label: "Good" },
-        { value: "fair", label: "Fair" },
-    ];
+      Alert.alert('Product created', 'Your item is now ready for listing.', [
+        { text: 'View inventory', onPress: () => router.replace('/seller/inventory') },
+      ]);
+    } catch (error: any) {
+      Alert.alert('Unable to save product', error?.message || 'Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  }
 
-    return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.luxuryBlack }} edges={['top']}>
-            <StatusBar barStyle="light-content" />
+  return (
+    <StitchPage contentStyle={{ paddingBottom: 120 }}>
+      <StitchHeader title="List New Item" onBack={() => router.back()} />
 
-            {/* Header */}
-            <Box px="$6" py="$4" borderBottomWidth={2} borderColor={COLORS.darkBorder}>
-                <HStack alignItems="center" space="md">
-                    <Pressable
-                        onPress={() => router.back()}
-                        h={44}
-                        w={44}
-                        rounded="$lg"
-                        alignItems="center"
-                        justifyContent="center"
-                        borderWidth={2}
-                        borderColor={COLORS.darkBorder}
-                        bg={COLORS.luxuryBlack}
-                    >
-                        <ChevronLeft size={24} color={COLORS.textPrimary} />
-                    </Pressable>
-                    <Heading color={COLORS.textPrimary} size="xl" fontWeight="$black">
-                        Add Product
-                    </Heading>
-                </HStack>
-            </Box>
+      <View style={styles.contentPad}>
+        <Text style={styles.sectionTitle}>Add up to 5 photos</Text>
+        <Text style={styles.sectionSubtitle}>The first image becomes your cover photo.</Text>
 
-            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-                <Box px="$6" py="$6">
-                    <VStack space="xl">
-                        {/* Images */}
-                        <Box>
-                            <Text size="sm" fontWeight="$bold" color={COLORS.textPrimary} mb="$2">
-                                PHOTOS
-                            </Text>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                <HStack space="sm">
-                                    {images.map((uri, index) => (
-                                        <Box key={index} position="relative">
-                                            <Image
-                                                source={{ uri }}
-                                                style={{ width: 100, height: 100, borderRadius: 8, borderWidth: 2, borderColor: COLORS.darkBorder }}
-                                            />
-                                            <Pressable
-                                                onPress={() => removeImage(index)}
-                                                position="absolute"
-                                                top={-8}
-                                                right={-8}
-                                                bg={COLORS.luxuryBlack}
-                                                rounded="$full"
-                                                w={24}
-                                                h={24}
-                                                alignItems="center"
-                                                justifyContent="center"
-                                            >
-                                                <X size={14} color={COLORS.textPrimary} />
-                                            </Pressable>
-                                        </Box>
-                                    ))}
-                                    <Pressable
-                                        onPress={pickImage}
-                                        w={100}
-                                        h={100}
-                                        bg={COLORS.luxuryBlackLight}
-                                        rounded="$lg"
-                                        borderWidth={2}
-                                        borderColor={COLORS.darkBorder}
-                                        borderStyle="dashed"
-                                        alignItems="center"
-                                        justifyContent="center"
-                                    >
-                                        {uploading ? (
-                                            <Spinner size="small" color={COLORS.primaryGold} />
-                                        ) : (
-                                            <Camera size={32} color={COLORS.textMuted} />
-                                        )}
-                                    </Pressable>
-                                </HStack>
-                            </ScrollView>
-                        </Box>
+        <View style={styles.imageRow}>
+          {images.map((uri, index) => (
+            <View key={`${uri}-${index}`} style={styles.imageTile}>
+              <Image source={{ uri }} style={styles.imagePreview} />
+              <Pressable style={styles.removeBtn} onPress={() => removeImage(index)}>
+                <X size={12} color="#FFFFFF" />
+              </Pressable>
+            </View>
+          ))}
 
-                        {/* Title */}
-                        <Box>
-                            <Text size="sm" fontWeight="$bold" color={COLORS.textPrimary} mb="$2">
-                                TITLE
-                            </Text>
-                            <Input
-                                size="lg"
-                                borderWidth={2}
-                                borderColor={COLORS.darkBorder}
-                                rounded="$lg"
-                            >
-                                <InputField
-                                    value={title}
-                                    onChangeText={setTitle}
-                                    placeholder="Product name"
-                                    placeholderTextColor={COLORS.textMuted}
-                                    color={COLORS.textPrimary}
-                                />
-                            </Input>
-                        </Box>
+          {images.length < 5 ? (
+            <Pressable style={styles.imageUpload} onPress={pickImage}>
+              {uploading ? <Text style={styles.uploadingText}>...</Text> : <Camera size={20} color={COLORS.primaryBlue} />}
+              <Text style={styles.uploadLabel}>{uploading ? 'Uploading' : 'Add'}</Text>
+            </Pressable>
+          ) : null}
+        </View>
 
-                        {/* Description */}
-                        <Box>
-                            <Text size="sm" fontWeight="$bold" color={COLORS.textPrimary} mb="$2">
-                                DESCRIPTION
-                            </Text>
-                            <Textarea
-                                size="lg"
-                                borderWidth={2}
-                                borderColor={COLORS.darkBorder}
-                                rounded="$lg"
-                            >
-                                <TextareaInput
-                                    value={description}
-                                    onChangeText={setDescription}
-                                    placeholder="Describe your product..."
-                                    placeholderTextColor={COLORS.textMuted}
-                                    numberOfLines={4}
-                                    color={COLORS.textPrimary}
-                                />
-                            </Textarea>
-                        </Box>
+        <View style={styles.formCard}>
+          <Text style={styles.label}>What are you bartering?</Text>
+          <TextInput
+            value={title}
+            onChangeText={setTitle}
+            placeholder="Vintage Nikon F3 Camera"
+            placeholderTextColor={COLORS.lightGrey}
+            style={styles.input}
+          />
 
-                        {/* Price */}
-                        <Box>
-                            <Text size="sm" fontWeight="$bold" color={COLORS.textPrimary} mb="$2">
-                                PRICE ($)
-                            </Text>
-                            <Input
-                                size="lg"
-                                borderWidth={2}
-                                borderColor={COLORS.darkBorder}
-                                rounded="$lg"
-                            >
-                                <InputField
-                                    value={price}
-                                    onChangeText={setPrice}
-                                    placeholder="0.00"
-                                    placeholderTextColor={COLORS.textMuted}
-                                    keyboardType="decimal-pad"
-                                    color={COLORS.textPrimary}
-                                />
-                            </Input>
-                        </Box>
+          <Text style={styles.label}>Category</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryRow}>
+            {categories.map((category) => {
+              const active = String(category.id) === selectedCategory;
+              return (
+                <Pressable
+                  key={String(category.id)}
+                  style={[styles.categoryChip, active ? styles.categoryChipActive : undefined]}
+                  onPress={() => setSelectedCategory(String(category.id))}
+                >
+                  <Text style={[styles.categoryChipText, active ? styles.categoryChipTextActive : undefined]}>
+                    {category.name}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
 
-                        {/* Condition */}
-                        <Box>
-                            <Text size="sm" fontWeight="$bold" color={COLORS.textPrimary} mb="$2">
-                                CONDITION
-                            </Text>
-                            <HStack space="sm" flexWrap="wrap">
-                                {conditions.map((c) => (
-                                    <Pressable
-                                        key={c.value}
-                                        onPress={() => setCondition(c.value)}
-                                        bg={condition === c.value ? COLORS.primaryGold : COLORS.luxuryBlack}
-                                        px="$4"
-                                        py="$2"
-                                        rounded="$full"
-                                        borderWidth={2}
-                                        borderColor={COLORS.darkBorder}
-                                        mb="$2"
-                                    >
-                                        <Text
-                                            size="sm"
-                                            fontWeight="$bold"
-                                            color={condition === c.value ? COLORS.luxuryBlack : COLORS.textPrimary}
-                                        >
-                                            {c.label}
-                                        </Text>
-                                    </Pressable>
-                                ))}
-                            </HStack>
-                        </Box>
+          <Text style={styles.label}>Starting bid value</Text>
+          <TextInput
+            value={price}
+            onChangeText={setPrice}
+            placeholder="150.00"
+            placeholderTextColor={COLORS.lightGrey}
+            keyboardType="decimal-pad"
+            style={styles.input}
+          />
 
-                        {/* Category */}
-                        <Box>
-                            <Text size="sm" fontWeight="$bold" color={COLORS.textPrimary} mb="$2">
-                                CATEGORY
-                            </Text>
-                            <HStack space="sm" flexWrap="wrap">
-                                {categories.map((cat) => (
-                                    <Pressable
-                                        key={cat.id}
-                                        onPress={() => setSelectedCategory(cat.id)}
-                                        bg={selectedCategory === cat.id ? COLORS.primaryGold : COLORS.luxuryBlack}
-                                        px="$4"
-                                        py="$2"
-                                        rounded="$full"
-                                        borderWidth={2}
-                                        borderColor={COLORS.darkBorder}
-                                        mb="$2"
-                                    >
-                                        <Text
-                                            size="sm"
-                                            fontWeight="$bold"
-                                            color={selectedCategory === cat.id ? COLORS.luxuryBlack : COLORS.textPrimary}
-                                        >
-                                            {cat.name}
-                                        </Text>
-                                    </Pressable>
-                                ))}
-                            </HStack>
-                        </Box>
+          <Text style={styles.label}>Condition</Text>
+          <View style={styles.conditionRow}>
+            {['new', 'like_new', 'good', 'fair'].map((value) => {
+              const active = value === condition;
+              return (
+                <Pressable
+                  key={value}
+                  style={[styles.conditionChip, active ? styles.conditionChipActive : undefined]}
+                  onPress={() => setCondition(value)}
+                >
+                  <Text style={[styles.conditionChipText, active ? styles.conditionChipTextActive : undefined]}>
+                    {value.replace('_', ' ')}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
 
-                        {/* Submit Button */}
-                        <Button
-                            onPress={handleSubmit}
-                            isDisabled={loading || uploading}
-                            size="xl"
-                            bg={COLORS.primaryGold}
-                            rounded="$full"
-                            h={56}
-                            px="$6"
-                        >
-                            {loading ? (
-                                <Spinner color={COLORS.luxuryBlack} />
-                            ) : (
-                                <ButtonText fontWeight="$black" fontSize="$md" color={COLORS.luxuryBlack} textAlign="center">
-                                    CREATE PRODUCT
-                                </ButtonText>
-                            )}
-                        </Button>
-                    </VStack>
-                </Box>
-            </ScrollView>
-        </SafeAreaView>
-    );
+          <Text style={styles.label}>Description</Text>
+          <TextInput
+            value={description}
+            onChangeText={setDescription}
+            multiline
+            numberOfLines={6}
+            placeholder="Describe condition, accessories, and what you're looking to trade for..."
+            placeholderTextColor={COLORS.lightGrey}
+            style={styles.textarea}
+          />
+        </View>
+
+        <View style={styles.footerActions}>
+          <View style={styles.actionHalf}><StitchSecondaryButton label="Save Draft" /></View>
+          <View style={styles.actionHalf}>
+            <StitchPrimaryButton label={saving ? 'Posting...' : 'Post Item Live'} onPress={saveProduct} disabled={saving} />
+          </View>
+        </View>
+      </View>
+    </StitchPage>
+  );
 }
+
+const styles = StyleSheet.create({
+  contentPad: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  sectionTitle: {
+    color: COLORS.primaryText,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  sectionSubtitle: {
+    color: COLORS.lightGrey,
+    fontSize: 12,
+    marginTop: 3,
+    marginBottom: 10,
+  },
+  imageRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -4,
+    marginBottom: 10,
+  },
+  imageTile: {
+    width: 94,
+    height: 94,
+    borderRadius: 12,
+    marginHorizontal: 4,
+    marginBottom: 8,
+    overflow: 'hidden',
+    backgroundColor: '#E5EAF4',
+  },
+  imagePreview: {
+    width: '100%',
+    height: '100%',
+  },
+  removeBtn: {
+    position: 'absolute',
+    right: 6,
+    top: 6,
+    height: 20,
+    width: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#DC2626',
+  },
+  imageUpload: {
+    width: 94,
+    height: 94,
+    borderRadius: 12,
+    marginHorizontal: 4,
+    marginBottom: 8,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: '#BFDBFE',
+    backgroundColor: '#EEF4FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 3,
+  },
+  uploadLabel: {
+    color: COLORS.primaryBlue,
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  uploadingText: {
+    color: COLORS.primaryBlue,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  formCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
+    padding: 12,
+  },
+  label: {
+    marginTop: 10,
+    marginBottom: 6,
+    color: COLORS.lightGrey,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.7,
+    textTransform: 'uppercase',
+  },
+  input: {
+    height: 46,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#DCE4F1',
+    backgroundColor: '#F8FAFF',
+    paddingHorizontal: 12,
+    color: COLORS.primaryText,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  categoryRow: {
+    paddingBottom: 4,
+  },
+  categoryChip: {
+    height: 34,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#DCE4F1',
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    marginRight: 8,
+  },
+  categoryChipActive: {
+    borderColor: COLORS.primaryBlue,
+    backgroundColor: COLORS.primaryBlue,
+  },
+  categoryChipText: {
+    color: COLORS.primaryText,
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'capitalize',
+  },
+  categoryChipTextActive: {
+    color: '#FFFFFF',
+  },
+  conditionRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -4,
+  },
+  conditionChip: {
+    marginHorizontal: 4,
+    marginBottom: 8,
+    height: 32,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#DCE4F1',
+    paddingHorizontal: 10,
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  conditionChipActive: {
+    borderColor: COLORS.primaryBlue,
+    backgroundColor: '#ECF4FF',
+  },
+  conditionChipText: {
+    color: COLORS.primaryText,
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'capitalize',
+  },
+  conditionChipTextActive: {
+    color: COLORS.primaryBlue,
+    fontWeight: '700',
+  },
+  textarea: {
+    minHeight: 120,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#DCE4F1',
+    backgroundColor: '#F8FAFF',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: COLORS.primaryText,
+    fontSize: 14,
+    fontWeight: '500',
+    textAlignVertical: 'top',
+  },
+  footerActions: {
+    marginTop: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  actionHalf: {
+    width: '48%',
+  },
+});

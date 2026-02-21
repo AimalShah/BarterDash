@@ -19,6 +19,8 @@
     "nativewind-env.d.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "e2e",
+    "lib/__tests__"
   ]
 }

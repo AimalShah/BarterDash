@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, type ReactElement } from "react";
 import { View, Text, TouchableOpacity, Animated, StyleSheet } from "react-native";
 import { COLORS } from "../../constants/colors";
 
@@ -13,7 +13,7 @@ interface Reaction {
 interface UseReactionSystemReturn {
   reactions: Reaction[];
   addReaction: (emoji?: string) => void;
-  renderReactions: () => JSX.Element;
+  renderReactions: () => ReactElement;
 }
 
 export function useReactionSystem(): UseReactionSystemReturn {

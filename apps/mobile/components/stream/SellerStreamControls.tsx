@@ -506,7 +506,9 @@ export default function SellerStreamControls({
                   <InputField
                     keyboardType="numeric"
                     value={auctionConfig.startingBid.toString()}
-                    onChangeText={(text) => setAuctionConfig({ ...auctionConfig, startingBid: parseInt(text) || 0 })}
+                    onChangeText={(text: string) =>
+                      setAuctionConfig({ ...auctionConfig, startingBid: parseInt(text, 10) || 0 })
+                    }
                     color={COLORS.textPrimary}
                     fontWeight="$bold"
                   />

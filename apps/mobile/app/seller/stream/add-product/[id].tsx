@@ -179,7 +179,7 @@ export default function AddProductToStreamScreen() {
             {item.title}
           </Text>
           <Text size="sm" color={COLORS.textMuted}>
-            ${item.startingBid || item.price || '0'}
+            ${(item as any).startingBid || item.price || '0'}
           </Text>
           <Text size="xs" color={COLORS.textSecondary}>
             {item.condition}

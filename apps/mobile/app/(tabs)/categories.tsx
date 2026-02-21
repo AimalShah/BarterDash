@@ -1,228 +1,270 @@
-import React, { useState, useEffect } from "react";
+import { ImageBackground, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { Compass, Flame, Users } from 'lucide-react-native';
+import { useMemo } from 'react';
+import { useCategories } from '@/hooks';
+import { COLORS } from '@/constants/colors';
 import {
-    FlatList,
-    StatusBar,
-    RefreshControl,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import {
-    Box,
-    Heading,
-    Text,
-    VStack,
-    HStack,
-    Pressable,
-    Center,
-    Spinner,
-    Image,
-} from "@/components/ui/reusables";
-import {
-    Search,
-    Shirt,
-    Smartphone,
-    Watch,
-    Home as HomeIcon,
-    Gamepad2,
-    Car,
-    Palette,
-    MoreHorizontal,
-} from "lucide-react-native";
-import { categoriesService } from "@/lib/api/services/categories";
-import { Category } from "@/types";
-import { theme } from "@/constants/theme";
-import { COLORS } from "@/constants/colors";
-import { useResponsiveLayout } from "../../hooks/useResponsiveLayout";
+  StitchCard,
+  StitchHeader,
+  StitchPage,
+  StitchSearchBar,
+  StitchSectionTitle,
+} from '@/components/design';
 
-// Default category icons
-const categoryIcons: Record<string, any> = {
-    fashion: Shirt,
-    electronics: Smartphone,
-    watches: Watch,
-    home: HomeIcon,
-    gaming: Gamepad2,
-    automotive: Car,
-    art: Palette,
-    default: MoreHorizontal,
-};
+const CATEGORY_IMAGES = [
+  'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1200',
+  'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1200',
+  'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1200',
+  'https://images.unsplash.com/photo-1519669417670-68775a50919c?w=1200',
+  'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=1200',
+  'https://images.unsplash.com/photo-1489515217757-5fd1be406fef?w=1200',
+];
 
 export default function CategoriesScreen() {
-    const router = useRouter();
-    const { width, isTablet, horizontalPadding } = useResponsiveLayout();
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
-    const columnCount = isTablet ? (width >= 1040 ? 4 : 3) : 2;
-    const itemGap = isTablet ? 20 : 16;
-    const itemWidth =
-        (width - horizontalPadding * 2 - itemGap * (columnCount - 1)) / columnCount;
+  const categoriesQuery = useCategories();
 
-    useEffect(() => {
-        fetchCategories();
-    }, []);
+  const categories = useMemo(() => categoriesQuery.data || [], [categoriesQuery.data]);
 
-    const fetchCategories = async (isRefresh = false) => {
-        if (isRefresh) setRefreshing(true);
-        else setLoading(true);
-
-        try {
-            const data = await categoriesService.findAll();
-            const raw = Array.isArray(data) ? data : [];
-            const normalized = raw
-                .map((c: any) => ({
-                    id: String(c?.id ?? ""),
-                    name: c?.name ?? "Unknown",
-                    slug: c?.slug ?? "",
-                    iconUrl: c?.iconUrl || c?.icon_url,
-                }))
-                .filter((c) => c.id) as Category[];
-            setCategories(normalized);
-        } catch (error) {
-            console.error("Error fetching categories:", error);
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
+  return (
+    <StitchPage
+      refreshControl={
+        <RefreshControl
+          refreshing={categoriesQuery.isRefetching}
+          onRefresh={categoriesQuery.refetch}
+          tintColor={COLORS.primaryBlue}
+        />
+      }
+    >
+      <StitchHeader
+        title="Discovery"
+        subtitle="Browse by interest"
+        rightNode={
+          <View style={styles.iconWrap}>
+            <Compass size={18} color={COLORS.primaryBlue} />
+          </View>
         }
-    };
+      />
 
-    const handleCategoryPress = (category: Category) => {
-        // Navigate to products filtered by category
-        router.push(`/products?category=${category.id}&name=${encodeURIComponent(category.name)}`);
-    };
+      <View style={styles.searchRow}>
+        <StitchSearchBar
+          placeholder="Search niches, items, or users"
+          onFilterPress={() => router.push('/(tabs)/search')}
+          onChangeText={() => undefined}
+        />
+      </View>
 
-    const getIconComponent = (slug: string) => {
-        const IconComponent = categoryIcons[slug.toLowerCase()] || categoryIcons.default;
-        return IconComponent;
-    };
+      <View style={styles.contentPad}>
+        <StitchCard style={styles.trendingCard}>
+          <View style={styles.trendingHeader}>
+            <Flame size={18} color="#EF4444" />
+            <Text style={styles.trendingLabel}>Trending Niche</Text>
+            <Text style={styles.liveTag}>LIVE NOW</Text>
+          </View>
+          <Pressable style={styles.trendingHero} onPress={() => router.push('/(tabs)/search')}>
+            <ImageBackground
+              source={{ uri: CATEGORY_IMAGES[1] }}
+              style={styles.trendingHero}
+              imageStyle={styles.rounded12}
+            >
+              <View style={styles.heroGradient}>
+                <Text style={styles.heroTitle}>Sneakers & Kicks</Text>
+                <Text style={styles.heroMeta}>124 live trades</Text>
+              </View>
+            </ImageBackground>
+          </Pressable>
+        </StitchCard>
 
-    const renderCategory = ({ item, index }: { item: Category; index: number }) => {
-        const IconComponent = getIconComponent(item.slug);
-        const isRowEnd = (index + 1) % columnCount === 0;
+        <View style={styles.sectionTop}>
+          <StitchSectionTitle title="Browse by Interest" actionLabel="View all" />
+        </View>
 
-        return (
+        <View style={styles.grid}>
+          {categories.map((category, index) => (
             <Pressable
-                onPress={() => handleCategoryPress(item)}
-                style={{
-                    width: itemWidth,
-                    marginRight: isRowEnd ? 0 : itemGap,
-                    marginBottom: itemGap,
-                }}
-                sx={{ ":active": { opacity: 0.8 } }}
+              key={String(category.id)}
+              style={styles.gridItem}
+              onPress={() => router.push(`/products?category=${category.id}&name=${encodeURIComponent(category.name)}`)}
             >
-                <Box
-                    bg={COLORS.cardBackground}
-                    borderWidth={1}
-                    borderColor={COLORS.darkBorder}
-                    rounded={theme.borderRadius.xl}
-                    p="$6"
-                    alignItems="center"
-                    style={{
-                        shadowColor: COLORS.luxuryBlack,
-                        shadowOffset: { width: 0, height: 1 },
-                        shadowOpacity: 0.3,
-                        shadowRadius: 4,
-                        elevation: 2,
-                    }}
-                >
-                    <Center
-                        w="$16"
-                        h="$16"
-                        bg={COLORS.luxuryBlackLighter}
-                        rounded="$full"
-                        mb="$3"
-                    >
-                        <IconComponent size={28} color={COLORS.primaryGold} />
-                    </Center>
-                    <Text
-                        color={COLORS.textPrimary}
-                        fontWeight="$semibold"
-                        size="md"
-                        textAlign="center"
-                        numberOfLines={1}
-                    >
-                        {item.name}
-                    </Text>
-                </Box>
+              <ImageBackground
+                source={{ uri: CATEGORY_IMAGES[index % CATEGORY_IMAGES.length] }}
+                style={styles.categoryImage}
+                imageStyle={styles.rounded12}
+              >
+                <View style={styles.categoryOverlay}>
+                  <Text style={styles.categoryName} numberOfLines={2}>
+                    {category.name}
+                  </Text>
+                  <Text style={styles.categoryMeta}>{16 + index * 7} active trades</Text>
+                </View>
+              </ImageBackground>
             </Pressable>
-        );
-    };
+          ))}
+        </View>
 
-    if (loading) {
-        return (
-            <Box flex={1} bg={COLORS.luxuryBlack} justifyContent="center" alignItems="center">
-                <Spinner size="large" color={COLORS.primaryGold} />
-            </Box>
-        );
-    }
-
-    return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.luxuryBlack }} edges={['top']}>
-            <StatusBar barStyle="light-content" />
-
-            {/* Header */}
-            <Box
-                py="$4"
-                borderBottomWidth={1}
-                borderColor={COLORS.darkBorder}
-                style={{ paddingHorizontal: horizontalPadding }}
-            >
-                <Heading size="2xl" color={COLORS.textPrimary} fontWeight="$bold">
-                    Categories
-                </Heading>
-                <Text color={COLORS.textSecondary} size="sm" mt="$1">
-                    Browse by category
-                </Text>
-            </Box>
-
-            {/* Search Bar */}
-            <Pressable
-                onPress={() => router.push("/(tabs)/search")}
-                my="$4"
-                style={{ marginHorizontal: horizontalPadding }}
-            >
-                <HStack
-                    bg={COLORS.luxuryBlackLighter}
-                    rounded={theme.borderRadius.xl}
-                    px="$4"
-                    py="$3"
-                    alignItems="center"
-                    space="sm"
-                >
-                    <Search size={20} color={COLORS.textSecondary} />
-                    <Text color={COLORS.textMuted} size="md">
-                        Search products...
-                    </Text>
-                </HStack>
-            </Pressable>
-
-            {/* Categories Grid */}
-            <FlatList
-                key={`categories-grid-${columnCount}`}
-                data={categories}
-                renderItem={renderCategory}
-                keyExtractor={(item) => item.id}
-                numColumns={columnCount}
-                contentContainerStyle={{
-                    paddingHorizontal: horizontalPadding,
-                    paddingTop: 8,
-                    paddingBottom: 100,
-                }}
-                columnWrapperStyle={columnCount > 1 ? { justifyContent: "flex-start" } : undefined}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={() => fetchCategories(true)}
-                        tintColor={COLORS.primaryGold}
-                    />
-                }
-                ListEmptyComponent={
-                    <Center py="$16" px="$6">
-                        <Text color={COLORS.textMuted} textAlign="center">
-                            No categories available
-                        </Text>
-                    </Center>
-                }
-            />
-        </SafeAreaView>
-    );
+        <View style={styles.recommendedSection}>
+          <StitchSectionTitle title="Recommended Sellers" />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sellerRow}>
+            {['RetroCollector', 'KicksKing', 'CardGuru'].map((name) => (
+              <StitchCard key={name} style={styles.sellerCard}>
+                <View style={styles.sellerAvatar}>
+                  <Users size={22} color={COLORS.primaryBlue} />
+                </View>
+                <Text style={styles.sellerName} numberOfLines={1}>{name}</Text>
+                <Text style={styles.sellerFeedback}>98% feedback</Text>
+                <Pressable style={styles.followBtn}>
+                  <Text style={styles.followBtnText}>Follow</Text>
+                </Pressable>
+              </StitchCard>
+            ))}
+          </ScrollView>
+        </View>
+      </View>
+    </StitchPage>
+  );
 }
+
+const styles = StyleSheet.create({
+  iconWrap: {
+    height: 36,
+    width: 36,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#DCE4F1',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  searchRow: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+  },
+  contentPad: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  trendingCard: {
+    marginBottom: 20,
+    padding: 12,
+  },
+  trendingHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    gap: 8,
+  },
+  trendingLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.primaryText,
+    flex: 1,
+  },
+  liveTag: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.primaryBlue,
+    letterSpacing: 0.6,
+  },
+  trendingHero: {
+    height: 180,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  rounded12: {
+    borderRadius: 12,
+  },
+  heroGradient: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    padding: 12,
+    backgroundColor: 'rgba(0,0,0,0.28)',
+  },
+  heroTitle: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: '700',
+  },
+  heroMeta: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    marginTop: 2,
+    fontWeight: '600',
+  },
+  sectionTop: {
+    marginBottom: 10,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -6,
+  },
+  gridItem: {
+    width: '50%',
+    paddingHorizontal: 6,
+    marginBottom: 12,
+  },
+  categoryImage: {
+    height: 150,
+    borderRadius: 12,
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
+  },
+  categoryOverlay: {
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    padding: 10,
+  },
+  categoryName: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  categoryMeta: {
+    color: '#F8FAFC',
+    fontSize: 10,
+    marginTop: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  recommendedSection: {
+    marginTop: 12,
+  },
+  sellerRow: {
+    paddingBottom: 6,
+  },
+  sellerCard: {
+    width: 140,
+    marginRight: 10,
+    alignItems: 'center',
+  },
+  sellerAvatar: {
+    height: 56,
+    width: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EEF2FF',
+    marginBottom: 8,
+  },
+  sellerName: {
+    color: COLORS.primaryText,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  sellerFeedback: {
+    color: COLORS.lightGrey,
+    fontSize: 10,
+    marginTop: 2,
+    marginBottom: 8,
+  },
+  followBtn: {
+    backgroundColor: '#E8F0FE',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  followBtnText: {
+    color: COLORS.primaryBlue,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+});

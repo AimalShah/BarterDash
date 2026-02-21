@@ -376,7 +376,7 @@ export default function SellerOnboardingScreen() {
             placeholder="Your business or display name"
             placeholderTextColor={COLORS.textMuted}
             value={formData.businessName}
-            onChangeText={(text) => updateField("businessName", text)}
+            onChangeText={(text: string) => updateField("businessName", text)}
           />
         </Input>
         {errors.businessName && (
@@ -405,7 +405,7 @@ export default function SellerOnboardingScreen() {
             placeholder="XXX-XX-XXXX"
             placeholderTextColor={COLORS.textMuted}
             value={formData.taxId}
-            onChangeText={(text) => updateField("taxId", text)}
+            onChangeText={(text: string) => updateField("taxId", text)}
             secureTextEntry
           />
         </Input>
@@ -426,7 +426,9 @@ export default function SellerOnboardingScreen() {
         </FormControlLabel>
         <RadioGroup
           value={formData.businessType}
-          onChange={(value) => updateField("businessType", value as any)}
+          onChange={(value: string) =>
+            updateField("businessType", value as "individual" | "business")
+          }
         >
           <HStack space="md">
             <Radio value="individual">
@@ -462,7 +464,7 @@ export default function SellerOnboardingScreen() {
         </FormControlLabel>
         <Select
           selectedValue={selectedDocType}
-          onValueChange={(value) => setSelectedDocType(value as any)}
+          onValueChange={(value: string) => setSelectedDocType(value as any)}
         >
           <SelectTrigger
             variant="outline"

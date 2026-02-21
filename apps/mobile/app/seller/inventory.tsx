@@ -1,479 +1,333 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { StatusBar, Alert, ScrollView, RefreshControl, Image } from "react-native";
-import { router } from "expo-router";
-import {
-    Box,
-    Heading,
-    HStack,
-    VStack,
-    Pressable,
-    Spinner,
-    Button,
-    ButtonText,
-    Text,
-    Badge,
-    BadgeText,
-} from "@/components/ui/reusables";
-import { 
-    ChevronLeft, 
-    Package, 
-    ShoppingBag, 
-    Truck, 
-    CheckCircle, 
-    Clock,
-    MoreVertical,
-    Edit,
-    Trash2,
-    Plus
-} from "lucide-react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { productsService } from "../../lib/api/services/products";
-import { ordersService } from "../../lib/api/services/orders";
-import { supabase } from "../../lib/supabase";
-import { COLORS } from '../../constants/colors';
+import { useEffect, useMemo, useState } from 'react';
+import { Alert, Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { router } from 'expo-router';
+import { MoreVertical, Plus, Search } from 'lucide-react-native';
+import { supabase } from '@/lib/supabase';
+import { productsService } from '@/lib/api/services/products';
+import { COLORS } from '@/constants/colors';
+import { StitchChip, StitchHeader, StitchPage, StitchSectionTitle } from '@/components/design';
 
-type TabType = "products" | "orders";
-type ProductFilter = "all" | "active" | "draft" | "sold";
-type OrderFilter = "all" | "pending" | "shipped" | "completed";
+type ProductFilter = 'all' | 'active' | 'sold' | 'scheduled';
 
 export default function InventoryScreen() {
-    const [activeTab, setActiveTab] = useState<TabType>("products");
-    const [productFilter, setProductFilter] = useState<ProductFilter>("all");
-    const [orderFilter, setOrderFilter] = useState<OrderFilter>("all");
-    const [products, setProducts] = useState<any[]>([]);
-    const [orders, setOrders] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [products, setProducts] = useState<any[]>([]);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<ProductFilter>('all');
 
-    const fetchData = useCallback(async () => {
-        try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
+  useEffect(() => {
+    void fetchInventory();
+  }, []);
 
-            const [productsData, ordersData] = await Promise.all([
-                productsService.getSellerProducts(user.id),
-                ordersService.getMySales(),
-            ]);
+  async function fetchInventory(isRefresh = false) {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
 
-            setProducts(productsData || []);
-            setOrders(ordersData || []);
-        } catch (error) {
-            console.error("Error fetching inventory:", error);
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    }, []);
+    try {
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) {
+        setProducts([]);
+        return;
+      }
 
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+      const items = await productsService.getSellerProducts(data.user.id);
+      setProducts(Array.isArray(items) ? items : []);
+    } catch (error) {
+      setProducts([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }
 
-    const onRefresh = () => {
-        setRefreshing(true);
-        fetchData();
-    };
+  const filtered = useMemo(() => {
+    const base = products.filter((item) => {
+      const matchesSearch = !search.trim()
+        ? true
+        : String(item.title || '')
+            .toLowerCase()
+            .includes(search.trim().toLowerCase());
 
-    const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
-        try {
-            await ordersService.updateStatus(orderId, newStatus);
-            Alert.alert("Success", `Order marked as ${newStatus}`);
-            fetchData();
-        } catch (error: any) {
-            console.error("Error updating order:", error);
-            Alert.alert("Error", error.message || "Failed to update order");
-        }
-    };
+      if (!matchesSearch) return false;
 
-    const handleDeleteProduct = async (productId: string) => {
-        Alert.alert(
-            "Delete Product",
-            "Are you sure you want to delete this product?",
-            [
-                { text: "Cancel", style: "cancel" },
-                {
-                    text: "Delete",
-                    style: "destructive",
-                    onPress: async () => {
-                        try {
-                            await productsService.delete(productId);
-                            Alert.alert("Success", "Product deleted");
-                            fetchData();
-                        } catch (error: any) {
-                            Alert.alert("Error", error.message || "Failed to delete product");
-                        }
-                    }
-                }
-            ]
-        );
-    };
-
-    const filteredProducts = products.filter(p => {
-        if (productFilter === "all") return true;
-        return p.status === productFilter;
+      if (filter === 'all') return true;
+      if (filter === 'scheduled') return item.status === 'scheduled';
+      return item.status === filter;
     });
 
-    const filteredOrders = orders.filter(o => {
-        if (orderFilter === "all") return true;
-        return o.status === orderFilter;
-    });
+    return base;
+  }, [filter, products, search]);
 
-    const getProductStatusColor = (status: string) => {
-        switch (status) {
-            case "active": return COLORS.successGreen;
-            case "draft": return COLORS.textMuted;
-            case "sold": return COLORS.primaryGold;
-            case "cancelled": return COLORS.errorRed;
-            default: return COLORS.textMuted;
+  async function onDelete(id: string) {
+    Alert.alert('Delete product', 'Are you sure you want to delete this product?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await productsService.delete(id);
+            await fetchInventory();
+          } catch (error) {
+            Alert.alert('Delete failed', 'Please try again.');
+          }
+        },
+      },
+    ]);
+  }
+
+  return (
+    <StitchPage
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={() => fetchInventory(true)}
+          tintColor={COLORS.primaryBlue}
+        />
+      }
+      contentStyle={{ paddingBottom: 120 }}
+    >
+      <StitchHeader
+        title="My Inventory"
+        subtitle={`${products.length} listed items`}
+        onBack={() => router.back()}
+        rightNode={
+          <Pressable style={styles.iconBtn} onPress={() => router.push('/seller/add-product')}>
+            <Plus size={16} color={COLORS.primaryBlue} />
+          </Pressable>
         }
-    };
+      />
 
-    const getOrderStatusColor = (status: string) => {
-        switch (status) {
-            case "pending": return COLORS.warningAmber;
-            case "paid": return COLORS.successGreen;
-            case "shipped": return COLORS.primaryGold;
-            case "completed": return COLORS.successGreen;
-            case "cancelled": return COLORS.errorRed;
-            default: return COLORS.textMuted;
-        }
-    };
+      <View style={styles.searchWrap}>
+        <View style={styles.searchInputWrap}>
+          <Search size={16} color={COLORS.lightGrey} style={styles.searchIcon} />
+          <TextInput
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Search products, SKUs, or tags..."
+            placeholderTextColor={COLORS.lightGrey}
+            style={styles.searchInput}
+          />
+        </View>
+      </View>
 
-    const getOrderStatusIcon = (status: string) => {
-        switch (status) {
-            case "pending": return <Clock size={16} color={COLORS.warningAmber} />;
-            case "paid": return <CheckCircle size={16} color={COLORS.successGreen} />;
-            case "shipped": return <Truck size={16} color={COLORS.primaryGold} />;
-            case "completed": return <CheckCircle size={16} color={COLORS.successGreen} />;
-            default: return <Clock size={16} color={COLORS.textMuted} />;
-        }
-    };
+      <View style={styles.filtersWrap}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersRow}>
+          <StitchChip label={`All (${products.length})`} active={filter === 'all'} onPress={() => setFilter('all')} />
+          <StitchChip
+            label={`Active (${products.filter((p) => p.status === 'active').length})`}
+            active={filter === 'active'}
+            onPress={() => setFilter('active')}
+          />
+          <StitchChip
+            label={`Sold (${products.filter((p) => p.status === 'sold').length})`}
+            active={filter === 'sold'}
+            onPress={() => setFilter('sold')}
+          />
+          <StitchChip
+            label={`Scheduled (${products.filter((p) => p.status === 'scheduled').length})`}
+            active={filter === 'scheduled'}
+            onPress={() => setFilter('scheduled')}
+          />
+        </ScrollView>
+      </View>
 
-    const productCounts = {
-        all: products.length,
-        active: products.filter(p => p.status === "active").length,
-        draft: products.filter(p => p.status === "draft").length,
-        sold: products.filter(p => p.status === "sold").length,
-    };
+      <View style={styles.contentPad}>
+        <StitchSectionTitle title="Product Management" />
 
-    const orderCounts = {
-        all: orders.length,
-        pending: orders.filter(o => o.status === "pending" || o.status === "paid").length,
-        shipped: orders.filter(o => o.status === "shipped").length,
-        completed: orders.filter(o => o.status === "completed").length,
-    };
+        {loading ? (
+          <Text style={styles.loadingText}>Loading inventory...</Text>
+        ) : filtered.length === 0 ? (
+          <Text style={styles.emptyText}>No products match this filter.</Text>
+        ) : (
+          filtered.map((product) => {
+            const image =
+              product.images?.[0] ||
+              'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1400';
+            const status = String(product.status || 'draft').toUpperCase();
 
-    return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.luxuryBlack }} edges={['top']}>
-            <StatusBar barStyle="light-content" />
+            return (
+              <View key={product.id} style={styles.productRow}>
+                <Image source={{ uri: image }} style={styles.productImage} />
 
-            {/* Header */}
-            <Box px="$6" py="$4" borderBottomWidth={2} borderColor={COLORS.darkBorder}>
-                <HStack alignItems="center" justifyContent="space-between">
-                    <HStack alignItems="center" space="md">
-                        <Pressable
-                            onPress={() => router.back()}
-                            h={44}
-                            w={44}
-                            rounded="$lg"
-                            alignItems="center"
-                            justifyContent="center"
-                            borderWidth={2}
-                            borderColor={COLORS.darkBorder}
-                            bg={COLORS.luxuryBlack}
-                        >
-                            <ChevronLeft size={24} color={COLORS.textPrimary} />
-                        </Pressable>
-                        <Heading color={COLORS.textPrimary} size="xl" fontWeight="$black">
-                            Inventory
-                        </Heading>
-                    </HStack>
-                    <Pressable
-                        onPress={() => router.push('/seller/add-product')}
-                        h={44}
-                        w={44}
-                        rounded="$lg"
-                        alignItems="center"
-                        justifyContent="center"
-                        borderWidth={2}
-                        borderColor={COLORS.darkBorder}
-                        bg={COLORS.primaryGold}
-                    >
-                        <Plus size={24} color={COLORS.luxuryBlack} />
+                <View style={styles.productMain}>
+                  <View style={styles.productHead}>
+                    <Text style={styles.productTitle} numberOfLines={1}>{product.title || 'Untitled product'}</Text>
+                    <Pressable onPress={() => onDelete(product.id)}>
+                      <MoreVertical size={16} color={COLORS.lightGrey} />
                     </Pressable>
-                </HStack>
-            </Box>
+                  </View>
 
-            {/* Tabs */}
-            <Box px="$6" py="$4" borderBottomWidth={2} borderColor={COLORS.darkBorder}>
-                <HStack space="md">
-                    <Pressable
-                        onPress={() => setActiveTab("products")}
-                        flex={1}
-                        bg={activeTab === "products" ? COLORS.primaryGold : COLORS.luxuryBlack}
-                        py="$3"
-                        rounded="$lg"
-                        borderWidth={2}
-                        borderColor={COLORS.darkBorder}
-                        alignItems="center"
-                    >
-                        <HStack space="sm" alignItems="center">
-                            <Package size={18} color={activeTab === "products" ? COLORS.luxuryBlack : COLORS.textPrimary} />
-                            <Text
-                                fontWeight="$bold"
-                                color={activeTab === "products" ? COLORS.luxuryBlack : COLORS.textPrimary}
-                            >
-                                Products ({products.length})
-                            </Text>
-                        </HStack>
-                    </Pressable>
-                    <Pressable
-                        onPress={() => setActiveTab("orders")}
-                        flex={1}
-                        bg={activeTab === "orders" ? COLORS.primaryGold : COLORS.luxuryBlack}
-                        py="$3"
-                        rounded="$lg"
-                        borderWidth={2}
-                        borderColor={COLORS.darkBorder}
-                        alignItems="center"
-                    >
-                        <HStack space="sm" alignItems="center">
-                            <ShoppingBag size={18} color={activeTab === "orders" ? COLORS.luxuryBlack : COLORS.textPrimary} />
-                            <Text
-                                fontWeight="$bold"
-                                color={activeTab === "orders" ? COLORS.luxuryBlack : COLORS.textPrimary}
-                            >
-                                Orders ({orders.length})
-                            </Text>
-                        </HStack>
-                    </Pressable>
-                </HStack>
-            </Box>
+                  <Text style={styles.productMeta}>
+                    {product.condition || 'Good'} • ${Number(product.price || product.buyNowPrice || 0).toFixed(2)}
+                  </Text>
 
-            {loading ? (
-                <Box flex={1} alignItems="center" justifyContent="center">
-                    <Spinner size="large" color={COLORS.primaryGold} />
-                </Box>
-            ) : (
-                <ScrollView
-                    style={{ flex: 1 }}
-                    refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primaryGold} />
-                    }
-                >
-                    {activeTab === "products" ? (
-                        <Box px="$4" py="$4">
-                            {/* Product Filters */}
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                <HStack space="sm" mb="$4">
-                                    {(["all", "active", "draft", "sold"] as ProductFilter[]).map((filter) => (
-                                        <Pressable
-                                            key={filter}
-                                            onPress={() => setProductFilter(filter)}
-                                            bg={productFilter === filter ? COLORS.primaryGold : COLORS.luxuryBlack}
-                                            px="$4"
-                                            py="$2"
-                                            rounded="$full"
-                                            borderWidth={2}
-                                            borderColor={COLORS.darkBorder}
-                                        >
-                                            <Text
-                                                size="sm"
-                                                fontWeight="$bold"
-                                                color={productFilter === filter ? COLORS.luxuryBlack : COLORS.textPrimary}
-                                                textTransform="capitalize"
-                                            >
-                                                {filter} ({productCounts[filter]})
-                                            </Text>
-                                        </Pressable>
-                                    ))}
-                                </HStack>
-                            </ScrollView>
+                  <View style={styles.productFooter}>
+                    <Text style={styles.offersText}>
+                      {Number(product.offerCount || 0)} active offers
+                    </Text>
+                    <View style={[styles.statusPill, status === 'ACTIVE' ? styles.statusLive : status === 'SOLD' ? styles.statusSold : styles.statusMuted]}>
+                      <Text style={[styles.statusPillText, status === 'ACTIVE' ? styles.statusPillTextLive : status === 'SOLD' ? styles.statusPillTextSold : styles.statusPillTextMuted]}>
+                        {status}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            );
+          })
+        )}
 
-                            {/* Products List */}
-                            {filteredProducts.length === 0 ? (
-                                <Box py="$12" alignItems="center">
-                                    <Package size={48} color={COLORS.textMuted} />
-                                    <Text color={COLORS.textSecondary} mt="$3">No products found</Text>
-                                    <Button
-                                        size="sm"
-                                        bg={COLORS.primaryGold}
-                                        mt="$4"
-                                        onPress={() => router.push('/seller/add-product')}
-                                    >
-                                        <ButtonText color={COLORS.luxuryBlack} textAlign="center">Add Product</ButtonText>
-                                    </Button>
-                                </Box>
-                            ) : (
-                                <VStack space="sm">
-                                    {filteredProducts.map((product) => (
-                                        <Box
-                                            key={product.id}
-                                            bg={COLORS.luxuryBlack}
-                                            rounded="$xl"
-                                            borderWidth={2}
-                                            borderColor={COLORS.darkBorder}
-                                            overflow="hidden"
-                                        >
-                                            <HStack>
-                                                <Image
-                                                    source={{ uri: product.images?.[0] || 'https://via.placeholder.com/100' }}
-                                                    style={{ width: 100, height: 100 }}
-                                                />
-                                                <Box flex={1} p="$3">
-                                                    <HStack justifyContent="space-between" alignItems="flex-start">
-                                                        <VStack flex={1}>
-                                                            <Text fontWeight="$bold" color={COLORS.textPrimary} numberOfLines={1}>
-                                                                {product.title}
-                                                            </Text>
-                                                            <Text size="sm" color={COLORS.textSecondary}>
-                                                                ${product.buyNowPrice || product.startingBid || '0'}
-                                                            </Text>
-                                                            <HStack mt="$2" space="xs" alignItems="center">
-                                                                <Box
-                                                                    w={8}
-                                                                    h={8}
-                                                                    rounded="$full"
-                                                                    bg={getProductStatusColor(product.status)}
-                                                                />
-                                                                <Text size="xs" color={COLORS.textSecondary} textTransform="capitalize">
-                                                                    {product.status}
-                                                                </Text>
-                                                            </HStack>
-                                                        </VStack>
-                                                        <HStack space="xs">
-                                                            <Pressable
-                                                                p="$2"
-                                                                onPress={() => router.push(`/seller/edit-product?id=${product.id}`)}
-                                                            >
-                                                                <Edit size={18} color={COLORS.textMuted} />
-                                                            </Pressable>
-                                                            <Pressable
-                                                                p="$2"
-                                                                onPress={() => handleDeleteProduct(product.id)}
-                                                            >
-                                                                <Trash2 size={18} color={COLORS.errorRed} />
-                                                            </Pressable>
-                                                        </HStack>
-                                                    </HStack>
-                                                </Box>
-                                            </HStack>
-                                        </Box>
-                                    ))}
-                                </VStack>
-                            )}
-                        </Box>
-                    ) : (
-                        <Box px="$4" py="$4">
-                            {/* Order Filters */}
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                <HStack space="sm" mb="$4">
-                                    {(["all", "pending", "shipped", "completed"] as OrderFilter[]).map((filter) => (
-                                        <Pressable
-                                            key={filter}
-                                            onPress={() => setOrderFilter(filter)}
-                                            bg={orderFilter === filter ? COLORS.primaryGold : COLORS.luxuryBlack}
-                                            px="$4"
-                                            py="$2"
-                                            rounded="$full"
-                                            borderWidth={2}
-                                            borderColor={COLORS.darkBorder}
-                                        >
-                                            <Text
-                                                size="sm"
-                                                fontWeight="$bold"
-                                                color={orderFilter === filter ? COLORS.luxuryBlack : COLORS.textPrimary}
-                                                textTransform="capitalize"
-                                            >
-                                                {filter} ({orderCounts[filter]})
-                                            </Text>
-                                        </Pressable>
-                                    ))}
-                                </HStack>
-                            </ScrollView>
-
-                            {/* Orders List */}
-                            {filteredOrders.length === 0 ? (
-                                <Box py="$12" alignItems="center">
-                                    <ShoppingBag size={48} color={COLORS.textMuted} />
-                                    <Text color={COLORS.textSecondary} mt="$3">No orders found</Text>
-                                </Box>
-                            ) : (
-                                <VStack space="sm">
-                                    {filteredOrders.map((order) => (
-                                        <Box
-                                            key={order.id}
-                                            bg={COLORS.luxuryBlack}
-                                            rounded="$xl"
-                                            borderWidth={2}
-                                            borderColor={COLORS.darkBorder}
-                                            p="$4"
-                                        >
-                                            <HStack justifyContent="space-between" alignItems="flex-start">
-                                                <VStack flex={1}>
-                                                    <Text fontWeight="$bold" color={COLORS.textPrimary}>
-                                                        Order #{order.id.slice(0, 8)}
-                                                    </Text>
-                                                    <Text size="sm" color={COLORS.textSecondary} mt="$1">
-                                                        {order.product?.title || 'Product'}
-                                                    </Text>
-                                                    <HStack mt="$2" space="xs" alignItems="center">
-                                                        {getOrderStatusIcon(order.status)}
-                                                        <Text 
-                                                            size="xs" 
-                                                            fontWeight="$bold"
-                                                            color={getOrderStatusColor(order.status)}
-                                                            textTransform="uppercase"
-                                                        >
-                                                            {order.status}
-                                                        </Text>
-                                                    </HStack>
-                                                </VStack>
-                                                <VStack alignItems="flex-end">
-                                                    <Text fontWeight="$black" color={COLORS.textPrimary} size="lg">
-                                                        ${order.totalAmount || order.total_amount || '0'}
-                                                    </Text>
-                                                    <Text size="xs" color={COLORS.textMuted}>
-                                                        {new Date(order.createdAt || order.created_at).toLocaleDateString()}
-                                                    </Text>
-                                                </VStack>
-                                            </HStack>
-
-                                            {/* Order Actions */}
-                                            {(order.status === "pending" || order.status === "paid") && (
-                                                <Button
-                                                    size="sm"
-                                                    bg={COLORS.primaryGold}
-                                                    mt="$3"
-                                                    onPress={() => handleUpdateOrderStatus(order.id, "shipped")}
-                                                >
-                                                    <HStack space="xs" alignItems="center">
-                                                        <Truck size={16} color={COLORS.luxuryBlack} />
-                                                        <ButtonText color={COLORS.luxuryBlack} textAlign="center">Mark as Shipped</ButtonText>
-                                                    </HStack>
-                                                </Button>
-                                            )}
-                                            {order.status === "shipped" && (
-                                                <Button
-                                                    size="sm"
-                                                    bg={COLORS.successGreen}
-                                                    mt="$3"
-                                                    onPress={() => handleUpdateOrderStatus(order.id, "completed")}
-                                                >
-                                                    <HStack space="xs" alignItems="center">
-                                                        <CheckCircle size={16} color={COLORS.luxuryBlack} />
-                                                        <ButtonText color={COLORS.luxuryBlack} textAlign="center">Mark as Completed</ButtonText>
-                                                    </HStack>
-                                                </Button>
-                                            )}
-                                        </Box>
-                                    ))}
-                                </VStack>
-                            )}
-                        </Box>
-                    )}
-                </ScrollView>
-            )}
-        </SafeAreaView>
-    );
+        <Pressable style={styles.loadMoreBtn} onPress={() => router.push('/seller/add-product')}>
+          <Text style={styles.loadMoreText}>Add another item</Text>
+        </Pressable>
+      </View>
+    </StitchPage>
+  );
 }
+
+const styles = StyleSheet.create({
+  iconBtn: {
+    height: 34,
+    width: 34,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#DCE4F1',
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchWrap: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+  },
+  searchInputWrap: {
+    height: 46,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#DCE4F1',
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+  },
+  searchIcon: {
+    position: 'absolute',
+    left: 12,
+  },
+  searchInput: {
+    color: COLORS.primaryText,
+    paddingLeft: 38,
+    paddingRight: 12,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  filtersWrap: {
+    paddingTop: 10,
+  },
+  filtersRow: {
+    paddingHorizontal: 16,
+  },
+  contentPad: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+  },
+  loadingText: {
+    color: COLORS.lightGrey,
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 10,
+  },
+  emptyText: {
+    color: COLORS.lightGrey,
+    fontSize: 13,
+    marginTop: 12,
+  },
+  productRow: {
+    marginTop: 10,
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    padding: 10,
+  },
+  productImage: {
+    width: 86,
+    height: 86,
+    borderRadius: 10,
+    backgroundColor: '#E2E8F0',
+    marginRight: 10,
+  },
+  productMain: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  productHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 6,
+  },
+  productTitle: {
+    flex: 1,
+    color: COLORS.primaryText,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  productMeta: {
+    marginTop: 3,
+    color: COLORS.lightGrey,
+    fontSize: 12,
+  },
+  productFooter: {
+    marginTop: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  offersText: {
+    color: COLORS.lightGrey,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  statusPill: {
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  statusLive: {
+    backgroundColor: '#DCFCE7',
+  },
+  statusSold: {
+    backgroundColor: '#E8F0FE',
+  },
+  statusMuted: {
+    backgroundColor: '#E2E8F0',
+  },
+  statusPillText: {
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  statusPillTextLive: {
+    color: '#15803D',
+  },
+  statusPillTextSold: {
+    color: COLORS.primaryBlue,
+  },
+  statusPillTextMuted: {
+    color: '#475569',
+  },
+  loadMoreBtn: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  loadMoreText: {
+    color: COLORS.primaryBlue,
+    fontSize: 13,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+});

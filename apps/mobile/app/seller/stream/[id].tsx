@@ -1,164 +1,180 @@
-import React, { useState, useEffect } from 'react';
-import { StatusBar, Alert, ScrollView } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Box,
-  Center,
-  Text,
+  Alert,
   Pressable,
-  Heading,
-  Button,
-  ButtonText,
-  VStack,
-  HStack,
-  Spinner,
-  Badge,
-  BadgeText,
-  Divider,
-  Icon,
-} from '@/components/ui/reusables';
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Calendar, Package, Play, Radio, Trash2 } from 'lucide-react-native';
+import { COLORS } from '@/constants/colors';
 import {
-  ChevronLeft,
-  Video,
-  Calendar,
-  Clock,
-  Edit3,
-  Trash2,
-  Play,
-  Package,
-  ChevronRight,
-} from 'lucide-react-native';
-import { streamsService, Stream } from '../../../lib/api/services/streams';
-import { COLORS } from '../../../constants/colors';
+  Stream,
+  StreamProduct,
+  streamsService,
+} from '@/lib/api/services/streams';
+import {
+  StitchCard,
+  StitchEmpty,
+  StitchHeader,
+  StitchPage,
+  StitchPrimaryButton,
+  StitchSecondaryButton,
+  StitchSectionTitle,
+} from '@/components/design';
+
+function formatDate(value: string | null | undefined) {
+  if (!value) {
+    return 'Not scheduled';
+  }
+
+  const date = new Date(value);
+  return date.toLocaleString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+function statusLabel(status: Stream['status']) {
+  if (status === 'live') {
+    return 'LIVE';
+  }
+  if (status === 'scheduled') {
+    return 'SCHEDULED';
+  }
+  if (status === 'ended') {
+    return 'ENDED';
+  }
+  return 'CANCELLED';
+}
 
 export default function StreamManagementScreen() {
   const { id: streamId } = useLocalSearchParams<{ id: string }>();
-  const router = useRouter();
   const [stream, setStream] = useState<Stream | null>(null);
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<StreamProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    if (streamId) {
-      fetchStreamDetails();
-      fetchStreamProducts();
+  const fetchData = useCallback(async (isRefreshing = false) => {
+    if (!streamId) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      if (isRefreshing) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+
+      const [streamData, streamProducts] = await Promise.all([
+        streamsService.findById(streamId),
+        streamsService.getProducts(streamId),
+      ]);
+
+      setStream(streamData);
+      setProducts(Array.isArray(streamProducts) ? streamProducts : []);
+    } catch (error) {
+      console.error('Error fetching stream details:', error);
+      Alert.alert('Error', 'Failed to load stream details.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
   }, [streamId]);
 
-  const fetchStreamDetails = async () => {
-    try {
-      const data = await streamsService.findById(streamId);
-      setStream(data);
-    } catch (error) {
-      console.error('Error fetching stream:', error);
-      Alert.alert('Error', 'Failed to load stream details');
-    }
-  };
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-  const fetchStreamProducts = async () => {
-    try {
-      const data = await streamsService.getProducts(streamId);
-      setProducts(data);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      Alert.alert('Error', 'Failed to load products');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const isScheduled = stream?.status === 'scheduled';
+  const isLive = stream?.status === 'live';
+  const isEnded = stream?.status === 'ended';
 
-  const handleGoLive = () => {
-    if (stream?.status === 'ended') {
+  const orderedProducts = useMemo(
+    () => [...products].sort((a, b) => Number(a.displayOrder || 0) - Number(b.displayOrder || 0)),
+    [products]
+  );
+
+  const handleGoLive = useCallback(() => {
+    if (!streamId || !stream) {
+      return;
+    }
+
+    if (stream.status === 'ended') {
       Alert.alert('Stream Ended', 'This stream has already ended.');
       return;
     }
 
-    if (stream?.status === 'live') {
-      // Stream is already live, join it
-      router.push({
-        pathname: '/seller/go-live',
-        params: { streamId },
-      });
+    router.push({ pathname: '/seller/go-live', params: { streamId } });
+  }, [stream, streamId]);
+
+  const handleEditStream = useCallback(() => {
+    if (!streamId || !stream) {
       return;
     }
 
-    // Confirm before going live
-    Alert.alert(
-      'Go Live?',
-      'Are you ready to start streaming? This will make your stream visible to all users.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Go Live',
-          onPress: () => {
-            router.push({
-              pathname: '/seller/go-live',
-              params: { streamId },
-            });
-          },
-        },
-      ]
-    );
-  };
+    if (stream.status === 'live' || stream.status === 'ended') {
+      Alert.alert('Not Allowed', 'Only scheduled streams can be edited.');
+      return;
+    }
 
-  const handleEditStream = () => {
-    if (stream?.status === 'live') {
-      Alert.alert('Cannot Edit', 'You cannot edit a live stream.');
-      return;
-    }
-    if (stream?.status === 'ended') {
-      Alert.alert('Cannot Edit', 'You cannot edit an ended stream.');
-      return;
-    }
     router.push(`/seller/stream/edit/${streamId}`);
-  };
+  }, [stream, streamId]);
 
-  const handleCancelStream = async () => {
-    if (stream?.status === 'live') {
-      Alert.alert('Cannot Cancel', 'You cannot cancel a live stream. Please end it instead.');
-      return;
-    }
-    if (stream?.status === 'ended') {
-      Alert.alert('Already Ended', 'This stream has already ended.');
+  const handleCancelStream = useCallback(() => {
+    if (!streamId || !stream) {
       return;
     }
 
-    Alert.alert(
-      'Cancel Stream?',
-      'Are you sure you want to cancel this scheduled stream? This action cannot be undone.',
-      [
-        { text: 'Keep Stream', style: 'cancel' },
-        {
-          text: 'Cancel Stream',
-          style: 'destructive',
-          onPress: async () => {
-            setDeleting(true);
-            try {
-              await streamsService.cancel(streamId);
+    if (stream.status !== 'scheduled') {
+      Alert.alert('Not Allowed', 'Only scheduled streams can be cancelled.');
+      return;
+    }
 
-              Alert.alert('Success', 'Stream cancelled successfully');
-              router.replace('/seller/dashboard');
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to cancel stream');
-            } finally {
-              setDeleting(false);
-            }
-          },
+    Alert.alert('Cancel Stream?', 'This action cannot be undone.', [
+      { text: 'Keep Stream', style: 'cancel' },
+      {
+        text: 'Cancel Stream',
+        style: 'destructive',
+        onPress: async () => {
+          setDeleting(true);
+          try {
+            await streamsService.cancel(streamId);
+            Alert.alert('Success', 'Stream cancelled successfully.');
+            router.replace('/seller/streams');
+          } catch (error: any) {
+            Alert.alert('Error', error?.message || 'Failed to cancel stream.');
+          } finally {
+            setDeleting(false);
+          }
         },
-      ]
-    );
-  };
+      },
+    ]);
+  }, [stream, streamId]);
 
-  const handleAddProduct = () => {
+  const handleAddProduct = useCallback(() => {
+    if (!streamId) {
+      return;
+    }
+
     router.push(`/seller/stream/add-product/${streamId}`);
-  };
+  }, [streamId]);
 
-  const handleRemoveProduct = (streamProductId: string, productTitle: string) => {
-    Alert.alert(
-      'Remove Product?',
-      `Are you sure you want to remove "${productTitle}" from this stream?`,
-      [
+  const handleRemoveProduct = useCallback(
+    (streamProductId: string, productTitle: string) => {
+      if (!streamId) {
+        return;
+      }
+
+      Alert.alert('Remove Product?', `Remove "${productTitle}" from this stream?`, [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Remove',
@@ -166,382 +182,295 @@ export default function StreamManagementScreen() {
           onPress: async () => {
             try {
               await streamsService.removeProduct(streamId, streamProductId);
-              // Refresh the product list
-              fetchStreamProducts();
-              Alert.alert('Success', 'Product removed from stream');
+              setProducts((previous) => previous.filter((item) => item.id !== streamProductId));
             } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to remove product');
+              Alert.alert('Error', error?.message || 'Failed to remove product.');
             }
           },
         },
-      ]
-    );
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'live':
-        return COLORS.liveIndicator;
-      case 'scheduled':
-        return '$blue500';
-      case 'ended':
-        return COLORS.textMuted;
-      default:
-        return COLORS.textMuted;
-    }
-  };
-
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Not scheduled';
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  };
+      ]);
+    },
+    [streamId]
+  );
 
   if (loading) {
     return (
-      <Box flex={1} bg={COLORS.luxuryBlack}>
-        <Center flex={1}>
-          <VStack space="lg" alignItems="center">
-            <Spinner size="large" color={COLORS.primaryGold} />
-            <Text fontWeight="$bold" color={COLORS.textSecondary}>
-              Loading Stream...
-            </Text>
-          </VStack>
-        </Center>
-      </Box>
+      <StitchPage scroll={false} contentStyle={styles.centerWrap}>
+        <Text style={styles.loadingTitle}>Loading Stream...</Text>
+        <Text style={styles.loadingSubtitle}>Preparing control panel</Text>
+      </StitchPage>
     );
   }
 
   if (!stream) {
     return (
-      <Box flex={1} bg={COLORS.luxuryBlack}>
-        <Center flex={1} px="$10">
-          <VStack space="2xl" alignItems="center">
-            <Heading color={COLORS.textPrimary} size="2xl">
-              Stream Not Found
-            </Heading>
-            <Text color={COLORS.textSecondary} textAlign="center">
-              The stream you're looking for could not be found or has been removed.
-            </Text>
-            <Button
-              size="lg"
-              onPress={() => router.replace('/seller/dashboard')}
-              bg={COLORS.primaryGold}
-            >
-              <ButtonText color={COLORS.luxuryBlack} textAlign="center">Back to Dashboard</ButtonText>
-            </Button>
-          </VStack>
-        </Center>
-      </Box>
+      <StitchPage scroll={false} contentStyle={styles.centerWrap}>
+        <StitchHeader title="Stream Manager" subtitle="Not found" onBack={() => router.back()} />
+        <View style={styles.emptyWrap}>
+          <StitchEmpty
+            title="Stream Not Found"
+            subtitle="This stream may have been removed or is no longer available."
+          />
+          <View style={styles.singleButtonWrap}>
+            <StitchPrimaryButton label="Back to Streams" onPress={() => router.replace('/seller/streams')} />
+          </View>
+        </View>
+      </StitchPage>
     );
   }
 
-  const isScheduled = stream.status === 'scheduled';
-  const isLive = stream.status === 'live';
-  const isEnded = stream.status === 'ended';
-
   return (
-    <Box flex={1} bg={COLORS.luxuryBlack}>
-      <StatusBar barStyle="light-content" />
+    <StitchPage
+      contentStyle={{ paddingBottom: 130 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={() => fetchData(true)}
+          tintColor={COLORS.primaryBlue}
+        />
+      }
+    >
+      <StitchHeader
+        title="Stream Management"
+        subtitle={`Status: ${statusLabel(stream.status)}`}
+        onBack={() => router.back()}
+      />
 
-      {/* Header */}
-      <Box px="$6" py="$4" borderBottomWidth={1} borderColor={COLORS.darkBorder}>
-        <HStack alignItems="center" justifyContent="space-between">
-          <HStack alignItems="center" space="sm">
-            <Pressable
-              onPress={() => router.back()}
-              h={44}
-              w={44}
-              rounded="$sm"
-              alignItems="center"
-              justifyContent="center"
-              borderWidth={1}
-              borderColor={COLORS.primaryGold}
-              bg={COLORS.luxuryBlackLight}
-            >
-              <ChevronLeft size={24} color={COLORS.primaryGold} />
-            </Pressable>
-            <VStack>
-              <Heading size="md" color={COLORS.textPrimary}>
-                Stream Management
-              </Heading>
-              <Text size="xs" color={COLORS.textMuted}>
-                Manage your stream before going live
-              </Text>
-            </VStack>
-          </HStack>
-          <Badge
-            size="md"
-            variant="solid"
-            borderRadius="$sm"
-            bg={isLive ? COLORS.liveIndicator : isScheduled ? '$blue500' : COLORS.textMuted}
-          >
-            <BadgeText color={COLORS.textPrimary} fontWeight="$bold">
-              {stream.status.toUpperCase()}
-            </BadgeText>
-          </Badge>
-        </HStack>
-      </Box>
-
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <VStack space="xl" p="$6">
-          {/* Stream Info Card */}
-          <Box
-            bg={COLORS.luxuryBlackLight}
-            p="$6"
-            rounded="$lg"
-            borderWidth={2}
-            borderColor={COLORS.darkBorder}
-          >
-            <VStack space="lg">
-              <HStack alignItems="center" space="md">
-                <Box
-                  bg={COLORS.primaryGold}
-                  p="$3"
-                  rounded="$sm"
-                >
-                  <Video size={24} color={COLORS.luxuryBlack} />
-                </Box>
-                <VStack flex={1}>
-                  <Heading size="md" color={COLORS.textPrimary} numberOfLines={2}>
-                    {stream.title}
-                  </Heading>
-                  {stream.category && (
-                    <Text size="xs" color={COLORS.textMuted}>
-                      {stream.category.name}
-                    </Text>
-                  )}
-                </VStack>
-              </HStack>
-
-              <Divider bg={COLORS.darkBorder} />
-
-              <VStack space="md">
-                <HStack alignItems="center" space="sm">
-                  <Calendar size={16} color={COLORS.primaryGold} />
-                  <Text size="sm" color={COLORS.textSecondary}>
-                    Scheduled: {formatDate(stream.scheduledStart)}
-                  </Text>
-                </HStack>
-                {stream.description && (
-                  <Text size="sm" color={COLORS.textSecondary} numberOfLines={3}>
-                    {stream.description}
-                  </Text>
-                )}
-              </VStack>
-            </VStack>
-          </Box>
-
-          {/* Action Buttons */}
-          <VStack space="md">
-            {/* Go Live Button - Only show for scheduled streams */}
-            {(isScheduled || isLive) && (
-              <Button
-                size="xl"
-                onPress={handleGoLive}
-                bg={isLive ? COLORS.liveIndicator : COLORS.primaryGold}
-                rounded="$full"
-                h={56}
-                px="$6"
-              >
-                <HStack space="sm" alignItems="center">
-                  <Play size={20} color={COLORS.luxuryBlack} fill={COLORS.luxuryBlack} />
-                  <ButtonText fontWeight="$black" size="md" color={COLORS.luxuryBlack} textAlign="center">
-                    {isLive ? 'JOIN LIVE STREAM' : 'GO LIVE'}
-                  </ButtonText>
-                </HStack>
-              </Button>
-            )}
-
-            {/* Edit Button - Only for scheduled streams */}
-            {isScheduled && (
-              <Button
-                size="xl"
-                variant="outline"
-                onPress={handleEditStream}
-                borderColor={COLORS.primaryGold}
-                rounded="$full"
-                h={56}
-                px="$6"
-              >
-                <HStack space="sm" alignItems="center">
-                  <Edit3 size={18} color={COLORS.primaryGold} />
-                  <ButtonText color={COLORS.primaryGold} fontWeight="$bold" textAlign="center">
-                    Edit Stream Details
-                  </ButtonText>
-                </HStack>
-              </Button>
-            )}
-
-            {/* Cancel Button - Only for scheduled streams */}
-            {isScheduled && (
-              <Button
-                size="xl"
-                variant="outline"
-                onPress={handleCancelStream}
-                borderColor={COLORS.errorRed}
-                rounded="$full"
-                h={56}
-                px="$6"
-                isDisabled={deleting}
-              >
-                <HStack space="sm" alignItems="center">
-                  <Trash2 size={18} color={COLORS.errorRed} />
-                  <ButtonText color={COLORS.errorRed} fontWeight="$bold" textAlign="center">
-                    {deleting ? 'Cancelling...' : 'Cancel Stream'}
-                  </ButtonText>
-                </HStack>
-              </Button>
-            )}
-          </VStack>
-
-          {/* Product Queue Section */}
-          <Box>
-            <HStack justifyContent="space-between" alignItems="center" mb="$4">
-              <Heading size="sm" color={COLORS.textPrimary}>
-                Product Queue ({products.length})
-              </Heading>
-              {isScheduled && (
-                <Pressable onPress={handleAddProduct}>
-                  <HStack space="xs" alignItems="center">
-                    <Text size="sm" color={COLORS.primaryGold} fontWeight="$bold">
-                      + Add Product
-                    </Text>
-                  </HStack>
-                </Pressable>
-              )}
-            </HStack>
-
-            {products.length === 0 ? (
-              <Box
-                bg={COLORS.luxuryBlackLight}
-                p="$8"
-                rounded="$lg"
-                borderWidth={1}
-                borderColor={COLORS.darkBorder}
-                alignItems="center"
-              >
-                <Package size={48} color={COLORS.textMuted} />
-                <Text color={COLORS.textSecondary} textAlign="center" mt="$4">
-                  No products in queue yet
-                </Text>
-                <Text size="xs" color={COLORS.textMuted} textAlign="center" mt="$1">
-                  Add products to showcase during your stream
-                </Text>
-                {isScheduled && (
-                  <Button
-                    size="md"
-                    mt="$4"
-                    onPress={handleAddProduct}
-                    bg={COLORS.primaryGold}
-                    rounded="$full"
-                    h={44}
-                    px="$4"
-                  >
-                    <ButtonText color={COLORS.luxuryBlack} fontWeight="$bold" textAlign="center">
-                      Add Your First Product
-                    </ButtonText>
-                  </Button>
-                )}
-              </Box>
-            ) : (
-              <VStack space="md">
-                {products.map((item, index) => (
-                  <Box
-                    key={item.id}
-                    bg={COLORS.luxuryBlackLight}
-                    p="$4"
-                    rounded="$lg"
-                    borderWidth={1}
-                    borderColor={COLORS.darkBorder}
-                  >
-                    <HStack justifyContent="space-between" alignItems="center">
-                      <HStack space="md" alignItems="center" flex={1}>
-                        <Box
-                          bg={COLORS.luxuryBlackLighter}
-                          h={50}
-                          w={50}
-                          rounded="$sm"
-                          alignItems="center"
-                          justifyContent="center"
-                        >
-                          <Text fontWeight="$bold" color={COLORS.textMuted}>
-                            {index + 1}
-                          </Text>
-                        </Box>
-                        <VStack flex={1}>
-                          <Text fontWeight="$bold" color={COLORS.textPrimary} numberOfLines={1}>
-                            {item.product?.title || 'Unknown Product'}
-                          </Text>
-                          <Text size="xs" color={COLORS.textMuted}>
-                            Starting: ${item.product?.price || '0'}
-                          </Text>
-                          <HStack space="sm" alignItems="center" mt="$1">
-                            <Box
-                              px="$2"
-                              py="$0.5"
-                              rounded="$sm"
-                              bg={
-                                item.status === 'active' ? `${COLORS.successGreen}30` :
-                                item.status === 'sold' ? `${COLORS.primaryGold}30` :
-                                item.status === 'passed' ? `${COLORS.textMuted}30` :
-                                `${COLORS.warningAmber}30`
-                              }
-                            >
-                              <Text
-                                size="2xs"
-                                fontWeight="$bold"
-                                color={
-                                  item.status === 'active' ? COLORS.successGreen :
-                                  item.status === 'sold' ? COLORS.primaryGold :
-                                  item.status === 'passed' ? COLORS.textSecondary :
-                                  COLORS.warningAmber
-                                }
-                                textTransform="uppercase"
-                              >
-                                {item.status}
-                              </Text>
-                            </Box>
-                          </HStack>
-                        </VStack>
-                      </HStack>
-                      
-                      {isScheduled && (
-                        <Pressable
-                          onPress={() => handleRemoveProduct(item.id, item.product?.title || 'Product')}
-                          p="$2"
-                          rounded="$sm"
-                        >
-                          <Trash2 size={18} color={COLORS.errorRed} />
-                        </Pressable>
-                      )}
-                    </HStack>
-                  </Box>
-                ))}
-              </VStack>
-            )}
-          </Box>
-
-          {/* Info Box */}
-          <Box
-            bg={`${COLORS.primaryGold}15`}
-            p="$4"
-            rounded="$lg"
-            borderWidth={1}
-            borderColor={`${COLORS.primaryGold}30`}
-          >
-            <Text size="xs" color={COLORS.primaryGold}>
-              <Text fontWeight="$bold">Tip:</Text> Add products to your queue before going live. You can start auctions, mark items as sold, and interact with viewers during your stream.
+      <View style={styles.contentPad}>
+        <StitchCard style={styles.cardSpacing}>
+          <View style={styles.titleRow}>
+            <Text style={styles.streamTitle} numberOfLines={2}>
+              {stream.title}
             </Text>
-          </Box>
-        </VStack>
-      </ScrollView>
-    </Box>
+            <View style={[styles.statusPill, isLive ? styles.statusLive : undefined]}>
+              <Text style={styles.statusText}>{statusLabel(stream.status)}</Text>
+            </View>
+          </View>
+
+          {stream.description ? (
+            <Text style={styles.streamDescription} numberOfLines={3}>
+              {stream.description}
+            </Text>
+          ) : null}
+
+          <View style={styles.metaRow}>
+            <Calendar size={14} color={COLORS.lightGrey} />
+            <Text style={styles.metaText}>{formatDate(stream.scheduledStart)}</Text>
+          </View>
+
+          {stream.status === 'live' ? (
+            <View style={styles.metaRow}>
+              <Radio size={14} color="#DC2626" />
+              <Text style={styles.metaText}>{stream.viewerCount || 0} viewers watching</Text>
+            </View>
+          ) : null}
+        </StitchCard>
+
+        <StitchCard style={styles.cardSpacing}>
+          <View style={styles.actionGrid}>
+            <View style={styles.actionItem}>
+              <StitchPrimaryButton
+                label={isLive ? 'Join Live' : 'Go Live'}
+                onPress={handleGoLive}
+                disabled={isEnded}
+              />
+            </View>
+            <View style={styles.actionItem}>
+              <StitchSecondaryButton
+                label="Edit"
+                onPress={handleEditStream}
+                disabled={!isScheduled}
+              />
+            </View>
+          </View>
+
+          <View style={styles.cancelWrap}>
+            <StitchSecondaryButton
+              label={deleting ? 'Cancelling...' : 'Cancel Stream'}
+              onPress={handleCancelStream}
+              disabled={deleting || !isScheduled}
+            />
+          </View>
+        </StitchCard>
+
+        <View style={styles.sectionTop}>
+          <StitchSectionTitle title="Product Lineup" actionLabel="Add" onActionPress={handleAddProduct} />
+        </View>
+
+        {orderedProducts.length ? (
+          orderedProducts.map((item, index) => (
+            <StitchCard key={item.id} style={styles.cardSpacing}>
+              <View style={styles.productHead}>
+                <View style={styles.productOrderBadge}>
+                  <Text style={styles.productOrderText}>{index + 1}</Text>
+                </View>
+
+                <View style={styles.productInfo}>
+                  <Text style={styles.productTitle} numberOfLines={1}>
+                    {item.product?.title || 'Untitled Product'}
+                  </Text>
+                  <Text style={styles.productMeta} numberOfLines={1}>
+                    {item.product?.condition || 'Condition n/a'}
+                  </Text>
+                  <Text style={styles.productPrice}>${Number(item.product?.price || 0).toFixed(2)}</Text>
+                </View>
+
+                <Pressable
+                  style={styles.removeButton}
+                  onPress={() => handleRemoveProduct(item.id, item.product?.title || 'this product')}
+                >
+                  <Trash2 size={14} color="#DC2626" />
+                </Pressable>
+              </View>
+            </StitchCard>
+          ))
+        ) : (
+          <StitchCard>
+            <StitchEmpty title="No Products Added" subtitle="Add products before going live." />
+            <StitchPrimaryButton label="Add Product" onPress={handleAddProduct} />
+          </StitchCard>
+        )}
+
+        <View style={styles.footerSpace} />
+      </View>
+    </StitchPage>
   );
 }
+
+const styles = StyleSheet.create({
+  centerWrap: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingTitle: {
+    color: COLORS.primaryText,
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  loadingSubtitle: {
+    marginTop: 8,
+    color: COLORS.lightGrey,
+    fontSize: 14,
+  },
+  emptyWrap: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  singleButtonWrap: {
+    marginTop: 14,
+  },
+  contentPad: {
+    paddingHorizontal: 16,
+    paddingTop: 14,
+  },
+  cardSpacing: {
+    marginBottom: 12,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  streamTitle: {
+    flex: 1,
+    color: COLORS.primaryText,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  statusPill: {
+    borderRadius: 999,
+    backgroundColor: '#E2E8F0',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  statusLive: {
+    backgroundColor: '#FEE2E2',
+  },
+  statusText: {
+    color: '#334155',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+  },
+  streamDescription: {
+    marginTop: 8,
+    color: COLORS.lightGrey,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  metaRow: {
+    marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  metaText: {
+    color: COLORS.lightGrey,
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  actionGrid: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionItem: {
+    flex: 1,
+  },
+  cancelWrap: {
+    marginTop: 8,
+  },
+  sectionTop: {
+    marginBottom: 8,
+  },
+  productHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  productOrderBadge: {
+    height: 34,
+    width: 34,
+    borderRadius: 10,
+    backgroundColor: '#E8F1FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  productOrderText: {
+    color: COLORS.primaryBlue,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  productInfo: {
+    flex: 1,
+  },
+  productTitle: {
+    color: COLORS.primaryText,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  productMeta: {
+    color: COLORS.lightGrey,
+    fontSize: 12,
+    marginTop: 2,
+  },
+  productPrice: {
+    color: COLORS.primaryBlue,
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  removeButton: {
+    height: 32,
+    width: 32,
+    borderRadius: 10,
+    backgroundColor: '#FEF2F2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  footerSpace: {
+    height: 24,
+  },
+});

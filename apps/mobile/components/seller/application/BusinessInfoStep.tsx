@@ -67,7 +67,7 @@ export default function BusinessInfoStep({
           <InputField
             placeholder="Registered Business Name"
             value={businessName}
-            onChangeText={(text) => onUpdate("businessName", text)}
+            onChangeText={(text: string) => onUpdate("businessName", text)}
             color={COLORS.textPrimary}
             placeholderTextColor={COLORS.textMuted}
             style={{ paddingHorizontal: 16 }}
@@ -96,7 +96,7 @@ export default function BusinessInfoStep({
           <InputField
             placeholder="XX-XXXXXXX"
             value={taxId}
-            onChangeText={(text) => onUpdate("taxId", text)}
+            onChangeText={(text: string) => onUpdate("taxId", text)}
             color={COLORS.textPrimary}
             placeholderTextColor={COLORS.textMuted}
             style={{ paddingHorizontal: 16 }}

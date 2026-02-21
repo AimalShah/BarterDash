@@ -109,7 +109,7 @@ export function useLiveStream(
       const message: StreamMessage = {
         id: `${Date.now()}-${Math.random()}`,
         body: text.trim(),
-        senderName: profile?.full_name || profile?.fullName || profile?.username || 'Anonymous',
+        senderName: profile?.full_name || profile?.username || 'Anonymous',
         senderId: profile?.id,
         timestamp: Date.now(),
         type: 'chat',
@@ -125,7 +125,7 @@ export function useLiveStream(
       console.error('❌ Failed to send message:', err);
       setError(err.message || 'Failed to send message');
     }
-  }, [streamId, profile?.id, profile?.full_name, profile?.fullName, profile?.username]);
+  }, [streamId, profile?.id, profile?.full_name, profile?.username]);
 
   // Refresh viewer count manually
   const refreshViewerCount = useCallback(async () => {

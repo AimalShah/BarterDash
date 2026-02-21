@@ -1,5 +1,5 @@
-import { AppState, AppStateStatus, NetInfoState } from '@react-native-community/netinfo';
-import * as Network from 'expo-network';
+import type { AppStateStatus } from 'react-native';
+import type { NetInfoState } from '@react-native-community/netinfo';
 
 export type ConnectionState = 
   | 'disconnected' 
@@ -18,6 +18,7 @@ export interface ConnectionManagerOptions {
   connectionTimeoutMs?: number;
   heartbeatIntervalMs?: number;
   enableAutoReconnect?: boolean;
+  pingFn?: () => Promise<number>;
   onStateChange?: (state: ConnectionState) => void;
   onQualityChange?: (quality: ConnectionQuality) => void;
   onError?: (error: Error) => void;
@@ -33,6 +34,10 @@ export interface ConnectionStats {
   isNetworkAvailable: boolean;
   latencyMs?: number;
 }
+
+type ResolvedConnectionManagerOptions = Omit<Required<ConnectionManagerOptions>, "pingFn"> & {
+  pingFn?: () => Promise<number>;
+};
 
 /**
  * Connection Manager with automatic reconnection
@@ -52,7 +57,7 @@ export class ConnectionManager {
   private connectFn: () => Promise<void>;
   private disconnectFn: () => Promise<void>;
   private pingFn?: () => Promise<number>;
-  private options: Required<ConnectionManagerOptions>;
+  private options: ResolvedConnectionManagerOptions;
   private abortController: AbortController | null = null;
 
   constructor(
@@ -71,6 +76,7 @@ export class ConnectionManager {
       connectionTimeoutMs: options.connectionTimeoutMs ?? 10000,
       heartbeatIntervalMs: options.heartbeatIntervalMs ?? 30000,
       enableAutoReconnect: options.enableAutoReconnect ?? true,
+      pingFn: options.pingFn,
       onStateChange: options.onStateChange ?? (() => {}),
       onQualityChange: options.onQualityChange ?? (() => {}),
       onError: options.onError ?? (() => {}),
@@ -232,13 +238,14 @@ export class ConnectionManager {
    * Start heartbeat to monitor connection quality
    */
   private startHeartbeat(): void {
-    if (!this.pingFn) return;
+    const pingFn = this.pingFn;
+    if (!pingFn) return;
 
     this.heartbeatTimer = setInterval(async () => {
       if (this.state !== 'connected') return;
 
       try {
-        const latency = await this.pingFn();
+        const latency = await pingFn();
         this.updateQuality(latency);
       } catch (error) {
         console.warn('[ConnectionManager] Heartbeat failed:', error);

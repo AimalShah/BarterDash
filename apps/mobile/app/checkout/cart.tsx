@@ -32,9 +32,9 @@ import {
 import { useStripe } from "@stripe/stripe-react-native";
 import { cartService } from "../../lib/api/services/cart";
 import { paymentsService } from "../../lib/api/services/payments";
+import type { PaymentMethod } from "../../lib/api/services/payments";
 import { getWalletPaymentSheetParams } from "../../lib/payments/walletConfig";
 import { PaymentNotice } from "../../components/ui/PaymentNotice";
-import { PaymentMethod } from "../../types";
 import { COLORS } from "../../constants/colors";
 import { useCartStore } from "../../store/cartStore";
 
@@ -538,7 +538,7 @@ export default function CartCheckoutScreen() {
                         placeholder="Enter your full name"
                         placeholderTextColor={COLORS.textMuted}
                         value={shippingAddress.fullName}
-                        onChangeText={(text) =>
+                        onChangeText={(text: string) =>
                           setShippingAddress((prev) => ({ ...prev, fullName: text }))
                         }
                       />
@@ -560,7 +560,7 @@ export default function CartCheckoutScreen() {
                         placeholder="Enter street address"
                         placeholderTextColor={COLORS.textMuted}
                         value={shippingAddress.street}
-                        onChangeText={(text) =>
+                        onChangeText={(text: string) =>
                           setShippingAddress((prev) => ({ ...prev, street: text }))
                         }
                       />
@@ -583,7 +583,7 @@ export default function CartCheckoutScreen() {
                           placeholder="City"
                           placeholderTextColor={COLORS.textMuted}
                           value={shippingAddress.city}
-                          onChangeText={(text) =>
+                          onChangeText={(text: string) =>
                             setShippingAddress((prev) => ({ ...prev, city: text }))
                           }
                         />
@@ -606,7 +606,7 @@ export default function CartCheckoutScreen() {
                           placeholderTextColor={COLORS.textMuted}
                           maxLength={2}
                           value={shippingAddress.state}
-                          onChangeText={(text) =>
+                          onChangeText={(text: string) =>
                             setShippingAddress((prev) => ({ ...prev, state: text.toUpperCase() }))
                           }
                         />
@@ -631,7 +631,7 @@ export default function CartCheckoutScreen() {
                           placeholderTextColor={COLORS.textMuted}
                           keyboardType="numeric"
                           value={shippingAddress.zipCode}
-                          onChangeText={(text) =>
+                          onChangeText={(text: string) =>
                             setShippingAddress((prev) => ({ ...prev, zipCode: text }))
                           }
                         />

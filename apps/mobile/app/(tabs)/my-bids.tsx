@@ -1,19 +1,10 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  RefreshControl,
-  TouchableOpacity,
-  ActivityIndicator,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
-import { bidsService } from "../../lib/api/services/bids";
-import { ArrowLeft, Trophy, Clock, XCircle } from "lucide-react-native";
-import { format } from "date-fns";
-import { COLORS } from "../../constants/colors";
+import { useEffect, useMemo, useState } from 'react';
+import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { Heart, Search } from 'lucide-react-native';
+import { bidsService } from '@/lib/api/services/bids';
+import { COLORS } from '@/constants/colors';
+import { StitchChip, StitchHeader, StitchPage, StitchEmpty } from '@/components/design';
 
 interface MyBid {
   id: string;
@@ -22,233 +13,303 @@ interface MyBid {
   auction_id?: string;
   isWinning?: boolean;
   is_winning?: boolean;
-  createdAt?: string;
-  created_at?: string;
   auction?: {
-    id: string;
-    streamId?: string;
-    stream_id?: string;
+    id?: string;
     title?: string;
-    product?: {
-      title?: string;
-      images?: string[];
-    };
     status?: string;
     currentBid?: number | string;
     current_bid?: number | string;
     endsAt?: string;
     ends_at?: string;
+    product?: {
+      title?: string;
+      images?: string[];
+    };
   };
 }
 
+function formatTimeLeft(endDate?: string) {
+  if (!endDate) return 'ending soon';
+
+  const diff = new Date(endDate).getTime() - Date.now();
+  if (diff <= 0) return 'ended';
+
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+  if (hours > 0) return `${hours}h ${minutes}m left`;
+  return `${minutes}m left`;
+}
+
 export default function MyBidsScreen() {
-  const router = useRouter();
-  const [bids, setBids] = useState<MyBid[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'active' | 'ended'>('all');
+  const [bids, setBids] = useState<MyBid[]>([]);
 
-  const fetchBids = async (isRefresh = false) => {
+  useEffect(() => {
+    void fetchBids();
+  }, []);
+
+  async function fetchBids(isRefresh = false) {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
 
     try {
       const data = await bidsService.getMyBids();
-      setBids(data);
+      setBids(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Error fetching bids:", error);
+      setBids([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
-
-  useEffect(() => {
-    fetchBids();
-  }, []);
-
-  const getBidStatus = (bid: MyBid) => {
-    const isWinning = Boolean(bid.isWinning ?? bid.is_winning);
-
-    if (bid.auction?.status === "ended") {
-      if (isWinning) {
-        return { text: "WON", color: COLORS.successGreen, icon: Trophy };
-      } else {
-        return { text: "LOST", color: COLORS.errorRed, icon: XCircle };
-      }
-    }
-    if (bid.auction?.status === "cancelled") {
-      return { text: "CANCELLED", color: COLORS.textMuted, icon: XCircle };
-    }
-    return { text: "ACTIVE", color: COLORS.primaryGold, icon: Clock };
-  };
-
-  const renderBidItem = ({ item }: { item: MyBid }) => {
-    const status = getBidStatus(item);
-    const StatusIcon = status.icon;
-    const auctionId = item.auctionId || item.auction_id || item.auction?.id;
-    const createdAt = item.createdAt || item.created_at;
-    const currentPrice = Number(
-      item.auction?.currentBid ?? item.auction?.current_bid ?? 0,
-    );
-    const bidAmount = Number(item.amount || 0);
-
-    return (
-      <TouchableOpacity
-        onPress={() => {
-          if (auctionId) {
-            router.push(`/auction/${auctionId}`);
-          }
-        }}
-        style={{
-          backgroundColor: COLORS.cardBackground,
-          borderRadius: 12,
-          padding: 16,
-          marginBottom: 12,
-          borderWidth: 1,
-          borderColor: COLORS.darkBorder,
-        }}
-      >
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-          }}
-        >
-          <View style={{ flex: 1 }}>
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: "600",
-                color: COLORS.textPrimary,
-                marginBottom: 4,
-              }}
-            >
-              {item.auction?.product?.title || item.auction?.title || "Unknown Item"}
-            </Text>
-            <Text
-              style={{
-                fontSize: 12,
-                color: COLORS.textMuted,
-                marginBottom: 8,
-              }}
-            >
-              {createdAt ? format(new Date(createdAt), "MMM d, h:mm a") : "-"}
-            </Text>
-          </View>
-
-          <View
-            style={{
-              backgroundColor: status.color,
-              paddingHorizontal: 8,
-              paddingVertical: 4,
-              borderRadius: 4,
-              flexDirection: "row",
-              alignItems: "center",
-            }}
-          >
-            <StatusIcon size={12} color={COLORS.textPrimary} style={{ marginRight: 4 }} />
-            <Text
-              style={{
-                fontSize: 10,
-                fontWeight: "700",
-                color: COLORS.textPrimary,
-              }}
-            >
-              {status.text}
-            </Text>
-          </View>
-        </View>
-
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginTop: 12,
-            paddingTop: 12,
-            borderTopWidth: 1,
-            borderTopColor: COLORS.darkBorder,
-          }}
-        >
-          <View>
-            <Text style={{ fontSize: 11, color: COLORS.textSecondary, marginBottom: 2 }}>
-              Your Bid
-            </Text>
-            <Text style={{ fontSize: 18, fontWeight: "700", color: COLORS.primaryGold }}>
-              ${bidAmount.toFixed(2)}
-            </Text>
-          </View>
-
-          <View style={{ alignItems: "flex-end" }}>
-            <Text style={{ fontSize: 11, color: COLORS.textSecondary, marginBottom: 2 }}>
-              Current Price
-            </Text>
-            <Text style={{ fontSize: 14, fontWeight: "600", color: COLORS.textPrimary }}>
-              ${currentPrice.toFixed(2)}
-            </Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
-  if (loading) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.luxuryBlack }}>
-        <StatusBar style="light" />
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color={COLORS.primaryGold} />
-        </View>
-      </SafeAreaView>
-    );
   }
 
+  const filtered = useMemo(() => {
+    if (filter === 'all') return bids;
+
+    return bids.filter((bid) => {
+      const status = bid.auction?.status;
+      if (filter === 'active') return status !== 'ended' && status !== 'cancelled';
+      return status === 'ended' || status === 'cancelled';
+    });
+  }, [bids, filter]);
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.luxuryBlack }}>
-      <StatusBar style="light" />
-
-      {/* Header */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          padding: 16,
-          borderBottomWidth: 1,
-          borderBottomColor: COLORS.darkBorder,
-        }}
-      >
-        <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 16 }}>
-          <ArrowLeft size={24} color={COLORS.textPrimary} />
-        </TouchableOpacity>
-        <Text style={{ fontSize: 20, fontWeight: "700", color: COLORS.textPrimary }}>
-          My Bids
-        </Text>
-      </View>
-
-      <FlatList
-        data={bids}
-        renderItem={renderBidItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 16 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => fetchBids(true)}
-            tintColor={COLORS.primaryGold}
-          />
-        }
-        ListEmptyComponent={
-          <View style={{ alignItems: "center", justifyContent: "center", paddingTop: 100 }}>
-            <Text style={{ fontSize: 16, color: COLORS.textSecondary, marginBottom: 8 }}>
-              No bids yet
-            </Text>
-            <Text style={{ fontSize: 14, color: COLORS.textMuted, textAlign: "center" }}>
-              Start bidding on auctions to see them here
-            </Text>
-          </View>
+    <StitchPage
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={() => fetchBids(true)}
+          tintColor={COLORS.primaryBlue}
+        />
+      }
+      contentStyle={{ paddingBottom: 120 }}
+    >
+      <StitchHeader
+        title="My Wishlist"
+        subtitle="Saved bids and watched lots"
+        onBack={() => router.back()}
+        rightNode={
+          <Pressable style={styles.headerIcon} onPress={() => router.push('/(tabs)/search')}>
+            <Search size={16} color={COLORS.primaryBlue} />
+          </Pressable>
         }
       />
-    </SafeAreaView>
+
+      <View style={styles.tabRow}>
+        <StitchChip label="All" active={filter === 'all'} onPress={() => setFilter('all')} />
+        <StitchChip label="Active" active={filter === 'active'} onPress={() => setFilter('active')} />
+        <StitchChip label="Ended" active={filter === 'ended'} onPress={() => setFilter('ended')} />
+      </View>
+
+      <View style={styles.grid}>
+        {!loading && filtered.length === 0 ? (
+          <View style={styles.emptyWrap}>
+            <StitchEmpty title="No saved items" subtitle="Start bidding or save products to build your wishlist." />
+          </View>
+        ) : (
+          filtered.map((bid) => {
+            const auctionId = bid.auctionId || bid.auction_id || bid.auction?.id;
+            const image =
+              bid.auction?.product?.images?.[0] ||
+              'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1200';
+            const title = bid.auction?.product?.title || bid.auction?.title || 'Auction item';
+            const current = Number(bid.auction?.currentBid ?? bid.auction?.current_bid ?? 0);
+            const amount = Number(bid.amount || 0);
+            const isActive = bid.auction?.status !== 'ended' && bid.auction?.status !== 'cancelled';
+
+            return (
+              <Pressable
+                key={bid.id}
+                style={styles.item}
+                onPress={() => {
+                  if (auctionId) router.push(`/auction/${auctionId}`);
+                }}
+              >
+                <View style={styles.imageWrap}>
+                  <Image source={{ uri: image }} style={styles.image} />
+                  <View style={[styles.statusBadge, isActive ? styles.statusLive : styles.statusEnded]}>
+                    <Text style={styles.statusText}>{isActive ? 'Live' : 'Ended'}</Text>
+                  </View>
+                  <Pressable style={styles.heartBtn}>
+                    <Heart size={14} color={COLORS.primaryBlue} fill={COLORS.primaryBlue} />
+                  </Pressable>
+                  <View style={styles.timerPill}>
+                    <Text style={styles.timerText}>{formatTimeLeft(bid.auction?.endsAt || bid.auction?.ends_at)}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.itemBody}>
+                  <Text style={styles.itemTitle} numberOfLines={1}>{title}</Text>
+                  <Text style={styles.bidLabel}>Current Bid</Text>
+                  <View style={styles.priceRow}>
+                    <Text style={styles.currentPrice}>${current.toFixed(2)}</Text>
+                    <Text style={styles.myPrice}>You: ${amount.toFixed(2)}</Text>
+                  </View>
+                  <Pressable style={[styles.ctaBtn, isActive ? styles.ctaBtnLive : styles.ctaBtnMuted]}>
+                    <Text style={[styles.ctaText, isActive ? styles.ctaTextLive : styles.ctaTextMuted]}>
+                      {isActive ? 'Bid Now' : 'View Result'}
+                    </Text>
+                  </Pressable>
+                </View>
+              </Pressable>
+            );
+          })
+        )}
+      </View>
+    </StitchPage>
   );
 }
+
+const styles = StyleSheet.create({
+  headerIcon: {
+    height: 34,
+    width: 34,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#DCE4F1',
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 10,
+    marginTop: 8,
+  },
+  item: {
+    width: '50%',
+    paddingHorizontal: 6,
+    marginBottom: 12,
+  },
+  imageWrap: {
+    height: 152,
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+    overflow: 'hidden',
+    backgroundColor: '#E2E8F0',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  statusBadge: {
+    position: 'absolute',
+    left: 8,
+    top: 8,
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  statusLive: {
+    backgroundColor: '#DC2626',
+  },
+  statusEnded: {
+    backgroundColor: '#64748B',
+  },
+  statusText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  heartBtn: {
+    position: 'absolute',
+    right: 8,
+    top: 8,
+    height: 28,
+    width: 28,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFFE6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  timerPill: {
+    position: 'absolute',
+    left: 8,
+    right: 8,
+    bottom: 8,
+    borderRadius: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
+  timerText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  itemBody: {
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderColor: '#DFE7F3',
+    backgroundColor: '#FFFFFF',
+    padding: 10,
+  },
+  itemTitle: {
+    color: COLORS.primaryText,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  bidLabel: {
+    marginTop: 8,
+    fontSize: 10,
+    textTransform: 'uppercase',
+    fontWeight: '700',
+    color: COLORS.lightGrey,
+    letterSpacing: 0.5,
+  },
+  priceRow: {
+    marginTop: 3,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  currentPrice: {
+    color: COLORS.primaryBlue,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  myPrice: {
+    color: COLORS.lightGrey,
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  ctaBtn: {
+    marginTop: 8,
+    borderRadius: 8,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaBtnLive: {
+    backgroundColor: COLORS.primaryBlue,
+  },
+  ctaBtnMuted: {
+    backgroundColor: '#EFF3FA',
+  },
+  ctaText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  ctaTextLive: {
+    color: '#FFFFFF',
+  },
+  ctaTextMuted: {
+    color: COLORS.primaryText,
+  },
+  emptyWrap: {
+    width: '100%',
+    paddingHorizontal: 8,
+  },
+});

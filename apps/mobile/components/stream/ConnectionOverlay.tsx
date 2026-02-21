@@ -1,5 +1,12 @@
 import React from "react";
-import { View, Text, ActivityIndicator, StyleSheet, Image } from "react-native";
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { COLORS } from "../../constants/colors";
@@ -56,7 +63,7 @@ export default function ConnectionOverlay({
   if (!isConnected) {
     return (
       <View style={styles.container}>
-        <Ionicons name="wifi-off" size={64} color={COLORS.textMuted} />
+        <Ionicons name="wifi" size={64} color={COLORS.textMuted} />
         <Text style={styles.text}>Disconnected</Text>
         
         {/* Thumbnail overlay when not connected */}
@@ -83,9 +90,6 @@ export default function ConnectionOverlay({
 
   return null;
 }
-
-import { TouchableOpacity } from "react-native";
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

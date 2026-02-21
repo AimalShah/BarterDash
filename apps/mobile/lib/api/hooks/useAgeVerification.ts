@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { usersService } from '../services/users';
-import { USER_QUERY_KEY } from './useUser';
+import { queryKeys } from '../queryKeys';
 
 interface AgeVerificationPayload {
   dateOfBirth: string;
@@ -16,7 +16,7 @@ export function useAgeVerification() {
       return response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: USER_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: queryKeys.user });
     },
   });
 }
