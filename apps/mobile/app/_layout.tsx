@@ -45,6 +45,7 @@ function AppBootstrap() {
 }
 
 export default function RootLayout() {
+  const isStorybookEnabled = process.env.EXPO_PUBLIC_STORYBOOK_ENABLED === 'true';
   const [fontsLoaded] = useFonts({
     PlusJakartaSans_300Light,
     PlusJakartaSans_400Regular,
@@ -67,6 +68,15 @@ export default function RootLayout() {
       <View className="flex-1 items-center justify-center bg-background">
         <ActivityIndicator size="large" color={COLORS.primaryBlue} />
       </View>
+    );
+  }
+
+  if (isStorybookEnabled) {
+    const StorybookUIRoot = require('../.storybook').default;
+    return (
+      <ErrorBoundary>
+        <StorybookUIRoot />
+      </ErrorBoundary>
     );
   }
 
