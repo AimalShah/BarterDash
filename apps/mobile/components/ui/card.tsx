@@ -1,5 +1,11 @@
 import * as React from 'react';
-import { View, type StyleProp, type ViewProps, type ViewStyle } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewProps,
+  type ViewStyle,
+} from 'react-native';
 import { cn } from '@/lib/utils';
 import { Text, type TextProps } from './text';
 
@@ -13,9 +19,19 @@ export interface CardProps extends ViewProps {
 
 const cardVariants = {
   default: 'bg-white',
-  elevated: 'bg-white shadow-card',
+  elevated: 'bg-white',
   outline: 'bg-transparent border border-border',
 };
+
+const styles = StyleSheet.create({
+  elevated: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+});
 
 const cardPadding = {
   none: 'p-0',
@@ -32,9 +48,11 @@ export function Card({
   style,
   ...props
 }: CardProps) {
+  const variantStyle = variant === 'elevated' ? styles.elevated : undefined;
+
   return (
     <View
-      style={style}
+      style={[variantStyle, style]}
       className={cn(
         'rounded-xl',
         cardVariants[variant],

@@ -15,10 +15,21 @@ interface SellButtonProps {
   onPress?: () => void;
 }
 
+const sellButtonShadowStyle = {
+  shadowColor: '#000000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.2,
+  shadowRadius: 8,
+  elevation: 8,
+} as const;
+
 function SellButton({ children, onPress }: SellButtonProps) {
   return (
     <Pressable onPress={onPress} className="-mt-3 items-center justify-center">
-      <View className="h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg">
+      <View
+        style={sellButtonShadowStyle}
+        className="h-14 w-14 items-center justify-center rounded-full bg-primary"
+      >
         {children}
       </View>
     </Pressable>

@@ -75,15 +75,6 @@
     background: linear-gradient(135deg, #F2D468 0%, #E7D7A2 100%);
   }
   
-  /* Shadow utilities */
-  .shadow-soft {
-    box-shadow: 0 4px 20px rgba(99, 145, 242, 0.15);
-  }
-  
-  .shadow-card {
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-  }
-  
   /* Safe area utilities */
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
