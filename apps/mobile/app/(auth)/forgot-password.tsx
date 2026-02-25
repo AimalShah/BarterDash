@@ -22,14 +22,9 @@ export default function ForgotPasswordScreen() {
     }
 
     try {
-      const redirectTo = makeRedirectUri({
-        scheme: 'barterdash',
-        path: 'auth/update-password',
-      });
-
       await requestPasswordResetMutation.mutateAsync({
         email: normalizedEmail,
-        redirectTo,
+        redirectTo: "barterdash://auth/confirm",
       });
 
       setSent(true);

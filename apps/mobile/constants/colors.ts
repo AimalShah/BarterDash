@@ -4,7 +4,7 @@
  */
 
 // Architecture palette
-export const primaryBlue = '#6391F2';
+export const primaryBlue = '#007bff';
 export const softBlue = '#B2CBEC';
 export const blueLavender = '#9CA9DE';
 export const mainBackground = '#F2F1F8';

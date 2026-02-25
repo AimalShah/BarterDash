@@ -1,19 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Alert, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/store/authStore';
 
 export default function UpdatePasswordScreen() {
-  const { sessionQuery, updatePasswordMutation, logoutMutation } = useAuth();
+  const params = useLocalSearchParams<{ access_token?: string }>();
+  const { updatePasswordMutation, logoutMutation } = useAuth();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const { session } = useAuthStore()
 
-  const validatingLink = sessionQuery.isLoading;
-  const hasSession = Boolean(sessionQuery.data?.user);
+  // useEffect(() => {
+  //   console.log('[UPDATE PASSWORD] Params:', params);
+  //   console.log('[UPDATE PASSWORD] Session query state:', {
+  //     isLoading: sessionQuery.isLoading,
+  //     hasSession: !!sessionQuery.data,
+  //     hasUser: !!sessionQuery.data?.user,
+  //   });
+  //
+  //   // If we have an access_token from params but no session, try to set it
+  //   if (params.access_token && !sessionQuery.data) {
+  //     console.log('[UPDATE PASSWORD] Have access_token but no session, setting session...');
+  //   }
+  // }, [params, sessionQuery.data]);
+
+  const hasSession = Boolean(session);
   const submitting = updatePasswordMutation.isPending;
 
   const handleUpdatePassword = async () => {
@@ -56,25 +72,25 @@ export default function UpdatePasswordScreen() {
             Set a new password for your account.
           </Text>
 
-          {validatingLink ? (
-            <View className="mt-6 rounded-2xl bg-primary-soft p-4">
-              <Text color="secondary">Validating your reset link...</Text>
-            </View>
-          ) : null}
+          {/* {validatingLink ? ( */}
+          {/*   <View className="mt-6 rounded-2xl bg-primary-soft p-4"> */}
+          {/*     <Text color="secondary">Validating your reset link...</Text> */}
+          {/*   </View> */}
+          {/* ) : null} */}
+          {/**/}
+          {/* {!validatingLink && !hasSession ? ( */}
+          {/*   <View className="mt-6 rounded-2xl bg-primary-soft p-4"> */}
+          {/*     <Text color="secondary"> */}
+          {/*       This reset session is not active. Request a new password reset email. */}
+          {/*     </Text> */}
+          {/*   </View> */}
+          {/* ) : null} */}
 
-          {!validatingLink && !hasSession ? (
-            <View className="mt-6 rounded-2xl bg-primary-soft p-4">
-              <Text color="secondary">
-                This reset session is not active. Request a new password reset email.
-              </Text>
-            </View>
-          ) : null}
-
-          {!validatingLink && hasSession ? (
+          {hasSession ? (
             <>
               <Input
                 className="mt-6"
-                label="New password"
+                label=""
                 placeholder="Enter new password"
                 value={password}
                 onChangeText={setPassword}
@@ -83,8 +99,8 @@ export default function UpdatePasswordScreen() {
                 editable={!submitting}
               />
               <Input
-                className="mt-4"
-                label="Confirm password"
+                className="mt-6"
+                label=""
                 placeholder="Confirm new password"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}

@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerSpacer: {
-    width: 40,
+    width: 0,
   },
   headerRight: {
     width: 40,
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   },
   headerTitleWrap: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   headerTitle: {
     color: '#0F172A',

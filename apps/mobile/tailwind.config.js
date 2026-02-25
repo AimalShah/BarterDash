@@ -106,8 +106,8 @@ module.exports = {
       },
 
       fontFamily: {
-        sans: ['PlusJakartaSans', 'Plus Jakarta Sans', 'sans-serif'],
-        jakarta: ['PlusJakartaSans', 'Plus Jakarta Sans', 'sans-serif'],
+        sans: ['SpaceGrotesk', 'Space Grotesk', 'sans-serif'],
+        grotesk: ['SpaceGrotesk', 'Space Grotesk', 'sans-serif'],
       },
 
       borderRadius: {

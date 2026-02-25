@@ -201,7 +201,7 @@ export const config = {
       theme: {
         baseStyle: {
           color: "$text950",
-          fontFamily: "PlusJakartaSans",
+          fontFamily: "SpaceGrotesk",
         },
         variants: {
           heading: {
@@ -229,7 +229,7 @@ export const config = {
         baseStyle: {
           color: "$text950",
           fontWeight: "$bold",
-          fontFamily: "PlusJakartaSans",
+          fontFamily: "SpaceGrotesk",
         },
       },
     },

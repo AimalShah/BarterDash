@@ -8,7 +8,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { Bell, Eye, Search as SearchIcon, Star } from 'lucide-react-native';
+import { Bell, Eye, Search as SearchIcon, Star, MessageCircle, Video } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCategories, useProducts, useStreams } from '@/hooks';
@@ -52,6 +52,7 @@ export default function HomeScreen() {
       ),
     [streamsQuery.data]
   );
+  console.log("STREAMS : ", streams)
 
   const products = productsQuery.data || [];
 
@@ -81,9 +82,14 @@ export default function HomeScreen() {
         title="BarterDash"
         subtitle="Live marketplace"
         rightNode={
-          <Pressable style={styles.headerAction} onPress={() => router.push('/notifications')}>
-            <Bell size={18} color={COLORS.primaryBlue} />
-          </Pressable>
+          <View className="flex-row gap-2">
+            <Pressable style={styles.headerAction} onPress={() => router.push('/notifications')}>
+              <MessageCircle size={18} color={COLORS.primaryBlue} />
+            </Pressable>
+            <Pressable style={styles.headerAction} onPress={() => router.push('/notifications')}>
+              <Bell size={18} color={COLORS.primaryBlue} />
+            </Pressable>
+          </View>
         }
       />
 
@@ -144,39 +150,46 @@ export default function HomeScreen() {
           <StitchSectionTitle title="Trending Now" actionLabel="See All" onActionPress={() => router.push('/products')} />
         </View>
 
-        <View style={styles.grid}>
-          {streams.slice(0, 4).map((stream) => (
-            <Pressable key={stream.id} style={styles.gridItem} onPress={() => router.push(`/stream/${stream.id}`)}>
-              <StitchCard style={styles.streamCard}>
-                <Image
-                  source={{
-                    uri:
-                      (stream as any).thumbnailUrl ||
-                      (stream as any).thumbnail_url ||
-                      (stream as any).thumbnail ||
-                      'https://images.unsplash.com/photo-1519741497674-611481863552?w=1000',
-                  }}
-                  style={styles.streamImage}
-                />
-                <View style={styles.streamBadge}>
-                  <Text style={styles.streamBadgeText}>{stream.status === 'live' ? 'LIVE' : 'SOON'}</Text>
-                </View>
-                <Text style={styles.streamTitle} numberOfLines={1}>
-                  {stream.title}
-                </Text>
-                <View style={styles.streamSellerRow}>
-                  <Text style={styles.streamSeller} numberOfLines={1}>
-                    @{stream.seller?.username || 'seller'}
-                  </Text>
-                  <View style={styles.ratingWrap}>
-                    <Star size={10} color="#EAB308" fill="#EAB308" />
-                    <Text style={styles.ratingText}>4.9</Text>
+        {streams.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyTitle}>No streams available</Text>
+            <Text style={styles.emptySubtitle}>Check back later for live selling sessions</Text>
+          </View>
+        ) : (
+          <View style={styles.grid}>
+            {streams.slice(0, 4).map((stream) => (
+              <Pressable key={stream.id} style={styles.gridItem} onPress={() => router.push(`/stream/${stream.id}`)}>
+                <StitchCard style={styles.streamCard}>
+                  <Image
+                    source={{
+                      uri:
+                        (stream as any).thumbnailUrl ||
+                        (stream as any).thumbnail_url ||
+                        (stream as any).thumbnail ||
+                        'https://images.unsplash.com/photo-1519741497674-611481863552?w=1000',
+                    }}
+                    style={styles.streamImage}
+                  />
+                  <View style={styles.streamBadge}>
+                    <Text style={styles.streamBadgeText}>{stream.status === 'live' ? 'LIVE' : 'SOON'}</Text>
                   </View>
-                </View>
-              </StitchCard>
-            </Pressable>
-          ))}
-        </View>
+                  <Text style={styles.streamTitle} numberOfLines={1}>
+                    {stream.title}
+                  </Text>
+                  <View style={styles.streamSellerRow}>
+                    <Text style={styles.streamSeller} numberOfLines={1}>
+                      @{stream.seller?.username || 'seller'}
+                    </Text>
+                    <View style={styles.ratingWrap}>
+                      <Star size={10} color="#EAB308" fill="#EAB308" />
+                      <Text style={styles.ratingText}>4.9</Text>
+                    </View>
+                  </View>
+                </StitchCard>
+              </Pressable>
+            ))}
+          </View>
+        )}
 
         <View style={styles.sectionTop}>
           <StitchSectionTitle title="Fresh Products" actionLabel="Browse" onActionPress={() => router.push('/products')} />
@@ -389,5 +402,36 @@ const styles = StyleSheet.create({
     color: COLORS.primaryBlue,
     fontSize: 14,
     fontWeight: '700',
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  emptyIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#DCE4F1',
+  },
+  emptyTitle: {
+    color: COLORS.primaryText,
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    color: COLORS.lightGrey,
+    fontSize: 14,
+    fontWeight: '400',
+    textAlign: 'center',
+    maxWidth: 280,
   },
 });

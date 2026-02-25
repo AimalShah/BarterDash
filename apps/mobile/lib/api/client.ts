@@ -5,9 +5,12 @@ import axios, {
 } from "axios";
 import { supabase } from "../supabase";
 
-const DEFAULT_DEV_API_URL = "http://localhost:3000/api/v1";
+const DEFAULT_DEV_API_URL = "http://192.168.1.55:3000/api/v1";
+
 const DEFAULT_PROD_API_URL = "https://barter-dash.vercel.app/api/v1";
 const isDevelopment = process.env.NODE_ENV !== "production";
+
+console.log(isDevelopment);
 
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL ||

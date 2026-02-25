@@ -182,9 +182,9 @@ export default function UserProfileScreen() {
         </View>
       )}
 
-      <Pressable style={styles.messageFab} onPress={() => router.push(`/messages/new?userId=${id}`)}>
-        <MessageCircle size={18} color="#FFFFFF" />
-      </Pressable>
+      {/* <Pressable style={styles.messageFab} onPress={() => router.push(`/messages/new?userId=${id}`)}> */}
+      {/*   <MessageCircle size={18} color="#FFFFFF" /> */}
+      {/* </Pressable> */}
     </StitchPage>
   );
 }

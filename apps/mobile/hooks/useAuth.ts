@@ -45,6 +45,18 @@ export function useAuth() {
     },
   });
 
+  const sessionMutation = useMutation({
+    mutationFn: async ({ access_token, refresh_token }: { access_token: string; refresh_token: string }
+    ) => {
+      const { data, error } = await supabase.auth.setSession({ access_token, refresh_token })
+      if (error) throw error;
+      return data
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData([...queryKeys.auth, 'session'], data.session ?? null)
+    }
+  })
+
   const registerMutation = useMutation({
     mutationFn: async ({ email, password, username }: RegisterInput) => {
       const { data, error } = await supabase.auth.signUp({
@@ -80,7 +92,7 @@ export function useAuth() {
   const requestPasswordResetMutation = useMutation({
     mutationFn: async ({ email, redirectTo }: PasswordResetInput) => {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectTo || 'barterdash://auth/update-password',
+        redirectTo: redirectTo || 'barterdash://auth/confirm',
       });
 
       if (error) throw error;

@@ -73,7 +73,7 @@ export default function ProductDetailScreen() {
   const price = Number(product.price || product.buyNowPrice || 0);
 
   return (
-    <StitchPage contentStyle={{ paddingBottom: 150 }}>
+    <StitchPage contentStyle={{ paddingBottom: 100 }}>
       <StitchHeader
         title="Item Details"
         onBack={() => router.back()}
@@ -89,17 +89,17 @@ export default function ProductDetailScreen() {
         <Image source={{ uri: image }} style={styles.heroImage} />
 
         <View style={styles.mainPad}>
-          <StitchCard style={styles.liveBanner}>
-            <View style={styles.liveBannerRow}>
-              <View>
-                <Text style={styles.liveBannerTitle}>Upcoming Live Session</Text>
-                <Text style={styles.liveBannerText}>Sunday Sneaker Grails @ 6:00 PM</Text>
-              </View>
-              <Pressable onPress={() => router.push('/(tabs)/index')}>
-                <Text style={styles.liveBannerLink}>View</Text>
-              </Pressable>
-            </View>
-          </StitchCard>
+          {/* <StitchCard style={styles.liveBanner}> */}
+          {/*   <View style={styles.liveBannerRow}> */}
+          {/*     <View> */}
+          {/*       <Text style={styles.liveBannerTitle}>Upcoming Live Session</Text> */}
+          {/*       <Text style={styles.liveBannerText}>Sunday Sneaker Grails @ 6:00 PM</Text> */}
+          {/*     </View> */}
+          {/*     <Pressable onPress={() => router.push('/(tabs)/index')}> */}
+          {/*       <Text style={styles.liveBannerLink}>View</Text> */}
+          {/*     </Pressable> */}
+          {/*   </View> */}
+          {/* </StitchCard> */}
 
           <Text style={styles.productTitle}>{product.title}</Text>
           <View style={styles.priceRow}>
@@ -176,7 +176,10 @@ export default function ProductDetailScreen() {
       </View>
 
       <Pressable style={styles.contactFab} onPress={() => router.push('/(tabs)/inbox')}>
-        <MessageCircle size={18} color="#FFFFFF" />
+        <MessageCircle size={20} color="#FFFFFF" />
+        <Text
+          style={styles.contactText}
+        >Message Seller</Text>
       </Pressable>
     </StitchPage>
   );
@@ -323,15 +326,14 @@ const styles = StyleSheet.create({
   specGrid: {
     marginTop: 14,
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
     marginHorizontal: -5,
   },
   specCard: {
-    width: '50%',
+    width: '47%',
     paddingHorizontal: 10,
     marginBottom: 10,
     marginHorizontal: 5,
-    flex: 1,
   },
   specLabel: {
     color: COLORS.lightGrey,
@@ -375,7 +377,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 0,
+    bottom: 15,
     borderTopWidth: 1,
     borderTopColor: '#E2E8F0',
     backgroundColor: '#FFFFFF',
@@ -388,14 +390,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contactFab: {
-    position: 'absolute',
-    right: 16,
-    bottom: 88,
-    height: 44,
-    width: 44,
-    borderRadius: 22,
+    margin: 10,
+    gap: 20,
+    flexDirection: "row",
+    padding: 20,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.primaryBlue,
   },
+  contactText: {
+    color: "#FFFFFF",
+    fontSize: 16
+  }
+
 });

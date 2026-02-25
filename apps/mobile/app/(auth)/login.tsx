@@ -15,11 +15,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Lock, Mail, MoveRight, Repeat2 } from 'lucide-react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { COLORS } from '@/constants/colors';
+import { useAuthStore } from '@/store/authStore';
 
 export default function LoginScreen() {
   const { loginMutation } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { session } = useAuthStore();
 
   const loading = loginMutation.isPending;
 
@@ -105,7 +107,7 @@ export default function LoginScreen() {
             </View>
 
             <Pressable style={[styles.loginBtn, loading ? styles.btnDisabled : undefined]} onPress={handleLogin} disabled={loading}>
-              <Text style={styles.loginBtnText}>{loading ? 'Signing in...' : 'Sign In to Dashboard'}</Text>
+              <Text style={styles.loginBtnText}>{loading ? 'Signing in...' : 'Sign In'}</Text>
               <MoveRight size={16} color="#FFFFFF" />
             </Pressable>
 

@@ -1,6 +1,6 @@
 /**
  * BarterDash Theme v3.0 - Dark Luxury
- * Gold accent, Dark backgrounds, Plus Jakarta Sans typography
+ * Gold accent, Dark backgrounds, Space Grotesk typography
  * Single source of truth for all theme values
  */
 
@@ -8,7 +8,7 @@ import { COLORS } from './colors';
 
 // Typography Configuration
 export const typography = {
-  fontFamily: 'PlusJakartaSans, Plus Jakarta Sans, sans-serif',
+  fontFamily: 'SpaceGrotesk, Space Grotesk, sans-serif',
   weights: {
     light: '300',
     regular: '400',

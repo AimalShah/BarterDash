@@ -8,13 +8,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { GluestackUIProvider } from '@/components/ui/reusables';
 import {
-  PlusJakartaSans_300Light,
-  PlusJakartaSans_400Regular,
-  PlusJakartaSans_500Medium,
-  PlusJakartaSans_600SemiBold,
-  PlusJakartaSans_700Bold,
-  PlusJakartaSans_800ExtraBold,
-} from '@expo-google-fonts/plus-jakarta-sans';
+  SpaceGrotesk_300Light,
+  SpaceGrotesk_400Regular,
+  SpaceGrotesk_500Medium,
+  SpaceGrotesk_600SemiBold,
+  SpaceGrotesk_700Bold,
+} from '@expo-google-fonts/space-grotesk';
 import { COLORS } from '../constants/colors';
 import { ToastProvider } from '../context/ToastContext';
 import { AuthGuard } from '../components/guards/AuthGuard';
@@ -46,12 +45,11 @@ function AppBootstrap() {
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    PlusJakartaSans_300Light,
-    PlusJakartaSans_400Regular,
-    PlusJakartaSans_500Medium,
-    PlusJakartaSans_600SemiBold,
-    PlusJakartaSans_700Bold,
-    PlusJakartaSans_800ExtraBold,
+    SpaceGrotesk_300Light,
+    SpaceGrotesk_400Regular,
+    SpaceGrotesk_500Medium,
+    SpaceGrotesk_600SemiBold,
+    SpaceGrotesk_700Bold,
   });
 
   const stripePublishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
@@ -77,36 +75,35 @@ export default function RootLayout() {
         urlScheme="barterdash"
         merchantIdentifier={applePayMerchantIdentifier || undefined}
       >
-        <GluestackUIProvider>
-          <QueryClientProvider client={queryClient}>
-            <ToastProvider>
-              <AppBootstrap />
-              <AuthGuard>
-                <OnboardingGuard>
-                  <Stack
-                    screenOptions={{
-                      headerShown: false,
-                      contentStyle: { backgroundColor: COLORS.mainBackground },
-                    }}
-                  >
-                    <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                    <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                    <Stack.Screen name="seller" options={{ headerShown: false }} />
-                    <Stack.Screen name="stream/[id]" />
-                    <Stack.Screen name="product/[id]" />
-                    <Stack.Screen name="user/[id]" options={{ presentation: 'card' }} />
-                    <Stack.Screen name="social" options={{ headerShown: false }} />
-                    <Stack.Screen
-                      name="menu"
-                      options={{ presentation: 'transparentModal', animation: 'fade' }}
-                    />
-                  </Stack>
-                </OnboardingGuard>
-              </AuthGuard>
-            </ToastProvider>
-          </QueryClientProvider>
-        </GluestackUIProvider>
+        <QueryClientProvider client={queryClient}>
+          <ToastProvider>
+            <AppBootstrap />
+            <AuthGuard>
+              <OnboardingGuard>
+                <Stack
+                  screenOptions={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: COLORS.mainBackground },
+                  }}
+                >
+                  <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                  <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                  <Stack.Screen name="seller" options={{ headerShown: false }} />
+                  <Stack.Screen name="stream/[id]" />
+                  <Stack.Screen name="product/[id]" />
+                  <Stack.Screen name="user/[id]" options={{ presentation: 'card' }} />
+                  <Stack.Screen name="social" options={{ headerShown: false }} />
+                  <Stack.Screen
+                    name="menu"
+                    options={{ presentation: 'transparentModal', animation: 'fade' }}
+                  />
+                  <Stack.Screen name="update-password" options={{ headerShown: false }} />
+                </Stack>
+              </OnboardingGuard>
+            </AuthGuard>
+          </ToastProvider>
+        </QueryClientProvider>
       </StripeProvider>
     </ErrorBoundary>
   );

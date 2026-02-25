@@ -31,16 +31,16 @@ export default function LandingScreen() {
         </View>
 
         <View style={styles.bottomBlock}>
-          <View style={styles.progressHead}>
-            <Text style={styles.progressLabel}>INITIALIZING</Text>
-            <Text style={styles.progressValue}>100%</Text>
-          </View>
-          <View style={styles.progressTrack}>
-            <View style={styles.progressFill} />
-          </View>
+          {/* <View style={styles.progressHead}> */}
+          {/*   <Text style={styles.progressLabel}>INITIALIZING</Text> */}
+          {/*   <Text style={styles.progressValue}>100%</Text> */}
+          {/* </View> */}
+          {/* <View style={styles.progressTrack}> */}
+          {/*   <View style={styles.progressFill} /> */}
+          {/* </View> */}
 
           <Pressable style={styles.primaryBtn} onPress={() => router.push('/(auth)/login')}>
-            <Text style={styles.primaryBtnText}>Continue</Text>
+            <Text style={styles.primaryBtnText}>Login</Text>
             <ArrowRight size={16} color="#FFFFFF" />
           </Pressable>
 

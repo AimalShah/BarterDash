@@ -74,12 +74,26 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         const inAuthGroup = segments[0] === '(auth)';
         const inDevGroup = segments[0] === 'dev';
         const inOnboarding = segments[0] === '(onboarding)';
+        const isUpdatePasswordRoute = segments[0] === 'update-password';
         const isAuthenticated = !!session;
 
+        console.log('[AUTH GUARD] State:', {
+            segments,
+            inAuthGroup,
+            inDevGroup,
+            inOnboarding,
+            isUpdatePasswordRoute,
+            isAuthenticated,
+            hasProfile: !!profile,
+        });
+
         if (!isAuthenticated) {
-            if (!inAuthGroup && !inDevGroup) {
+            if (!inAuthGroup && !inDevGroup && !isUpdatePasswordRoute) {
                 // Not authenticated and not in auth group, redirect to landing
+                console.log('[AUTH GUARD] Redirecting to landing (not authenticated)');
                 router.replace('/(auth)/landing');
+            } else {
+                console.log('[AUTH GUARD] Allowing access (not authenticated but allowed route)');
             }
         } else {
             if (!profile) {
@@ -93,14 +107,19 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
                 profile.onboarded === true || profile.onboarding_step === 'completed';
             const onboardingRoute = getOnboardingRoute(profile.onboarding_step);
 
-            if (!onboarded && !inOnboarding && !inAuthGroup) {
+            if (!onboarded && !inOnboarding && !inAuthGroup && !isUpdatePasswordRoute) {
+                console.log('[AUTH GUARD] Redirecting to onboarding (not onboarded)');
                 router.replace(onboardingRoute as any);
-            } else if (onboarded && (inAuthGroup || inOnboarding)) {
+            } else if (onboarded && (inAuthGroup || inOnboarding) && !isUpdatePasswordRoute) {
                 // Logged in and onboarded, but in auth/onboarding group
+                console.log('[AUTH GUARD] Redirecting to tabs (onboarded)');
                 router.replace('/(tabs)');
-            } else if (isAuthenticated && inAuthGroup && !onboarded) {
+            } else if (isAuthenticated && inAuthGroup && !onboarded && !isUpdatePasswordRoute) {
                 // Logged in but not onboarded, and in auth group
+                console.log('[AUTH GUARD] Redirecting to onboarding (in auth group)');
                 router.replace(onboardingRoute as any);
+            } else if (isUpdatePasswordRoute) {
+                console.log('[AUTH GUARD] Allowing update-password route');
             }
         }
     }, [session, profile, segments, isLoading, initialized, isFetchingProfile, fetchProfile]);
@@ -131,9 +150,10 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     // or if authenticated
     const inAuthGroup = segments[0] === '(auth)';
     const inDevGroup = segments[0] === 'dev';
+    const isUpdatePasswordRoute = segments[0] === 'update-password';
     const isAuthenticated = !!session;
 
-    if (!isAuthenticated && !inAuthGroup && !inDevGroup) {
+    if (!isAuthenticated && !inAuthGroup && !inDevGroup && !isUpdatePasswordRoute) {
         return null; // Redirecting
     }
 

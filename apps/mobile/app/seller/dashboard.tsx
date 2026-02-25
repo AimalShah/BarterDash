@@ -57,6 +57,7 @@ export default function SellerDashboardScreen() {
         }
       />
 
+      {/* TODO : MAKE IT SO IT WORKS WITH REAL DATA */}
       <View style={styles.contentPad}>
         <StitchCard style={styles.liveAlertCard}>
           <View style={styles.liveAlertRow}>
@@ -68,6 +69,7 @@ export default function SellerDashboardScreen() {
           </View>
         </StitchCard>
 
+        {/* TODO : ALSO ADD STREAMS AND PRODUCT TO STATS */}
         <View style={styles.statsRow}>
           <StitchStat label="Revenue" value={`$${Number(stats.totalRevenue || 0).toLocaleString()}`} />
           <View style={styles.statGap} />
@@ -192,9 +194,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginHorizontal: -5,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4
   },
   actionTile: {
-    width: '50%',
+    width: '47%',
     paddingHorizontal: 5,
     marginBottom: 10,
     borderRadius: 14,
