@@ -11,7 +11,7 @@ interface OnboardingProgressProps {
 export const OnboardingProgress = ({ steps, currentStepIndex }: OnboardingProgressProps) => {
     return (
         <Box px="$6" pt="$4" pb="$2">
-            <HStack justifyContent="space-between" alignItems="center">
+            <HStack justifyContent="center" alignItems="center">
                 {steps.map((step, index) => (
                     <HStack key={step} alignItems="center" flex={1}>
                         <Box alignItems="center" flex={1}>

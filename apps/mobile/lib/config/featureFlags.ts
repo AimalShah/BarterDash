@@ -16,24 +16,24 @@ export const featureFlags = {
     enabled: process.env.EXPO_PUBLIC_ENABLE_APPLE_PAY === 'true',
     description: 'Apple Pay integration (requires Apple Developer account)',
   } as FeatureFlag,
-  
+
   googlePay: {
     enabled: process.env.EXPO_PUBLIC_ENABLE_GOOGLE_PAY !== 'false',
     description: 'Google Pay integration',
   } as FeatureFlag,
-  
+
   // Beta mode indicator
   betaMode: {
     enabled: process.env.EXPO_PUBLIC_BETA_MODE === 'true' || __DEV__,
     description: 'Show beta mode indicators',
   } as FeatureFlag,
-  
+
   // Shipping features
   shippingLabels: {
     enabled: true,
     description: 'Shipping label generation (mock in beta)',
   } as FeatureFlag,
-  
+
   // Debug features
   showDebugLogs: {
     enabled: __DEV__,

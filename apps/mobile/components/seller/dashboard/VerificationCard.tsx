@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Linking, Alert } from "react-native";
+import { View, TouchableOpacity, StyleSheet, Linking, Alert } from 'react-native';
+import { Text } from '@/components/ui/text';
 import { router } from "expo-router";
 import { CheckCircle, AlertTriangle, Clock, Shield } from "lucide-react-native";
 import { COLORS } from "../../../constants/colors";

@@ -8,7 +8,7 @@ import { COLORS } from './colors';
 
 // Typography Configuration
 export const typography = {
-  fontFamily: 'SpaceGrotesk, Space Grotesk, sans-serif',
+  fontFamily: 'SpaceGrotesk_400Regular, SpaceGrotesk, Space Grotesk, sans-serif',
   weights: {
     light: '300',
     regular: '400',

@@ -1,4 +1,8 @@
 import type { TextStyle, ViewStyle } from 'react-native';
+import {
+  resolveSpaceGroteskFontFamily,
+  shouldPreserveExplicitFontFamily,
+} from '@/constants/fonts';
 
 const SPACING_MAP: Record<string, number> = {
   '$0': 0,
@@ -157,6 +161,40 @@ function applyVisualStyles(style: ViewStyle, props: Record<string, unknown>) {
   if (opacity !== undefined) style.opacity = Number(opacity);
 }
 
+const FONT_WEIGHT_VALUES: Record<string, TextStyle['fontWeight']> = {
+  hairline: '100',
+  thin: '200',
+  light: '300',
+  normal: '400',
+  regular: '400',
+  medium: '500',
+  semibold: '600',
+  bold: '700',
+  extrabold: '800',
+  black: '900',
+};
+
+function normalizeFontWeight(value: unknown): TextStyle['fontWeight'] | undefined {
+  if (value === null || value === undefined) return undefined;
+  if (typeof value === 'number') {
+    const rounded = Math.max(100, Math.min(900, Math.round(value / 100) * 100));
+    return String(rounded) as TextStyle['fontWeight'];
+  }
+
+  if (typeof value === 'string') {
+    const normalized = value.trim().replace(/^\$/, '').toLowerCase();
+    if (/^[1-9]00$/.test(normalized)) {
+      return normalized as TextStyle['fontWeight'];
+    }
+
+    if (FONT_WEIGHT_VALUES[normalized] !== undefined) {
+      return FONT_WEIGHT_VALUES[normalized];
+    }
+  }
+
+  return undefined;
+}
+
 export function extractViewStyles(props: Record<string, unknown>): ViewStyle {
   const style: ViewStyle = {};
   applySizeStyles(style, props);
@@ -172,7 +210,25 @@ export function extractTextStyles(props: Record<string, unknown>): TextStyle {
   const resolvedSize = resolveNumeric(textSize);
   if (resolvedSize !== undefined) style.fontSize = Number(resolvedSize);
 
-  if (props.fontWeight) style.fontWeight = String(props.fontWeight) as TextStyle['fontWeight'];
+  const explicitFontFamily =
+    typeof props.fontFamily === 'string' && props.fontFamily.trim()
+      ? props.fontFamily.trim()
+      : undefined;
+  if (explicitFontFamily) {
+    style.fontFamily = explicitFontFamily;
+  }
+
+  const normalizedFontWeight = normalizeFontWeight(props.fontWeight);
+  const keepExplicitFontFamily = shouldPreserveExplicitFontFamily(explicitFontFamily);
+
+  if (keepExplicitFontFamily && explicitFontFamily) {
+    if (normalizedFontWeight) {
+      style.fontWeight = normalizedFontWeight;
+    }
+  } else {
+    style.fontFamily = resolveSpaceGroteskFontFamily(normalizedFontWeight ?? '400');
+  }
+
   if (props.textAlign) style.textAlign = props.textAlign as TextStyle['textAlign'];
   if (props.color) style.color = String(props.color);
 
@@ -232,6 +288,7 @@ const KNOWN_PROPS = new Set([
   'size',
   'fontSize',
   'fontWeight',
+  'fontFamily',
   'lineHeight',
   'textAlign',
   'sx',

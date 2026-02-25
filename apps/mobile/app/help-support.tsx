@@ -1,4 +1,6 @@
-import { Linking, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/text';
+import { TextInput } from '@/components/ui/text-input';
 import { router } from 'expo-router';
 import { ArrowRight, HelpCircle, LifeBuoy, Search, ShoppingCart, Store, Truck } from 'lucide-react-native';
 import { COLORS } from '@/constants/colors';

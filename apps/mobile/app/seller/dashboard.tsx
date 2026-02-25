@@ -1,4 +1,5 @@
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/text';
 import { router } from 'expo-router';
 import { BarChart3, Boxes, CalendarClock, Settings, Video } from 'lucide-react-native';
 import { useDashboard } from '@/hooks/useDashboard';

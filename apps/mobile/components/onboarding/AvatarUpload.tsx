@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Image, ActivityIndicator, TouchableOpacity, Text, StyleSheet } from "react-native";
+import { View, Image, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text } from '@/components/ui/text';
 import { User, Camera } from "lucide-react-native";
 import { COLORS } from "@/constants/colors";
 

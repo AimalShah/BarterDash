@@ -1,5 +1,7 @@
 import React from 'react';
-import { View, Text, TextInput, StyleSheet } from "react-native";
+import { View, StyleSheet } from 'react-native';
+import { Text } from '@/components/ui/text';
+import { TextInput } from '@/components/ui/text-input';
 import { COLORS } from "@/constants/colors";
 
 interface ProfileFormProps {

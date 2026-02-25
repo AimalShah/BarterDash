@@ -1,46 +1,220 @@
-import React, { useState } from "react";
-import { StatusBar, Alert, ActivityIndicator } from "react-native";
-import { router } from "expo-router";
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Box,
-  Heading,
-  Text,
-  VStack,
-  HStack,
-  Button,
-  ButtonText,
-  Center,
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
   Switch,
-  Pressable
-} from "@/components/ui/reusables";
-import {
-  Bell,
-  Clock,
-  Gavel,
-  Mail,
-  ChevronRight,
-} from "lucide-react-native";
-import { useAuthStore } from "@/store/authStore";
-import { useUpdateProfileMutation } from "@/hooks/useUser";
-import { OnboardingProgress } from "@/components/onboarding/OnboardingProgress";
-import { COLORS } from "@/constants/colors";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+  View,
+  useWindowDimensions,
+} from 'react-native';
+import { router } from 'expo-router';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import Onboarding from '@blazejkustra/react-native-onboarding';
+import { ArrowLeft, ArrowRight, Bell, Clock, Gavel, Mail } from 'lucide-react-native';
+import { useAuthStore } from '@/store/authStore';
+import { useUpdateProfileMutation } from '@/hooks/useUser';
+import { COLORS } from '@/constants/colors';
+import { Text } from '@/components/ui/text';
 
-const STEPS = ["Profile", "Interests", "Age", "Notifications", "Done"];
+type StepNavigationProps = {
+  onNext: () => void;
+  onBack: () => void;
+  isLast: boolean;
+};
+
+const TRANSPARENT_IMAGE = {
+  uri: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==',
+} as const;
+
+function AutoStartIntro({ onPressStart }: { onPressStart: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(onPressStart, 0);
+    return () => clearTimeout(timer);
+  }, [onPressStart]);
+
+  return <View style={styles.introSpacer} />;
+}
+
+function NotificationToggleCard({
+  icon,
+  title,
+  subtitle,
+  value,
+  onValueChange,
+  disabled,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  value: boolean;
+  onValueChange: (value: boolean) => void;
+  disabled: boolean;
+}) {
+  return (
+    <View style={styles.preferenceCard}>
+      <View style={styles.preferenceContent}>
+        <View style={styles.preferenceIcon}>{icon}</View>
+        <View style={styles.preferenceTextBlock}>
+          <Text style={styles.preferenceTitle}>{title}</Text>
+          <Text style={styles.preferenceSubtitle}>{subtitle}</Text>
+        </View>
+      </View>
+      <Switch
+        value={value}
+        onValueChange={onValueChange}
+        trackColor={{ false: '#CBD5E1', true: '#A9C8F8' }}
+        thumbColor={value ? COLORS.primaryBlue : '#94A3B8'}
+        disabled={disabled}
+      />
+    </View>
+  );
+}
+
+function NotificationStep({
+  onNext,
+  streamAlerts,
+  bidAlerts,
+  emailAlerts,
+  isUpdating,
+  onToggleStreamAlerts,
+  onToggleBidAlerts,
+  onToggleEmailAlerts,
+  onComplete,
+}: StepNavigationProps & {
+  streamAlerts: boolean;
+  bidAlerts: boolean;
+  emailAlerts: boolean;
+  isUpdating: boolean;
+  onToggleStreamAlerts: (value: boolean) => void;
+  onToggleBidAlerts: (value: boolean) => void;
+  onToggleEmailAlerts: (value: boolean) => void;
+  onComplete: (onSuccess: () => void) => void;
+}) {
+  const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
+  const stageHeight = Math.max(height - insets.top - insets.bottom - 48, 690);
+
+  return (
+    <View style={[styles.stage, { minHeight: stageHeight }]}>
+      <View style={styles.card}>
+        <View style={styles.topBar}>
+          <Pressable
+            style={styles.iconButton}
+            onPress={() => router.replace('/(onboarding)/age-verification')}
+            disabled={isUpdating}
+          >
+            <ArrowLeft size={20} color={COLORS.primaryText} />
+          </Pressable>
+          <Text style={styles.topBarTitle}>Notifications</Text>
+          <View style={styles.topBarSpacer} />
+        </View>
+
+        <View style={styles.progressShell}>
+          <View style={styles.progressRow}>
+            <Text style={styles.progressText}>Onboarding Progress</Text>
+            <Text style={styles.progressStep}>Step 4 of 5</Text>
+          </View>
+          <View style={styles.progressTrackLarge}>
+            <View style={[styles.progressFill, { width: '80%' }]} />
+          </View>
+        </View>
+
+        <ScrollView contentContainerStyle={styles.mainContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.iconBadge}>
+            <Bell size={26} color={COLORS.primaryBlue} />
+          </View>
+
+          <Text style={styles.title}>Choose your alerts</Text>
+          <Text style={styles.subtitle}>
+            Stay updated with the moments that matter in your live shopping journey.
+          </Text>
+
+          <View style={styles.preferenceList}>
+            <NotificationToggleCard
+              icon={<Clock size={18} color={COLORS.primaryBlue} />}
+              title="Stream Starts"
+              subtitle="Get alerted when your favorite sellers go live."
+              value={streamAlerts}
+              onValueChange={onToggleStreamAlerts}
+              disabled={isUpdating}
+            />
+
+            <NotificationToggleCard
+              icon={<Gavel size={18} color={COLORS.primaryBlue} />}
+              title="Outbid Alerts"
+              subtitle="Instant notifications when someone outbids you."
+              value={bidAlerts}
+              onValueChange={onToggleBidAlerts}
+              disabled={isUpdating}
+            />
+
+            <NotificationToggleCard
+              icon={<Mail size={18} color={COLORS.primaryBlue} />}
+              title="Email Updates"
+              subtitle="Receive order and account updates by email."
+              value={emailAlerts}
+              onValueChange={onToggleEmailAlerts}
+              disabled={isUpdating}
+            />
+          </View>
+        </ScrollView>
+
+        <View style={styles.bottomActionWrap}>
+          <Pressable
+            style={[styles.primaryButtonLarge, isUpdating ? styles.disabled : undefined]}
+            onPress={() => onComplete(onNext)}
+            disabled={isUpdating}
+          >
+            {isUpdating ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <>
+                <Text style={styles.primaryButtonText}>Continue to Done</Text>
+                <ArrowRight size={18} color="#FFFFFF" />
+              </>
+            )}
+          </Pressable>
+
+          <Pressable style={styles.ghostButton} onPress={() => onComplete(onNext)} disabled={isUpdating}>
+            <Text style={styles.ghostButtonText}>Skip for now</Text>
+          </Pressable>
+        </View>
+      </View>
+    </View>
+  );
+}
 
 export default function NotificationsScreen() {
-  const insets = useSafeAreaInsets();
   const [streamAlerts, setStreamAlerts] = useState(true);
   const [bidAlerts, setBidAlerts] = useState(true);
   const [emailAlerts, setEmailAlerts] = useState(true);
-  const { mutate: updateProfile, isPending: isUpdating } =
-    useUpdateProfileMutation();
 
-  const handleComplete = () => {
+  const { mutate: updateProfile, isPending: isUpdating } = useUpdateProfileMutation();
+
+  const onboardingColors = useMemo(
+    () => ({
+      background: {
+        primary: COLORS.mainBackground,
+        secondary: COLORS.cardWhite,
+        label: '#EAF1FF',
+        accent: '#EAF1FF',
+      },
+      text: {
+        primary: COLORS.primaryText,
+        secondary: COLORS.lightGrey,
+        contrast: '#FFFFFF',
+      },
+    }),
+    []
+  );
+
+  const handleComplete = (onSuccess: () => void) => {
     updateProfile(
       {
         onboarded: true,
-        onboarding_step: "completed",
+        onboarding_step: 'completed',
         notification_preferences: {
           streamAlerts,
           bidAlerts,
@@ -49,229 +223,244 @@ export default function NotificationsScreen() {
       },
       {
         onSuccess: async () => {
-          useAuthStore.getState().setOnboarded(true);
-
-          // Force fresh profile fetch to ensure onboarding status is updated
+          onSuccess();
           await useAuthStore.getState().fetchProfile(true);
-          // Small delay to ensure state is propagated
-          await new Promise(resolve => setTimeout(resolve, 100));
-          // Navigate to success screen for celebration moment
-          router.push("/(onboarding)/success");
         },
         onError: (error: any) => {
-          console.error("Profile setup error:", error);
-          if (error.response?.status === 429) {
-            Alert.alert(
-              "Too Many Requests",
-              "Please wait a moment before trying again.",
-            );
-          } else {
-            Alert.alert(
-              "Error",
-              error.message || "Something went wrong completing your setup.",
-            );
+          if (error?.response?.status === 429) {
+            Alert.alert('Too many requests', 'Please wait a moment before trying again.');
+            return;
           }
+
+          Alert.alert(
+            'Could not save notifications',
+            error?.message || 'Something went wrong while completing setup.'
+          );
         },
-      },
+      }
     );
   };
 
   return (
-    <Box flex={1} bg={COLORS.luxuryBlack}>
-      <StatusBar barStyle="light-content" />
-      <Box safeAreaTop />
-
-      <OnboardingProgress steps={STEPS} currentStepIndex={3} />
-
-      <Box flex={1} px="$8" justifyContent="space-between" pt="$8" pb={Math.max(insets.bottom, 16)}>
-        <Box mt="$6">
-          <Center mb="$10">
-            <Center
-              h={80}
-              w={80}
-              rounded={24}
-              bg={COLORS.luxuryBlackLight}
-              mb="$6"
-              borderWidth={1}
-              borderColor={COLORS.darkBorder}
-            >
-              <Bell size={40} color={COLORS.primaryGold} />
-            </Center>
-            <Heading size="3xl" color={COLORS.textPrimary} textAlign="center" mb="$3" fontWeight="$black">
-              Stay in the Loop
-            </Heading>
-            <Text color={COLORS.textSecondary} textAlign="center" size="md" lineHeight="$xl" px="$4">
-              Get notified about live drops, outbids, and your favorite sellers.
-            </Text>
-          </Center>
-
-          <VStack space="md">
-            <Box
-              bg={COLORS.luxuryBlackLight}
-              p="$5"
-              rounded={24}
-              borderWidth={1}
-              borderColor={COLORS.darkBorder}
-              flexDirection="row"
-              alignItems="center"
-              justifyContent="space-between"
-              sx={{
-                shadowColor: COLORS.luxuryBlack,
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.02,
-                shadowRadius: 5,
-                elevation: 2
-              }}
-            >
-              <HStack space="md" alignItems="center" flex={1}>
-                <Center h={48} w={48} rounded={16} bg={COLORS.luxuryBlackLighter}>
-                  <Clock size={24} color={COLORS.primaryGold} />
-                </Center>
-                <VStack flex={1}>
-                  <Text color={COLORS.textPrimary} fontWeight="$bold" size="lg">
-                    Stream Starts
-                  </Text>
-                  <Text color={COLORS.textMuted} size="sm" mt="$0.5">
-                    When your favorite sellers go live.
-                  </Text>
-                </VStack>
-              </HStack>
-              <Switch
-                value={streamAlerts}
-                onValueChange={setStreamAlerts}
-                trackColor={{ false: COLORS.darkBorder, true: COLORS.primaryGold }}
-                thumbColor={COLORS.textPrimary}
-                disabled={isUpdating}
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+      <Onboarding
+        showCloseButton={false}
+        showBackButton={false}
+        wrapInModalOnWeb={false}
+        colors={onboardingColors}
+        introPanel={({ onPressStart }) => <AutoStartIntro onPressStart={onPressStart} />}
+        steps={[
+          {
+            component: ({ onNext, onBack, isLast }: StepNavigationProps) => (
+              <NotificationStep
+                onNext={onNext}
+                onBack={onBack}
+                isLast={isLast}
+                streamAlerts={streamAlerts}
+                bidAlerts={bidAlerts}
+                emailAlerts={emailAlerts}
+                isUpdating={isUpdating}
+                onToggleStreamAlerts={setStreamAlerts}
+                onToggleBidAlerts={setBidAlerts}
+                onToggleEmailAlerts={setEmailAlerts}
+                onComplete={handleComplete}
               />
-            </Box>
-
-            <Box
-              bg={COLORS.luxuryBlackLight}
-              p="$5"
-              rounded={24}
-              borderWidth={1}
-              borderColor={COLORS.darkBorder}
-              flexDirection="row"
-              alignItems="center"
-              justifyContent="space-between"
-              sx={{
-                shadowColor: COLORS.luxuryBlack,
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.02,
-                shadowRadius: 5,
-                elevation: 2
-              }}
-            >
-              <HStack space="md" alignItems="center" flex={1}>
-                <Center h={48} w={48} rounded={16} bg={COLORS.luxuryBlackLighter}>
-                  <Gavel size={24} color={COLORS.primaryGold} />
-                </Center>
-                <VStack flex={1}>
-                  <Text color={COLORS.textPrimary} fontWeight="$bold" size="lg">
-                    Outbid Alerts
-                  </Text>
-                  <Text color={COLORS.textMuted} size="sm" mt="$0.5">
-                    Instant alerts when someone outbids you.
-                  </Text>
-                </VStack>
-              </HStack>
-              <Switch
-                value={bidAlerts}
-                onValueChange={setBidAlerts}
-                trackColor={{ false: COLORS.darkBorder, true: COLORS.primaryGold }}
-                thumbColor={COLORS.textPrimary}
-                disabled={isUpdating}
-              />
-            </Box>
-
-            <Box
-              bg={COLORS.luxuryBlackLight}
-              p="$5"
-              rounded={24}
-              borderWidth={1}
-              borderColor={COLORS.darkBorder}
-              flexDirection="row"
-              alignItems="center"
-              justifyContent="space-between"
-              sx={{
-                shadowColor: COLORS.luxuryBlack,
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.02,
-                shadowRadius: 5,
-                elevation: 2
-              }}
-            >
-              <HStack space="md" alignItems="center" flex={1}>
-                <Center h={48} w={48} rounded={16} bg={COLORS.luxuryBlackLighter}>
-                  <Mail size={24} color={COLORS.primaryGold} />
-                </Center>
-                <VStack flex={1}>
-                  <Text color={COLORS.textPrimary} fontWeight="$bold" size="lg">
-                    Email Notifications
-                  </Text>
-                  <Text color={COLORS.textMuted} size="sm" mt="$0.5">
-                    Receive updates about your activity.
-                  </Text>
-                </VStack>
-              </HStack>
-              <Switch
-                value={emailAlerts}
-                onValueChange={setEmailAlerts}
-                trackColor={{ false: COLORS.darkBorder, true: COLORS.primaryGold }}
-                thumbColor={COLORS.textPrimary}
-                disabled={isUpdating}
-              />
-            </Box>
-          </VStack>
-        </Box>
-
-        <Box>
-          <Button
-            size="xl"
-            variant="solid"
-            onPress={handleComplete}
-            bg={COLORS.primaryGold}
-            rounded={500}
-            h={56}
-            isDisabled={isUpdating}
-            justifyContent="center"
-            alignItems="center"
-            sx={{
-              ":active": { opacity: 0.9, transform: [{ scale: 0.98 }] }
-            }}
-          >
-            {isUpdating ? (
-              <ActivityIndicator color={COLORS.luxuryBlack} size="small" />
-            ) : (
-              <>
-                <ButtonText 
-                  fontWeight="$bold" 
-                  color={COLORS.luxuryBlack}
-                  textAlign="center"
-                  flex={1}
-                >
-                  Complete Setup
-                </ButtonText>
-                <Box position="absolute" right={16}>
-                  <ChevronRight size={20} color={COLORS.luxuryBlack} />
-                </Box>
-              </>
-            )}
-          </Button>
-          <Pressable
-            onPress={handleComplete}
-            disabled={isUpdating}
-            h={48}
-            justifyContent="center"
-            alignItems="center"
-            mt="$4"
-          >
-            <Text color={COLORS.textMuted} fontWeight="$bold" size="sm">
-              {isUpdating ? "Saving..." : "Skip for now"}
-            </Text>
-          </Pressable>
-        </Box>
-      </Box>
-    </Box>
+            ),
+            image: TRANSPARENT_IMAGE,
+            position: 'bottom',
+          },
+        ]}
+        onComplete={() => router.push('/(onboarding)/success')}
+      />
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F5F7F8',
+  },
+  introSpacer: {
+    minHeight: 1,
+  },
+  stage: {
+    width: '100%',
+    justifyContent: 'center',
+  },
+  card: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
+    shadowColor: '#1E293B',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  topBar: {
+    height: 56,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  topBarTitle: {
+    color: COLORS.primaryText,
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  topBarSpacer: {
+    width: 40,
+    height: 40,
+  },
+  progressShell: {
+    gap: 10,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 16,
+  },
+  progressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  progressText: {
+    color: COLORS.primaryText,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  progressStep: {
+    color: COLORS.primaryBlue,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  progressTrackLarge: {
+    height: 10,
+    borderRadius: 999,
+    backgroundColor: '#DCEAFD',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: COLORS.primaryBlue,
+  },
+  mainContent: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 20,
+  },
+  iconBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EAF1FF',
+    marginBottom: 18,
+  },
+  title: {
+    color: COLORS.primaryText,
+    fontSize: 30,
+    fontWeight: '700',
+    lineHeight: 36,
+    marginBottom: 10,
+  },
+  subtitle: {
+    color: '#64748B',
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 22,
+  },
+  preferenceList: {
+    gap: 10,
+    marginBottom: 8,
+  },
+  preferenceCard: {
+    minHeight: 82,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#D7E6FA',
+    backgroundColor: '#F8FBFF',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  preferenceContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 10,
+  },
+  preferenceIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#EAF1FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  preferenceTextBlock: {
+    flex: 1,
+    gap: 4,
+  },
+  preferenceTitle: {
+    color: '#0F172A',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  preferenceSubtitle: {
+    color: '#64748B',
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  bottomActionWrap: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#EFF4FA',
+    gap: 8,
+  },
+  primaryButtonLarge: {
+    height: 56,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: COLORS.primaryBlue,
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  ghostButton: {
+    height: 44,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ghostButtonText: {
+    color: COLORS.primaryBlue,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  disabled: {
+    opacity: 0.65,
+  },
+});

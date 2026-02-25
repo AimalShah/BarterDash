@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react'; import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/text';
 import { router } from 'expo-router';
 import { Heart, Search } from 'lucide-react-native';
 import { bidsService } from '@/lib/api/services/bids';

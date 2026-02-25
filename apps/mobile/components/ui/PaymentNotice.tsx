@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet, Platform } from "react-native";
+import { View, StyleSheet, Platform } from 'react-native';
+import { Text } from '@/components/ui/text';
 import { CreditCard } from "lucide-react-native";
 import { isFeatureEnabled } from "../../lib/config/featureFlags";
 import { COLORS } from "../../constants/colors";

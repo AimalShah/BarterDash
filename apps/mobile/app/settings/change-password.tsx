@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useState } from 'react'; import { Alert, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/text';
+import { TextInput } from '@/components/ui/text-input';
 import { router } from 'expo-router';
 import { Lock } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';

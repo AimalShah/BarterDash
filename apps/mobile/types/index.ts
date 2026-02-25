@@ -3,8 +3,8 @@ export interface User {
   id: string;
   email: string;
   username: string;
-  full_name?: string;
-  avatar_url?: string;
+  fullName?: string;
+  avatarUrl?: string;
   bio?: string;
   role: "USER" | "SELLER" | "ADMIN";
   is_seller?: boolean;

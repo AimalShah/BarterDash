@@ -106,8 +106,12 @@ module.exports = {
       },
 
       fontFamily: {
-        sans: ['SpaceGrotesk', 'Space Grotesk', 'sans-serif'],
-        grotesk: ['SpaceGrotesk', 'Space Grotesk', 'sans-serif'],
+        sans: ['SpaceGrotesk_400Regular', 'SpaceGrotesk', 'Space Grotesk', 'sans-serif'],
+        grotesk: ['SpaceGrotesk_400Regular', 'SpaceGrotesk', 'Space Grotesk', 'sans-serif'],
+        'grotesk-light': ['SpaceGrotesk_300Light', 'SpaceGrotesk', 'Space Grotesk', 'sans-serif'],
+        'grotesk-medium': ['SpaceGrotesk_500Medium', 'SpaceGrotesk', 'Space Grotesk', 'sans-serif'],
+        'grotesk-semibold': ['SpaceGrotesk_600SemiBold', 'SpaceGrotesk', 'Space Grotesk', 'sans-serif'],
+        'grotesk-bold': ['SpaceGrotesk_700Bold', 'SpaceGrotesk', 'Space Grotesk', 'sans-serif'],
       },
 
       borderRadius: {

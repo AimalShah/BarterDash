@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text } from '@/components/ui/text';
 import { router } from "expo-router";
 import { Video, Calendar, ChevronRight } from "lucide-react-native";
 import { COLORS } from "../../../constants/colors";

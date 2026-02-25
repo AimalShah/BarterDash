@@ -22,6 +22,7 @@ import { ErrorBoundary } from '../components/ui/error-boundary';
 import { useDeepLinkHandler } from '../hooks/useDeepLinkHandler';
 import { usePushNotificationHandler } from '../hooks/usePushNotificationHandler';
 import { logFeatureFlags } from '../lib/config/featureFlags';
+import { applyGlobalSpaceGroteskDefaults } from '@/constants/fonts';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -50,6 +51,8 @@ export default function RootLayout() {
     SpaceGrotesk_500Medium,
     SpaceGrotesk_600SemiBold,
     SpaceGrotesk_700Bold,
+    SpaceGrotesk: SpaceGrotesk_400Regular,
+    'Space Grotesk': SpaceGrotesk_400Regular,
   });
 
   const stripePublishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
@@ -67,6 +70,8 @@ export default function RootLayout() {
       </View>
     );
   }
+
+  applyGlobalSpaceGroteskDefaults();
 
   return (
     <ErrorBoundary>

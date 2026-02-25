@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { useState } from 'react'; import { Pressable, StyleSheet, Switch, View } from 'react-native';
+import { Text } from '@/components/ui/text';
 import { router } from 'expo-router';
 import {
   Bell,

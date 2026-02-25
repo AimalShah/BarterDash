@@ -9,6 +9,7 @@ import { Text } from '@/components/ui/text';
 import { useAuthStore } from '@/store/authStore';
 import { cartService } from '@/lib/api/services/cart';
 import { queryKeys } from '@/lib/api/queryKeys';
+import { FONT_FAMILIES } from '@/constants/fonts';
 
 interface SellButtonProps {
   children: ReactNode;
@@ -92,6 +93,7 @@ export default function TabsLayout() {
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '600',
+          fontFamily: FONT_FAMILIES.spaceGrotesk.medium
         },
       }}
     >

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react'; import { Alert, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/text';
 import { router } from 'expo-router';
 import { Clock, Download, Eye, Shield } from 'lucide-react-native';
 import { usersService } from '@/lib/api/services/users';

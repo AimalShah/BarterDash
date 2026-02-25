@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, StatusBar } from "react-native";
+import { View, TouchableOpacity, StatusBar } from 'react-native';
+import { Text } from '@/components/ui/text';
 import { useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";

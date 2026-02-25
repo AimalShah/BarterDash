@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useState } from 'react'; import { Alert, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/text';
+import { TextInput } from '@/components/ui/text-input';
 import { router } from 'expo-router';
 import { Camera, Plus, X } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';

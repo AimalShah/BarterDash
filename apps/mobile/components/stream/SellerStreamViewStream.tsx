@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from 'react-native';
+import { Text } from '@/components/ui/text';
 import { useRouter, useFocusEffect } from "expo-router";
 import SellerStreamControls from "./SellerStreamControls";
 import AuctionOverlay from "./AuctionOverlay";

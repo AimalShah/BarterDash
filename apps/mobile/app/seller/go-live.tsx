@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import SellerStreamViewStream from '@/components/stream/SellerStreamViewStream';
 import { streamsService } from '@/lib/api/services/streams';
 import { StitchHeader, StitchPage, StitchPrimaryButton } from '@/components/design';
-import { Text, StyleSheet } from 'react-native';
 import { COLORS } from '@/constants/colors';
+import { Text } from '@/components/ui/text';
 
 export default function GoLiveScreen() {
   const { streamId } = useLocalSearchParams<{ streamId: string }>();

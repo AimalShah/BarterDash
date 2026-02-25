@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Search, SlidersHorizontal } from 'lucide-react-native';
 import { COLORS } from '@/constants/colors';
+import { FONT_FAMILIES } from '@/constants/fonts';
 
 interface StitchPageProps {
   children: ReactNode;
@@ -52,6 +53,14 @@ interface StitchChipProps {
   active?: boolean;
   onPress?: () => void;
 }
+
+const FONTS = {
+  light: FONT_FAMILIES.spaceGrotesk.light,
+  regular: FONT_FAMILIES.spaceGrotesk.regular,
+  medium: FONT_FAMILIES.spaceGrotesk.medium,
+  semibold: FONT_FAMILIES.spaceGrotesk.semibold,
+  bold: FONT_FAMILIES.spaceGrotesk.bold,
+} as const;
 
 export function StitchPage({
   children,
@@ -198,6 +207,7 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
     backgroundColor: '#F5F7F8',
+    fontFamily: FONTS.regular
   },
   scrollContent: {
     paddingBottom: 96,
@@ -227,12 +237,13 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: '#0F172A',
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: FONTS.bold,
   },
   headerSubtitle: {
     color: COLORS.lightGrey,
     fontSize: 12,
     marginTop: 2,
+    fontFamily: FONTS.regular,
   },
   iconButton: {
     height: 40,
@@ -265,7 +276,7 @@ const styles = StyleSheet.create({
     paddingRight: 12,
     color: COLORS.primaryText,
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: FONTS.medium,
   },
   filterButton: {
     height: 46,
@@ -286,12 +297,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: COLORS.primaryText,
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: FONTS.bold,
   },
   sectionAction: {
     color: COLORS.primaryBlue,
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: FONTS.bold,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
@@ -316,12 +327,12 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: FONTS.bold,
   },
   secondaryButtonText: {
     color: COLORS.primaryBlue,
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: FONTS.bold,
   },
   buttonDisabled: {
     opacity: 0.5,
@@ -342,7 +353,7 @@ const styles = StyleSheet.create({
   chipLabel: {
     color: '#334155',
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: FONTS.semibold,
   },
   chipLabelActive: {
     color: '#FFFFFF',
@@ -368,12 +379,12 @@ const styles = StyleSheet.create({
   statValue: {
     color: COLORS.primaryBlue,
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: FONTS.bold,
   },
   statLabel: {
     color: COLORS.lightGrey,
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: FONTS.semibold,
     textTransform: 'uppercase',
     marginTop: 2,
   },
@@ -385,12 +396,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     color: COLORS.primaryText,
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: FONTS.bold,
   },
   emptySubtitle: {
     color: COLORS.lightGrey,
     fontSize: 14,
     textAlign: 'center',
     marginTop: 6,
+    fontFamily: FONTS.regular,
   },
 });

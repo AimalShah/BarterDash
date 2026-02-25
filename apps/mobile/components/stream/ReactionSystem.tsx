@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback, type ReactElement } from "react";
-import { View, Text, TouchableOpacity, Animated, StyleSheet } from "react-native";
+import { useState, useRef, useCallback, type ReactElement } from "react"; import { View, TouchableOpacity, Animated, StyleSheet } from 'react-native';
+import { Text } from '@/components/ui/text';
 import { COLORS } from "../../constants/colors";
 
 interface Reaction {

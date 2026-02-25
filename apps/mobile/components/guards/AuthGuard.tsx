@@ -74,6 +74,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         const inAuthGroup = segments[0] === '(auth)';
         const inDevGroup = segments[0] === 'dev';
         const inOnboarding = segments[0] === '(onboarding)';
+        const inOnboardingSuccess = inOnboarding && segments.includes('success');
         const isUpdatePasswordRoute = segments[0] === 'update-password';
         const isAuthenticated = !!session;
 
@@ -82,6 +83,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
             inAuthGroup,
             inDevGroup,
             inOnboarding,
+            inOnboardingSuccess,
             isUpdatePasswordRoute,
             isAuthenticated,
             hasProfile: !!profile,
@@ -107,10 +109,15 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
                 profile.onboarded === true || profile.onboarding_step === 'completed';
             const onboardingRoute = getOnboardingRoute(profile.onboarding_step);
 
+
             if (!onboarded && !inOnboarding && !inAuthGroup && !isUpdatePasswordRoute) {
                 console.log('[AUTH GUARD] Redirecting to onboarding (not onboarded)');
                 router.replace(onboardingRoute as any);
-            } else if (onboarded && (inAuthGroup || inOnboarding) && !isUpdatePasswordRoute) {
+            } else if (
+                onboarded &&
+                (inAuthGroup || (inOnboarding && !inOnboardingSuccess)) &&
+                !isUpdatePasswordRoute
+            ) {
                 // Logged in and onboarded, but in auth/onboarding group
                 console.log('[AUTH GUARD] Redirecting to tabs (onboarded)');
                 router.replace('/(tabs)');

@@ -1,4 +1,5 @@
-import { ImageBackground, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/text';
 import { router } from 'expo-router';
 import { Compass, Flame, Users } from 'lucide-react-native';
 import { useMemo } from 'react';

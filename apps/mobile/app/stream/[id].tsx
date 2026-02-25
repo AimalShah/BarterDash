@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/text';
 import { router, useLocalSearchParams } from 'expo-router';
 import ViewerStreamViewStream from '@/components/stream/ViewerStreamViewStream';
 import { useStream } from '@/hooks/useStream';

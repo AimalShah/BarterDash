@@ -1,6 +1,10 @@
 import * as React from 'react';
-import { Text as RNText, TextProps as RNTextProps } from 'react-native';
+import { StyleSheet, Text as RNText, TextProps as RNTextProps } from 'react-native';
 import { cn } from '@/lib/utils';
+import {
+  resolveSpaceGroteskFontFamily,
+  shouldPreserveExplicitFontFamily,
+} from '@/constants/fonts';
 
 export interface TextProps extends RNTextProps {
   variant?: 'h1' | 'h2' | 'h3' | 'h4' | 'body' | 'body-sm' | 'caption' | 'label';
@@ -18,7 +22,7 @@ const textVariants = {
   body: 'text-base leading-relaxed',
   'body-sm': 'text-sm leading-relaxed',
   caption: 'text-xs leading-relaxed',
-  label: 'text-sm font-medium leading-none',
+  label: 'text-sm leading-none',
 };
 
 const textColors = {
@@ -29,12 +33,24 @@ const textColors = {
   accent: 'text-accent',
 };
 
-const textWeights = {
-  normal: 'font-normal',
-  medium: 'font-medium',
-  semibold: 'font-semibold',
-  bold: 'font-bold',
-};
+const FONT_WEIGHT_CLASS_PATTERN =
+  /\bfont-(?:thin|extralight|light|normal|medium|semibold|bold|extrabold|black)\b/g;
+
+function inferWeightFromClassName(
+  className?: string
+): 'normal' | 'medium' | 'semibold' | 'bold' | undefined {
+  if (!className) return undefined;
+  if (/\bfont-(?:black|extrabold|bold)\b/.test(className)) return 'bold';
+  if (/\bfont-semibold\b/.test(className)) return 'semibold';
+  if (/\bfont-medium\b/.test(className)) return 'medium';
+  if (/\bfont-(?:normal|light|extralight|thin)\b/.test(className)) return 'normal';
+  return undefined;
+}
+
+function stripFontWeightClasses(className?: string) {
+  if (!className) return className;
+  return className.replace(FONT_WEIGHT_CLASS_PATTERN, '').replace(/\s+/g, ' ').trim();
+}
 
 export function Text({
   variant = 'body',
@@ -42,6 +58,7 @@ export function Text({
   weight,
   children,
   className,
+  style,
   ...props
 }: TextProps) {
   // Determine default weight based on variant
@@ -56,16 +73,47 @@ export function Text({
     label: 'medium',
   };
 
-  const resolvedWeight = weight || defaultWeight[variant];
+  const inferredWeight = inferWeightFromClassName(className);
+  const resolvedWeight = weight || inferredWeight || defaultWeight[variant];
+  const resolvedClassName = stripFontWeightClasses(className);
+
+  const fontWeightToNumeric: Record<typeof resolvedWeight, string> = {
+    normal: '400',
+    medium: '500',
+    semibold: '600',
+    bold: '700',
+  };
+
+  const flattenedStyle = StyleSheet.flatten(style) ?? {};
+  const flattenedStyleFontFamily =
+    typeof flattenedStyle.fontFamily === 'string' && flattenedStyle.fontFamily.length
+      ? flattenedStyle.fontFamily
+      : undefined;
+  const flattenedStyleFontWeight = flattenedStyle.fontWeight;
+
+  const keepExplicitFontFamily = shouldPreserveExplicitFontFamily(flattenedStyleFontFamily);
+  const baseFontFamily =
+    keepExplicitFontFamily && flattenedStyleFontFamily
+      ? flattenedStyleFontFamily
+      : resolveSpaceGroteskFontFamily(
+          flattenedStyleFontWeight ?? fontWeightToNumeric[resolvedWeight]
+        );
+
+  const normalizedStyle = keepExplicitFontFamily && flattenedStyleFontFamily
+    ? flattenedStyle
+    : (() => {
+        const { fontWeight, ...rest } = flattenedStyle;
+        return rest;
+      })();
 
   return (
     <RNText
       className={cn(
         textVariants[variant],
         textColors[color],
-        textWeights[resolvedWeight],
-        className
+        resolvedClassName
       )}
+      style={[{ fontFamily: baseFontFamily }, normalizedStyle]}
       {...props}
     >
       {children}

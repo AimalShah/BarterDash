@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { Text } from '@/components/ui/text';
 import { useRouter } from 'expo-router';
 import { COLORS } from '../../constants/colors';
 

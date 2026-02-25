@@ -15,13 +15,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Lock, Mail, MoveRight, Repeat2 } from 'lucide-react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { COLORS } from '@/constants/colors';
-import { useAuthStore } from '@/store/authStore';
 
 export default function LoginScreen() {
   const { loginMutation } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { session } = useAuthStore();
 
   const loading = loginMutation.isPending;
 

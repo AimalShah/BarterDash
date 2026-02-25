@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { StatusBar, ScrollView, Platform, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import { StatusBar, ScrollView, Platform, View, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { Text } from '@/components/ui/text';
 import { router, useFocusEffect } from "expo-router";
 import { supabase } from "../../lib/supabase";
 import { categoriesService } from "../../lib/api/services/categories";

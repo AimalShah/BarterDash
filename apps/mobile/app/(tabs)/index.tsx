@@ -21,6 +21,7 @@ import {
   StitchPage,
   StitchSectionTitle,
 } from '@/components/design';
+import { FONT_FAMILIES } from '@/constants/fonts';
 
 export default function HomeScreen() {
   const queryClient = useQueryClient();
@@ -83,7 +84,7 @@ export default function HomeScreen() {
         subtitle="Live marketplace"
         rightNode={
           <View className="flex-row gap-2">
-            <Pressable style={styles.headerAction} onPress={() => router.push('/notifications')}>
+            <Pressable style={styles.headerAction} onPress={() => router.push('/(tabs)/inbox')}>
               <MessageCircle size={18} color={COLORS.primaryBlue} />
             </Pressable>
             <Pressable style={styles.headerAction} onPress={() => router.push('/notifications')}>
@@ -405,6 +406,7 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     alignItems: 'center',
+    fontFamily: FONT_FAMILIES.spaceGrotesk.regular,
     justifyContent: 'center',
     paddingVertical: 40,
     paddingHorizontal: 20,
@@ -422,6 +424,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     color: COLORS.primaryText,
+    fontFamily: FONT_FAMILIES.spaceGrotesk.semibold,
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 8,
@@ -429,6 +432,7 @@ const styles = StyleSheet.create({
   },
   emptySubtitle: {
     color: COLORS.lightGrey,
+    fontFamily: FONT_FAMILIES.spaceGrotesk.regular,
     fontSize: 14,
     fontWeight: '400',
     textAlign: 'center',

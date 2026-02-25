@@ -19,6 +19,7 @@
     "e2e:test:device": "detox test -c android.device.debug"
   },
   "dependencies": {
+    "@blazejkustra/react-native-onboarding": "^1.0.0",
     "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
     "@expo/config-plugins": "~54.0.4",
     "@expo/vector-icons": "^15.0.3",

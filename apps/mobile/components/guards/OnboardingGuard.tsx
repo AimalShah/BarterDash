@@ -22,6 +22,7 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
         if (isLoading || loading || isFetchingProfile || !profile || !initialized) return;
 
         const inOnboarding = segments[0] === '(onboarding)';
+        const inOnboardingSuccess = inOnboarding && segments.includes('success');
         const inAuth = segments[0] === '(auth)';
         const inDev = segments[0] === 'dev';
 
@@ -59,8 +60,8 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
                         router.replace('/(onboarding)/profile-setup');
                 }
             }
-        } else if (inOnboarding) {
-            // Already onboarded, don't stay in onboarding
+        } else if (inOnboarding && !inOnboardingSuccess) {
+            // Already onboarded, don't stay in onboarding except the success screen
             router.replace('/(tabs)');
         }
     }, [profile, loading, isFetchingProfile, segments, isLoading, initialized]);

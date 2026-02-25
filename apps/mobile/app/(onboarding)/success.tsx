@@ -1,322 +1,327 @@
-import React, { useEffect, useRef } from "react";
-import { View, Animated, StatusBar, TouchableOpacity, StyleSheet, Text as RNText } from "react-native";
-import { router } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
+import React, { useEffect, useMemo } from 'react';
 import {
-  Box,
-  Heading,
-  Text,
-  Button,
-  ButtonText,
-  Center,
-  VStack,
-  HStack,
-} from "@/components/ui/reusables";
-import { CheckCircle2, Sparkles, ShoppingBag, Users, Trophy, Store } from "lucide-react-native";
-import { COLORS } from "@/constants/colors";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useAuthStore } from "@/store/authStore";
-import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+  useWindowDimensions,
+} from 'react-native';
+import { router } from 'expo-router';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import Onboarding from '@blazejkustra/react-native-onboarding';
+import { ArrowRight, CheckCircle2, Sparkles, Store } from 'lucide-react-native';
+import { COLORS } from '@/constants/colors';
+import { Text } from '@/components/ui/text';
+import { useAuthStore } from '@/store/authStore';
 
-export default function SuccessScreen() {
-  const insets = useSafeAreaInsets();
-  const { width, isTablet, horizontalPadding, scaledFont } = useResponsiveLayout();
-  const scaleAnim = useRef(new Animated.Value(0)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
-  const confettiAnim = useRef(new Animated.Value(0)).current;
-  const { profile } = useAuthStore();
-  const isSeller = profile?.is_seller === true;
-  const successBadgeSize = isTablet ? 132 : 120;
-  const buttonHeight = isTablet ? 64 : 60;
+type StepNavigationProps = {
+  onNext: () => void;
+  onBack: () => void;
+  isLast: boolean;
+};
 
+const TRANSPARENT_IMAGE = {
+  uri: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==',
+} as const;
+
+function AutoStartIntro({ onPressStart }: { onPressStart: () => void }) {
   useEffect(() => {
-    Animated.sequence([
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 8,
-        tension: 40,
-        useNativeDriver: true,
-      }),
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      Animated.timing(confettiAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
+    const timer = setTimeout(onPressStart, 0);
+    return () => clearTimeout(timer);
+  }, [onPressStart]);
 
-  const handleGetStarted = () => {
-    router.replace("/(tabs)");
-  };
+  return <View style={styles.introSpacer} />;
+}
 
-  const handleBecomeSeller = () => {
-    router.push("/seller/onboarding");
-  };
+function SuccessStep({
+  onNext,
+  isSeller,
+}: StepNavigationProps & {
+  isSeller: boolean;
+}) {
+  const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
+  const stageHeight = Math.max(height - insets.top - insets.bottom - 48, 660);
 
-  const renderConfetti = () => {
-    const particles = [];
-    const colors = [COLORS.primaryGold, COLORS.successGreen, COLORS.warningAmber, COLORS.liveIndicator];
-    
-    for (let i = 0; i < 20; i++) {
-      const left = Math.random() * width;
-      const delay = Math.random() * 500;
-      const duration = 1000 + Math.random() * 1000;
-      const size = 8 + Math.random() * 8;
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      
-      particles.push(
-        <Animated.View
-          key={i}
-          style={{
-            position: "absolute",
-            left,
-            top: -20,
-            width: size,
-            height: size,
-            backgroundColor: color,
-            borderRadius: size / 2,
-            opacity: confettiAnim.interpolate({
-              inputRange: [0, 0.5, 1],
-              outputRange: [0, 1, 0],
-            }),
-            transform: [
-              {
-                translateY: confettiAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, 600],
-                }),
-              },
-              {
-                rotate: confettiAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: ["0deg", "360deg"],
-                }),
-              },
-            ],
-          }}
-        />
-      );
-    }
-    return particles;
+  const handleStartExploring = () => {
+    useAuthStore.getState().setOnboarded(true);
+    onNext();
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: COLORS.luxuryBlack }}>
-      <StatusBar barStyle="light-content" />
-      <Box safeAreaTop />
+    <View style={[styles.stage, { minHeight: stageHeight }]}>
+      <View style={styles.card}>
+        <View style={styles.topBar}>
+          <View style={styles.topBarSpacer} />
+          <Text style={styles.topBarTitle}>Setup Complete</Text>
+          <View style={styles.topBarSpacer} />
+        </View>
 
-      <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, pointerEvents: "none" }}>
-        {renderConfetti()}
-      </View>
+        <View style={styles.progressShell}>
+          <View style={styles.progressRow}>
+            <Text style={styles.progressText}>Onboarding Progress</Text>
+            <Text style={styles.progressStep}>Step 5 of 5</Text>
+          </View>
+          <View style={styles.progressTrackLarge}>
+            <View style={[styles.progressFill, { width: '100%' }]} />
+          </View>
+        </View>
 
-      <Box
-        flex={1}
-        justifyContent="center"
-        alignItems="center"
-        style={{ paddingHorizontal: horizontalPadding }}
-      >
-        <VStack
-          space="xl"
-          alignItems="center"
-          maxWidth={isTablet ? 520 : 400}
-          width="100%"
-        >
-          <Animated.View
-            style={{
-              transform: [{ scale: scaleAnim }],
-            }}
-          >
-            <Center
-              w={successBadgeSize}
-              h={successBadgeSize}
-              rounded="$full"
-              bg={COLORS.successGreen}
-              borderWidth={4}
-              borderColor={COLORS.primaryGold}
-              mb="$4"
-            >
-              <CheckCircle2
-                size={isTablet ? 66 : 60}
-                color={COLORS.luxuryBlack}
-                strokeWidth={3}
-              />
-            </Center>
-          </Animated.View>
+        <ScrollView contentContainerStyle={styles.mainContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.successBadge}>
+            <CheckCircle2 size={52} color={COLORS.primaryBlue} />
+          </View>
 
-          <Animated.View
-            style={{
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-              alignItems: "center",
-            }}
-          >
-            <HStack space="sm" alignItems="center" mb="$2">
-              <Sparkles size={24} color={COLORS.primaryGold} />
-              <Text color={COLORS.primaryGold} fontWeight="$bold" size="md" letterSpacing={1}>
-                WELCOME ABOARD
+          <View style={styles.sparkleRow}>
+            <Sparkles size={16} color={COLORS.primaryBlue} />
+            <Text style={styles.sparkleText}>WELCOME TO BARTERDASH</Text>
+            <Sparkles size={16} color={COLORS.primaryBlue} />
+          </View>
+
+          <Text style={styles.title}>You&apos;re all set!</Text>
+          <Text style={styles.subtitle}>
+            Your profile is ready. Start exploring live drops, follow sellers, and place your first bid.
+          </Text>
+
+          {!isSeller ? (
+            <View style={styles.sellerCard}>
+              <Text style={styles.sellerTitle}>Want to sell on BarterDash?</Text>
+              <Text style={styles.sellerSubtitle}>
+                Launch your own live stream storefront when you&apos;re ready.
               </Text>
-              <Sparkles size={24} color={COLORS.primaryGold} />
-            </HStack>
+              <Pressable style={styles.sellerButton} onPress={() => router.push('/seller/onboarding')}>
+                <Store size={16} color="#FFFFFF" />
+                <Text style={styles.sellerButtonText}>Become a Seller</Text>
+              </Pressable>
+            </View>
+          ) : null}
+        </ScrollView>
 
-            <Heading
-              size="3xl"
-              color={COLORS.textPrimary}
-              fontWeight="$black"
-              textAlign="center"
-              mb="$4"
-              style={{ fontSize: scaledFont(38, 0.95, 1.15) }}
-            >
-              You're All Set!
-            </Heading>
-
-            <Text
-              color={COLORS.textSecondary}
-              size="md"
-              textAlign="center"
-              lineHeight="$xl"
-              mb="$8"
-              px="$4"
-            >
-              Your profile is ready. Start exploring live auctions, connect with sellers, and discover unique items.
-            </Text>
-          </Animated.View>
-
-          {!isSeller && (
-            <Animated.View
-              style={{
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-                width: "100%",
-              }}
-            >
-              <View style={styles.sellerBox}>
-                <View style={styles.sellerIcon}>
-                  <Sparkles size={24} color={COLORS.primaryGold} />
-                </View>
-                <View style={styles.sellerText}>
-                  <RNText style={styles.sellerTitle}>Ready to Sell?</RNText>
-                  <RNText style={styles.sellerSubtitle}>
-                    Turn your passion into profit. Join our seller community.
-                  </RNText>
-                </View>
-                <TouchableOpacity
-                  style={styles.sellerButton}
-                  onPress={handleBecomeSeller}
-                >
-                  <LinearGradient
-                    colors={[COLORS.primaryGold, COLORS.secondaryGold]}
-                    style={styles.sellerGradient}
-                  >
-                    <Store size={18} color={COLORS.luxuryBlack} />
-                    <RNText style={styles.sellerButtonText}>Become a Seller</RNText>
-                  </LinearGradient>
-                </TouchableOpacity>
-              </View>
-            </Animated.View>
-          )}
-
-          <Animated.View
-            style={{
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-              width: "100%",
-            }}
-          >
-            <Button
-              size="xl"
-              variant="solid"
-              onPress={handleGetStarted}
-              bg={COLORS.primaryGold}
-              rounded="$full"
-              h={buttonHeight}
-              justifyContent="center"
-              alignItems="center"
-              sx={{
-                ":active": { opacity: 0.9, transform: [{ scale: 0.98 }] },
-                shadowColor: COLORS.primaryGold,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-                elevation: 8,
-              }}
-            >
-              <ButtonText
-                fontWeight="$bold"
-                color={COLORS.luxuryBlack}
-                textAlign="center"
-                flex={1}
-                size="lg"
-              >
-                Start Exploring
-              </ButtonText>
-            </Button>
-          </Animated.View>
-        </VStack>
-      </Box>
-
-      <Box pb={Math.max(insets.bottom, 24)} />
+        <View style={styles.bottomActionWrap}>
+          <Pressable style={styles.primaryButtonLarge} onPress={handleStartExploring}>
+            <Text style={styles.primaryButtonText}>Start Exploring</Text>
+            <ArrowRight size={18} color="#FFFFFF" />
+          </Pressable>
+        </View>
+      </View>
     </View>
   );
 }
 
+export default function SuccessScreen() {
+  const { profile } = useAuthStore();
+  const isSeller = profile?.is_seller === true || profile?.role === 'SELLER';
+
+  const onboardingColors = useMemo(
+    () => ({
+      background: {
+        primary: COLORS.mainBackground,
+        secondary: COLORS.cardWhite,
+        label: '#EAF1FF',
+        accent: '#EAF1FF',
+      },
+      text: {
+        primary: COLORS.primaryText,
+        secondary: COLORS.lightGrey,
+        contrast: '#FFFFFF',
+      },
+    }),
+    []
+  );
+
+  return (
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+      <Onboarding
+        showCloseButton={false}
+        showBackButton={false}
+        wrapInModalOnWeb={false}
+        colors={onboardingColors}
+        introPanel={({ onPressStart }) => <AutoStartIntro onPressStart={onPressStart} />}
+        steps={[
+          {
+            component: ({ onNext, onBack, isLast }: StepNavigationProps) => (
+              <SuccessStep onNext={onNext} onBack={onBack} isLast={isLast} isSeller={isSeller} />
+            ),
+            image: TRANSPARENT_IMAGE,
+            position: 'bottom',
+          },
+        ]}
+        onComplete={() => router.replace('/(tabs)')}
+      />
+    </SafeAreaView>
+  );
+}
+
 const styles = StyleSheet.create({
-  sellerBox: {
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F5F7F8',
+  },
+  introSpacer: {
+    minHeight: 1,
+  },
+  stage: {
     width: '100%',
-    backgroundColor: COLORS.luxuryBlackLight,
-    borderWidth: 1,
-    borderColor: COLORS.darkBorder,
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 20,
-  },
-  sellerIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: COLORS.luxuryBlack,
-    alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
   },
-  sellerText: {
-    marginBottom: 16,
-  },
-  sellerTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-    marginBottom: 4,
-  },
-  sellerSubtitle: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  sellerButton: {
-    borderRadius: 12,
+  card: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
     overflow: 'hidden',
+    shadowColor: '#1E293B',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
   },
-  sellerGradient: {
+  topBar: {
+    height: 56,
+    paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  topBarTitle: {
+    color: COLORS.primaryText,
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  topBarSpacer: {
+    width: 40,
+    height: 40,
+  },
+  progressShell: {
+    gap: 10,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 16,
+  },
+  progressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  progressText: {
+    color: COLORS.primaryText,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  progressStep: {
+    color: COLORS.primaryBlue,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  progressTrackLarge: {
+    height: 10,
+    borderRadius: 999,
+    backgroundColor: '#DCEAFD',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: COLORS.primaryBlue,
+  },
+  mainContent: {
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    paddingBottom: 20,
+    alignItems: 'center',
+  },
+  successBadge: {
+    width: 122,
+    height: 122,
+    borderRadius: 61,
+    borderWidth: 3,
+    borderStyle: 'dashed',
+    borderColor: '#A9C8F8',
+    backgroundColor: '#EEF5FF',
+    alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
+    marginBottom: 18,
+  },
+  sparkleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 10,
+  },
+  sparkleText: {
+    color: COLORS.primaryBlue,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
+  title: {
+    color: COLORS.primaryText,
+    fontSize: 34,
+    fontWeight: '700',
+    lineHeight: 38,
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  subtitle: {
+    color: '#64748B',
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: 'center',
+    marginBottom: 22,
+  },
+  sellerCard: {
+    width: '100%',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#D7E6FA',
+    backgroundColor: '#F8FBFF',
+    padding: 14,
     gap: 8,
   },
+  sellerTitle: {
+    color: '#0F172A',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  sellerSubtitle: {
+    color: '#64748B',
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  sellerButton: {
+    marginTop: 6,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: COLORS.primaryBlue,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 7,
+  },
   sellerButtonText: {
+    color: '#FFFFFF',
     fontSize: 14,
+    fontWeight: '700',
+  },
+  bottomActionWrap: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#EFF4FA',
+  },
+  primaryButtonLarge: {
+    height: 56,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: COLORS.primaryBlue,
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
     fontWeight: '800',
-    color: COLORS.luxuryBlack,
-    textAlign: 'center',
   },
 });

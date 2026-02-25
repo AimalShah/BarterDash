@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react'; import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/text';
+import { TextInput } from '@/components/ui/text-input';
 import { router } from 'expo-router';
 import { Search } from 'lucide-react-native';
 import { ordersService } from '@/lib/api/services/orders';

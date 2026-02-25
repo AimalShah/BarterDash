@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { Badge as UiBadge } from '@/components/ui/badge';
 import { Button as UiButton } from '@/components/ui/button';
 import { Text as UiText } from '@/components/ui/text';
+import { resolveSpaceGroteskFontFamily } from '@/constants/fonts';
 import { extractTextStyles, extractViewStyles, omitStyleProps } from './style-props';
 
 type CompatProps = Record<string, any>;
@@ -52,12 +53,17 @@ function textFactory(defaultClassName?: string) {
   return React.forwardRef<any, CompatProps>((props, ref) => {
     const style = extractTextStyles(props);
     const rest = omitStyleProps(props);
+    const fontFamily =
+      typeof style.fontFamily === 'string' && style.fontFamily.length
+        ? style.fontFamily
+        : resolveSpaceGroteskFontFamily(style.fontWeight);
+
     return (
       <RNText
         ref={ref}
         {...rest}
         className={mergeClassName(defaultClassName, rest.className)}
-        style={[style, rest.style]}
+        style={[{ fontFamily }, style, rest.style]}
       />
     );
   });

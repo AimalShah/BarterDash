@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { StatusBar, ScrollView, RefreshControl, StyleSheet, View, Text, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { StatusBar, ScrollView, RefreshControl, StyleSheet, View, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { Text } from '@/components/ui/text';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {

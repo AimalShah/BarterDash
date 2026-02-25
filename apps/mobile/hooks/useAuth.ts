@@ -67,6 +67,7 @@ export function useAuth() {
             username,
             full_name: username,
           },
+          emailRedirectTo: getEmailVerificationRedirectUri(),
         },
       });
 

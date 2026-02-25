@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react'; import { Alert, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/text';
 import { router, useLocalSearchParams } from 'expo-router';
 import { CheckCircle2, Heart, MessageCircle, ShieldCheck, Share2 } from 'lucide-react-native';
 import { useProductById } from '@/hooks/useProducts';

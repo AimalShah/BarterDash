@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
-import { Pressable, RefreshControl, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useMemo, useState } from 'react'; import { Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/text';
+import { TextInput } from '@/components/ui/text-input';
 import { router } from 'expo-router';
 import { Edit3, MessageCircle, Search } from 'lucide-react-native';
 import { useConversations } from '@/hooks/useMessages';
@@ -124,9 +125,9 @@ export default function InboxScreen() {
         )}
       </View>
 
-      <Pressable style={styles.fab} onPress={() => router.push('/messages/new')}>
-        <MessageCircle size={20} color="#FFFFFF" />
-      </Pressable>
+      {/* <Pressable style={styles.fab} onPress={() => router.push('/messages/new')}> */}
+      {/*   <MessageCircle size={20} color="#FFFFFF" /> */}
+      {/* </Pressable> */}
     </StitchPage>
   );
 }

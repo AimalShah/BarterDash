@@ -1,4 +1,3 @@
-import React from 'react';
 import { StatusBar } from 'react-native';
 import { router } from 'expo-router';
 import {
@@ -8,12 +7,11 @@ import {
     VStack,
     HStack,
     Pressable,
-    Center,
     Button,
     ButtonText,
     ScrollView,
 } from '@/components/ui/reusables';
-import { X, Settings, Store, CircleHelp, LogOut, ChevronRight, Home } from 'lucide-react-native';
+import { X, Settings, Store, CircleHelp, LogOut, ChevronRight } from 'lucide-react-native';
 import { useAuthStore } from '../store/authStore';
 import { COLORS } from '../constants/colors';
 

@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View } from 'react-native';
+import { Text } from '@/components/ui/text';
 import { COLORS } from "@/constants/colors";
 
 export default function ViewerStreamViewStream() {

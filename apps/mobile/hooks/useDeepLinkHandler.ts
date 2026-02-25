@@ -54,7 +54,7 @@ export function useDeepLinkHandler() {
 
           if (type === 'signup' || type === 'email') {
             console.log('[DEEP LINK] Redirecting to onboarding');
-            router.replace('/(onboarding)/profile-setup');
+            router.replace('/(auth)/verify-email');
           } else if (type === 'recovery') {
 
             console.log('[DEEP LINK] Redirecting to update-password');

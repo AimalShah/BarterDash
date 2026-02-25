@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react'; import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/text';
 import { router } from 'expo-router';
 import { Heart, HelpCircle, LogOut, Settings, ShieldCheck, Store } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
@@ -66,8 +66,8 @@ export default function ProfileScreen() {
     router.replace('/(auth)/landing');
   }
 
-  const avatar = profile?.avatar_url;
-  const displayName = profile?.full_name || profile?.username || 'BarterDash User';
+  const avatar = profile?.avatarUrl;
+  const displayName = profile?.fullName || 'BarterDash User';
   const handle = profile?.username ? `@${profile.username}` : '@barterdash_user';
 
   return (
