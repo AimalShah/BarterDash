@@ -60,12 +60,6 @@ export default function VerifyEmailScreen() {
           </Text>
 
 
-          <View className="mt-3 flex-row items-start rounded-2xl bg-primary-soft p-3">
-            <ShieldCheck size={16} color={COLORS.secondaryDark} />
-            <Text color="secondary" className="ml-2 flex-1 text-sm">
-              If code entry is unavailable, use the email link then tap the verify button.
-            </Text>
-          </View>
 
           <Button
             variant="primary"

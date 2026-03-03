@@ -53,7 +53,6 @@ export function useDeepLinkHandler() {
           setSession(data.session)
 
           if (type === 'signup' || type === 'email') {
-            console.log('[DEEP LINK] Redirecting to onboarding');
             router.replace('/(auth)/verify-email');
           } else if (type === 'recovery') {
 

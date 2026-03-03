@@ -26,7 +26,7 @@ export default function ProfileScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState<ProfileStats>({ followers: 0, following: 0, purchases: 0 });
 
-  const isSeller = profile?.role === 'SELLER' || profile?.is_seller === true;
+  const isSeller = profile?.role === 'SELLER' || profile?.isSeller === true;
 
   useEffect(() => {
     void loadStats();
@@ -94,7 +94,7 @@ export default function ProfileScreen() {
         <Text style={styles.handle}>{handle}</Text>
 
         <Text style={styles.bio}>
-          Lover of rare finds and good deals. Discovering the best live auctions every week.
+          {profile?.bio}
         </Text>
 
         <View style={styles.actionRow}>

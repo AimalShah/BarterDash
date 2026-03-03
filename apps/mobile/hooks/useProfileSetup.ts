@@ -146,9 +146,9 @@ export function useProfileSetup(): UseProfileSetupReturn {
           onboarding_step: "interests",
         },
         {
-          onSuccess: async () => {
-            await useAuthStore.getState().fetchProfile(true);
+          onSuccess: () => {
             onSuccess();
+            void useAuthStore.getState().fetchProfile(true);
           },
           onError: (error: any) => {
             if (error.message?.includes("username")) {

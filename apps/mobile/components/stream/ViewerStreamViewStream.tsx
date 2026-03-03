@@ -12,16 +12,16 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { supabase } from "../../lib/supabase";
-import { streamsService } from "../../lib/api/services/streams";
+import { queryKeys } from "../../lib/api/queryKeys";
+import { streamsService, type Stream } from "../../lib/api/services/streams";
 import { useAuthStore } from "../../store/authStore";
 import { useBidding } from "../../hooks/useBidding";
 import { useStreamAuctions } from "../../hooks/useStreamAuctions";
-import { useConnectionManager } from "@/lib/connection/useConnectionManager";
 import {
   StreamVideo,
-  StreamVideoClient,
   LivestreamPlayer,
   ViewerLivestream,
   type ViewerLivestreamProps,
@@ -37,6 +37,8 @@ interface ViewerStreamViewStreamProps {
   streamId: string;
 }
 
+const IS_UI_ONLY_MODE = true;
+
 const ViewerLivestreamNoControls = (props: ViewerLivestreamProps) => (
   <ViewerLivestream
     {...props}
@@ -48,15 +50,12 @@ const ViewerLivestreamNoControls = (props: ViewerLivestreamProps) => (
 export default function ViewerStreamViewStream({
   streamId,
 }: ViewerStreamViewStreamProps) {
+  type StreamWithLegacyThumbnail = Stream & { thumbnail?: string | null };
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
 
   // Core state
-  const [streamInfo, setStreamInfo] = useState<any>(null);
-  const [streamClient, setStreamClient] = useState<StreamVideoClient | null>(
-    null,
-  );
   const [isStreamPaused, setIsStreamPaused] = useState(false);
 
   // Auction state
@@ -80,85 +79,126 @@ export default function ViewerStreamViewStream({
   });
 
   const [showBidAlert, setShowBidAlert] = useState(false);
+  const [uiOnlyCurrentBid, setUiOnlyCurrentBid] = useState(120);
+  const [uiOnlyPlacingBid, setUiOnlyPlacingBid] = useState(false);
+  const previewEndsAtRef = useRef(
+    new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+  );
   const lastBidRef = useRef<number | null>(null);
   const bidAlertTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const endedAlertShownByStreamRef = useRef<Record<string, boolean>>({});
   const auctionTop = insets.top + 88;
 
   // Reactions
   const { addReaction, renderReactions } = useReactionSystem();
 
-  // Connection Manager
-  const {
-    connectionState,
-    isConnected,
-    isConnecting,
-    isReconnecting,
-    reconnectAttempt,
-    disconnect,
-  } = useConnectionManager({
-    streamId,
-    connectFn: async () => {
-      const apiKey = process.env.EXPO_PUBLIC_STREAM_API_KEY;
-      if (!apiKey) throw new Error("Missing Stream API key");
+  // TEMP: UI-only mode while stream transport is being fixed.
+  const streamClient = null;
+  const connectionState = "connected";
+  const isConnected = true;
+  const isConnecting = false;
+  const isReconnecting = false;
+  const reconnectAttempt = 0;
+  const disconnect = async () => { };
 
-      const userId = profile?.id;
-      if (!userId) throw new Error("Missing user for Stream authentication");
+  const { data: streamInfo } = useQuery<StreamWithLegacyThumbnail>({
+    queryKey: [...queryKeys.streams, "detail", streamId, "viewer"] as const,
+    queryFn: async () => {
+      const stream = (await streamsService.findById(
+        streamId,
+      )) as StreamWithLegacyThumbnail;
 
-      const tokenProvider = async () => {
-        const { token } = await streamsService.getViewerToken(streamId);
-        return token;
-      };
-
-      const client = StreamVideoClient.getOrCreateInstance({
-        apiKey,
-        user: { id: userId, name: profile?.username || "Viewer" },
-        tokenProvider,
-      });
-
-      setStreamClient(client);
-      await streamsService.join(streamId);
-    },
-    disconnectFn: async () => {
-      await streamsService.leave(streamId);
-      if (streamClient) {
-        await streamClient.disconnectUser();
-        setStreamClient(null);
+      if (
+        stream.status === "ended" &&
+        !endedAlertShownByStreamRef.current[streamId]
+      ) {
+        endedAlertShownByStreamRef.current[streamId] = true;
+        Alert.alert("Stream Ended", "The stream has ended.", [
+          { text: "OK", onPress: () => router.replace("/(tabs)") },
+        ]);
       }
+
+      return stream;
     },
-    autoConnect: true,
+    enabled: Boolean(streamId),
+    refetchInterval: (query) => {
+      const latestStream = query.state.data;
+      return latestStream?.status === "ended" ? false : 5000;
+    },
   });
 
-  // Fetch stream info
-  useEffect(() => {
-    const fetchStreamInfo = async () => {
-      try {
-        const stream = await streamsService.findById(streamId);
-        setStreamInfo(stream);
-      } catch (error) {
-        console.error("Failed to fetch stream info:", error);
-      }
-    };
-    fetchStreamInfo();
-  }, [streamId]);
+  const streamThumbnail = streamInfo?.thumbnail ?? streamInfo?.thumbnailUrl;
+  const isUsingPreviewAuction = IS_UI_ONLY_MODE && !activeAuction;
+  const previewBidIncrement = 5;
+  const previewAuction = isUsingPreviewAuction
+    ? {
+      id: `preview-${streamId}`,
+      currentBid: uiOnlyCurrentBid,
+      startingBid: uiOnlyCurrentBid,
+      bidCount: 18,
+      endsAt: previewEndsAtRef.current,
+      status: "active",
+      mode: "normal" as const,
+      title: streamInfo?.title ?? "Live item",
+      product: { images: streamThumbnail ? [streamThumbnail] : [] },
+    }
+    : null;
+  const auctionForUi = activeAuction ?? previewAuction;
+  const currentBidForUi = isUsingPreviewAuction ? uiOnlyCurrentBid : currentBid;
+  const bidIncrementForUi = isUsingPreviewAuction
+    ? previewBidIncrement
+    : bidIncrement;
+  const minimumBidForUi = isUsingPreviewAuction
+    ? uiOnlyCurrentBid + previewBidIncrement
+    : minimumBid;
+  const canBidForUi = isUsingPreviewAuction ? true : canBid;
+  const cannotBidReasonForUi = isUsingPreviewAuction ? null : cannotBidReason;
+  const isPlacingBidForUi = isUsingPreviewAuction
+    ? uiOnlyPlacingBid
+    : isPlacingBid;
 
-  // Check if stream ended
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const stream = await streamsService.findById(streamId);
-        if (stream.status === "ended") {
-          Alert.alert("Stream Ended", "The stream has ended.", [
-            { text: "OK", onPress: () => router.replace('/(tabs)') },
-          ]);
-          clearInterval(interval);
-        }
-      } catch (error) {
-        console.error("Failed to check stream status:", error);
-      }
-    }, 5000);
+  const placeBidForUi = useCallback(async (): Promise<boolean> => {
+    if (!isUsingPreviewAuction) {
+      return placeBid();
+    }
 
-    return () => clearInterval(interval);
-  }, [streamId, router]);
+    setUiOnlyPlacingBid(true);
+    setUiOnlyCurrentBid((prev) => prev + previewBidIncrement);
+    setUiOnlyPlacingBid(false);
+    return true;
+  }, [isUsingPreviewAuction, placeBid, previewBidIncrement]);
+
+  const placeCustomBidForUi = useCallback(
+    async (amount: number): Promise<boolean> => {
+      if (!isUsingPreviewAuction) {
+        return placeCustomBid(amount);
+      }
+      if (amount < minimumBidForUi) {
+        return false;
+      }
+      setUiOnlyPlacingBid(true);
+      setUiOnlyCurrentBid(amount);
+      setUiOnlyPlacingBid(false);
+      return true;
+    },
+    [isUsingPreviewAuction, minimumBidForUi, placeCustomBid],
+  );
+
+  const placeMaxBidForUi = useCallback(
+    async (amount: number): Promise<boolean> => {
+      if (!isUsingPreviewAuction) {
+        return placeMaxBid(amount);
+      }
+      if (amount < minimumBidForUi) {
+        return false;
+      }
+      setUiOnlyPlacingBid(true);
+      setUiOnlyCurrentBid(amount);
+      setUiOnlyPlacingBid(false);
+      return true;
+    },
+    [isUsingPreviewAuction, minimumBidForUi, placeMaxBid],
+  );
 
   // Handle auction won
   useEffect(() => {
@@ -191,7 +231,7 @@ export default function ViewerStreamViewStream({
 
   // Show bid alert when bid changes
   useEffect(() => {
-    if (!activeAuction?.id) {
+    if (!auctionForUi?.id) {
       lastBidRef.current = null;
       setShowBidAlert(false);
       if (bidAlertTimeoutRef.current) {
@@ -202,11 +242,11 @@ export default function ViewerStreamViewStream({
     }
 
     if (lastBidRef.current === null) {
-      lastBidRef.current = currentBid;
+      lastBidRef.current = currentBidForUi;
       return;
     }
 
-    if (currentBid > lastBidRef.current) {
+    if (currentBidForUi > lastBidRef.current) {
       setShowBidAlert(true);
       if (bidAlertTimeoutRef.current) {
         clearTimeout(bidAlertTimeoutRef.current);
@@ -216,8 +256,8 @@ export default function ViewerStreamViewStream({
       }, 1800);
     }
 
-    lastBidRef.current = currentBid;
-  }, [activeAuction?.id, currentBid]);
+    lastBidRef.current = currentBidForUi;
+  }, [auctionForUi?.id, currentBidForUi]);
 
   useEffect(() => {
     return () => {
@@ -281,10 +321,10 @@ export default function ViewerStreamViewStream({
         )}
 
         {/* Thumbnail overlay when disconnected */}
-        {!isConnected && streamInfo?.thumbnail && (
+        {!isConnected && streamThumbnail && (
           <View style={styles.thumbnailOverlay}>
             <Image
-              source={{ uri: streamInfo.thumbnail }}
+              source={{ uri: streamThumbnail }}
               style={styles.thumbnail}
               blurRadius={1}
             />
@@ -312,18 +352,18 @@ export default function ViewerStreamViewStream({
       <View style={[styles.auctionContainer, { top: auctionTop }]}>
         <View style={styles.auctionInner}>
           <AuctionSection
-            auction={activeAuction}
-            currentBid={currentBid}
-            minimumBid={minimumBid}
-            bidIncrement={bidIncrement}
-            isPlacingBid={isPlacingBid}
-            canBid={canBid}
-            cannotBidReason={cannotBidReason}
+            auction={auctionForUi}
+            currentBid={currentBidForUi}
+            minimumBid={minimumBidForUi}
+            bidIncrement={bidIncrementForUi}
+            isPlacingBid={isPlacingBidForUi}
+            canBid={canBidForUi}
+            cannotBidReason={cannotBidReasonForUi}
             timerExtended={timerExtended}
             newEndsAt={newEndsAt}
-            onPlaceBid={placeBid}
-            onPlaceCustomBid={placeCustomBid}
-            onPlaceMaxBid={placeMaxBid}
+            onPlaceBid={placeBidForUi}
+            onPlaceCustomBid={placeCustomBidForUi}
+            onPlaceMaxBid={placeMaxBidForUi}
           />
         </View>
       </View>
@@ -332,7 +372,7 @@ export default function ViewerStreamViewStream({
       {renderReactions()}
 
       {/* Bid Alert Banner */}
-      <BidAlert show={showBidAlert} currentBid={currentBid} />
+      <BidAlert show={showBidAlert} currentBid={currentBidForUi} />
 
       {/* Top Bar */}
       <LinearGradient
@@ -379,13 +419,13 @@ export default function ViewerStreamViewStream({
         <View style={styles.chatPanel}>
           <View style={styles.chatContainer}>
             <InstagramLiveChat streamId={streamId} showInput={true} />
+            <View style={styles.actionsRow}>
+              <ReactionButton onPress={() => addReaction()} />
+            </View>
           </View>
         </View>
 
         {/* Reaction Button */}
-        <View style={styles.actionsRow}>
-          <ReactionButton onPress={() => addReaction()} />
-        </View>
       </View>
     </SafeAreaView>
   );
@@ -530,18 +570,20 @@ const styles = StyleSheet.create({
     zIndex: 12,
   },
   chatPanel: {
-    backgroundColor: COLORS.overlayStrong,
+    backgroundColor: "transparent",
     borderRadius: 18,
-    borderWidth: 1,
+    borderWidth: 0,
     borderColor: COLORS.darkBorder,
     overflow: "hidden",
-    marginBottom: 10,
+    marginBottom: 5,
   },
   chatContainer: {
-    height: 220,
+    height: 210,
+    flexDirection: "row",
+    paddingHorizontal: 10,
   },
   actionsRow: {
-    flexDirection: "row",
     justifyContent: "flex-end",
+    marginBottom: 22,
   },
 });

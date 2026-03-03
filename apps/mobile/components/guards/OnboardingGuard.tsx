@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useRouter, useSegments } from 'expo-router';
+import { usePathname, useRouter, useSegments } from 'expo-router';
 import { useAuthStore } from '@/store/authStore';
 import { Center, Spinner, Text } from '@/components/ui/reusables';
 import { COLORS } from '@/constants/colors';
 
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     const segments = useSegments();
+    const pathname = usePathname();
     const router = useRouter();
     const { profile, loading, isFetchingProfile, initialized } = useAuthStore();
     const [isLoading, setIsLoading] = useState(true);
@@ -21,8 +22,26 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if (isLoading || loading || isFetchingProfile || !profile || !initialized) return;
 
-        const inOnboarding = segments[0] === '(onboarding)';
-        const inOnboardingSuccess = inOnboarding && segments.includes('success');
+        const onboardingRoutes = [
+            'profile-setup',
+            'interests',
+            'age-verification',
+            'notifications',
+            'success',
+        ];
+        const inOnboardingPath = onboardingRoutes.some((route) => pathname.includes(route));
+        const inOnboarding =
+            segments[0] === '(onboarding)' ||
+            onboardingRoutes.some((route) => segments.includes(route)) ||
+            inOnboardingPath;
+        const inOnboardingCompletionScreen =
+            inOnboarding &&
+            (
+                segments.includes('success') ||
+                segments.includes('profile-setup') ||
+                pathname.includes('success') ||
+                pathname.includes('profile-setup')
+            );
         const inAuth = segments[0] === '(auth)';
         const inDev = segments[0] === 'dev';
 
@@ -38,35 +57,27 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
                 const step = profile.onboarding_step || 'profile';
                 
                 switch (step) {
-                    case 'profile':
-                    case null:
-                    case undefined:
-                        router.replace('/(onboarding)/profile-setup');
-                        break;
-                    case 'interests':
-                        router.replace('/(onboarding)/interests');
-                        break;
-                    case 'age_verification':
-                        router.replace('/(onboarding)/age-verification');
-                        break;
-                    case 'notifications':
-                        router.replace('/(onboarding)/notifications');
-                        break;
                     case 'completed':
                         // Should not reach here due to isOnboarded check, but handle gracefully
                         router.replace('/(tabs)');
                         break;
+                    case 'profile':
+                    case 'interests':
+                    case 'age_verification':
+                    case 'notifications':
+                    case null:
+                    case undefined:
                     default:
                         router.replace('/(onboarding)/profile-setup');
                 }
             }
-        } else if (inOnboarding && !inOnboardingSuccess) {
-            // Already onboarded, don't stay in onboarding except the success screen
+        } else if (inOnboarding && !inOnboardingCompletionScreen) {
+            // Already onboarded, don't stay in onboarding outside completion screens
             router.replace('/(tabs)');
         }
-    }, [profile, loading, isFetchingProfile, segments, isLoading, initialized]);
+    }, [profile, loading, isFetchingProfile, segments, pathname, isLoading, initialized]);
 
-    if (isLoading || loading || isFetchingProfile || !initialized) {
+    if (isLoading || loading || !initialized) {
         return (
             <Center flex={1} bg={COLORS.luxuryBlack}>
                 <Spinner size="large" color={COLORS.primaryGold} />

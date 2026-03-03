@@ -7,7 +7,7 @@ export interface User {
   avatarUrl?: string;
   bio?: string;
   role: "USER" | "SELLER" | "ADMIN";
-  is_seller?: boolean;
+  isSeller?: boolean;
   seller_status?: "pending" | "approved" | "rejected";
   account_status?: "active" | "suspended" | "banned" | "under_review";
   stripe_account_status?: string;

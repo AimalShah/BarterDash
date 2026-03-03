@@ -94,7 +94,7 @@ function NotificationStep({
 }) {
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
-  const stageHeight = Math.max(height - insets.top - insets.bottom - 48, 690);
+  const stageHeight = Math.max(height - insets.top - insets.bottom - 48, 0);
 
   return (
     <View style={[styles.stage, { minHeight: stageHeight }]}>
@@ -121,7 +121,13 @@ function NotificationStep({
           </View>
         </View>
 
-        <ScrollView contentContainerStyle={styles.mainContent} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.stepScroll}
+          contentContainerStyle={styles.mainContent}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.iconBadge}>
             <Bell size={26} color={COLORS.primaryBlue} />
           </View>
@@ -287,8 +293,15 @@ const styles = StyleSheet.create({
   stage: {
     width: '100%',
     justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
   card: {
+    flex: 1,
+    minHeight: 0,
+    width: '100%',
+    maxWidth: 760,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#E2E8F0',
@@ -299,6 +312,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 16,
     elevation: 4,
+  },
+  stepScroll: {
+    flex: 1,
+    minHeight: 0,
   },
   topBar: {
     height: 56,
@@ -359,6 +376,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 20,
+    flexGrow: 1,
   },
   iconBadge: {
     width: 48,

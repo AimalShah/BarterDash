@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useRouter, useSegments } from 'expo-router';
+import { usePathname, useRouter, useSegments } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import { Center, Spinner, VStack, Heading, Text, Button, ButtonText, Box } from '@/components/ui/reusables';
 import { useAuthStore } from '../../store/authStore';
@@ -7,14 +7,11 @@ import { COLORS } from '@/constants/colors';
 
 function getOnboardingRoute(step?: string | null): string {
     switch (step) {
-        case 'interests':
-            return '/(onboarding)/interests';
-        case 'age_verification':
-            return '/(onboarding)/age-verification';
-        case 'notifications':
-            return '/(onboarding)/notifications';
         case 'completed':
             return '/(tabs)';
+        case 'interests':
+        case 'age_verification':
+        case 'notifications':
         case 'profile':
         case null:
         case undefined:
@@ -25,6 +22,7 @@ function getOnboardingRoute(step?: string | null): string {
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
     const segments = useSegments();
+    const pathname = usePathname();
     const router = useRouter();
     const { session, setSession, fetchProfile, profile, initialized, loading, isFetchingProfile } = useAuthStore();
     const [isLoading, setIsLoading] = useState(true);
@@ -73,8 +71,26 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
         const inAuthGroup = segments[0] === '(auth)';
         const inDevGroup = segments[0] === 'dev';
-        const inOnboarding = segments[0] === '(onboarding)';
-        const inOnboardingSuccess = inOnboarding && segments.includes('success');
+        const onboardingRoutes = [
+            'profile-setup',
+            'interests',
+            'age-verification',
+            'notifications',
+            'success',
+        ];
+        const inOnboardingPath = onboardingRoutes.some((route) => pathname.includes(route));
+        const inOnboarding =
+            segments[0] === '(onboarding)' ||
+            onboardingRoutes.some((route) => segments.includes(route)) ||
+            inOnboardingPath;
+        const inOnboardingCompletionScreen =
+            inOnboarding &&
+            (
+                segments.includes('success') ||
+                segments.includes('profile-setup') ||
+                pathname.includes('success') ||
+                pathname.includes('profile-setup')
+            );
         const isUpdatePasswordRoute = segments[0] === 'update-password';
         const isAuthenticated = !!session;
 
@@ -83,7 +99,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
             inAuthGroup,
             inDevGroup,
             inOnboarding,
-            inOnboardingSuccess,
+            inOnboardingCompletionScreen,
             isUpdatePasswordRoute,
             isAuthenticated,
             hasProfile: !!profile,
@@ -115,7 +131,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
                 router.replace(onboardingRoute as any);
             } else if (
                 onboarded &&
-                (inAuthGroup || (inOnboarding && !inOnboardingSuccess)) &&
+                (inAuthGroup || (inOnboarding && !inOnboardingCompletionScreen)) &&
                 !isUpdatePasswordRoute
             ) {
                 // Logged in and onboarded, but in auth/onboarding group
@@ -129,9 +145,9 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
                 console.log('[AUTH GUARD] Allowing update-password route');
             }
         }
-    }, [session, profile, segments, isLoading, initialized, isFetchingProfile, fetchProfile]);
+    }, [session, profile, segments, pathname, isLoading, initialized, isFetchingProfile, fetchProfile]);
 
-    if (isLoading || loading || isFetchingProfile || !initialized) {
+    if (isLoading || loading || !initialized) {
         return (
             <Center flex={1} bg={COLORS.luxuryBlack}>
                 <Spinner size="large" color={COLORS.textPrimary} />

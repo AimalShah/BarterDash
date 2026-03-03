@@ -101,20 +101,20 @@ export default function SettingsScreen() {
             subtitle="Cards and payouts"
             onPress={() => router.push('/checkout/cart')}
           />
-          <View style={styles.switchRow}>
-            <View style={styles.rowLeft}>
-              <View style={styles.rowIcon}>
-                <Moon size={16} color={COLORS.primaryBlue} />
-              </View>
-              <Text style={styles.rowTitle}>Dark Mode</Text>
-            </View>
-            <Switch
-              value={darkMode}
-              onValueChange={setDarkMode}
-              trackColor={{ false: '#CBD5E1', true: '#93C5FD' }}
-              thumbColor={darkMode ? COLORS.primaryBlue : '#FFFFFF'}
-            />
-          </View>
+          {/* <View style={styles.switchRow}> */}
+          {/*   <View style={styles.rowLeft}> */}
+          {/*     <View style={styles.rowIcon}> */}
+          {/*       <Moon size={16} color={COLORS.primaryBlue} /> */}
+          {/*     </View> */}
+          {/*     <Text style={styles.rowTitle}>Dark Mode</Text> */}
+          {/*   </View> */}
+          {/*   <Switch */}
+          {/*     value={darkMode} */}
+          {/*     onValueChange={setDarkMode} */}
+          {/*     trackColor={{ false: '#CBD5E1', true: '#93C5FD' }} */}
+          {/*     thumbColor={darkMode ? COLORS.primaryBlue : '#FFFFFF'} */}
+          {/*   /> */}
+          {/* </View> */}
         </View>
       </View>
 

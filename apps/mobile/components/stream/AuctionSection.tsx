@@ -310,22 +310,22 @@ export default function AuctionSection({
             <Text style={styles.bidCountText}>{bidCount} bids</Text>
           </View>
 
-          <View style={styles.priceSection}>
-            <Text style={styles.currentBidLabel}>Current</Text>
-            <Text style={styles.currentBidAmount}>
-              {formatBidAmount(displayBid)}
-            </Text>
-          </View>
+          {/* <View style={styles.priceSection}> */}
+          {/*   <Text style={styles.currentBidLabel}>Current</Text> */}
+          {/*   <Text style={styles.currentBidAmount}> */}
+          {/*     {formatBidAmount(displayBid)} */}
+          {/*   </Text> */}
+          {/* </View> */}
         </View>
 
-        <View style={styles.minimumBidRow}>
-          <Text style={styles.minimumBidText}>
-            Next bid {formatBidAmount(safeMinimumBid)}
-          </Text>
-          <Text style={styles.incrementText}>
-            +{formatBidAmount(safeBidIncrement).replace("$", "")} increment
-          </Text>
-        </View>
+        {/* <View style={styles.minimumBidRow}> */}
+        {/*   <Text style={styles.minimumBidText}> */}
+        {/*     Next bid {formatBidAmount(safeMinimumBid)} */}
+        {/*   </Text> */}
+        {/*   <Text style={styles.incrementText}> */}
+        {/*     +{formatBidAmount(safeBidIncrement).replace("$", "")} increment */}
+        {/*   </Text> */}
+        {/* </View> */}
 
         <View style={styles.infoFooter}>
           {auction.shippingCost !== undefined && (
@@ -528,7 +528,7 @@ export default function AuctionSection({
                   styles.confirmButton,
                   (!customAmount ||
                     parseFloat(customAmount) < safeMinimumBid) &&
-                    styles.confirmButtonDisabled,
+                  styles.confirmButtonDisabled,
                 ]}
                 onPress={handleCustomBid}
                 disabled={
@@ -661,7 +661,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   itemTitle: {
-    color: COLORS.textPrimary,
+    color: "white",
     fontSize: 15,
     fontWeight: "700",
   },
@@ -670,6 +670,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 8,
+    color: "white"
   },
   shippingText: {
     color: COLORS.textSecondary,
