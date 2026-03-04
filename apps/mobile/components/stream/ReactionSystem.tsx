@@ -106,7 +106,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: COLORS.overlayMedium,
     borderWidth: 1,
     borderColor: COLORS.darkBorderLight,
     justifyContent: "center",

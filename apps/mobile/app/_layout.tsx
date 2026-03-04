@@ -7,6 +7,7 @@ import { useFonts } from 'expo-font';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { GluestackUIProvider } from '@/components/ui/reusables';
+import { GestureHandlerRootView } from "react-native-gesture-handler"
 import {
   SpaceGrotesk_300Light,
   SpaceGrotesk_400Regular,
@@ -75,41 +76,44 @@ export default function RootLayout() {
 
   return (
     <ErrorBoundary>
-      <StripeProvider
-        publishableKey={stripePublishableKey}
-        urlScheme="barterdash"
-        merchantIdentifier={applePayMerchantIdentifier || undefined}
-      >
-        <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <AppBootstrap />
-            <AuthGuard>
-              <OnboardingGuard>
-                <Stack
-                  screenOptions={{
-                    headerShown: false,
-                    contentStyle: { backgroundColor: COLORS.mainBackground },
-                  }}
-                >
-                  <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                  <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                  <Stack.Screen name="seller" options={{ headerShown: false }} />
-                  <Stack.Screen name="stream/[id]" />
-                  <Stack.Screen name="product/[id]" />
-                  <Stack.Screen name="user/[id]" options={{ presentation: 'card' }} />
-                  <Stack.Screen name="social" options={{ headerShown: false }} />
-                  <Stack.Screen
-                    name="menu"
-                    options={{ presentation: 'transparentModal', animation: 'fade' }}
-                  />
-                  <Stack.Screen name="update-password" options={{ headerShown: false }} />
-                </Stack>
-              </OnboardingGuard>
-            </AuthGuard>
-          </ToastProvider>
-        </QueryClientProvider>
-      </StripeProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <StripeProvider
+          publishableKey={stripePublishableKey}
+          urlScheme="barterdash"
+          merchantIdentifier={applePayMerchantIdentifier || undefined}
+        >
+          <QueryClientProvider client={queryClient}>
+            <ToastProvider>
+              <AppBootstrap />
+              <AuthGuard>
+                <OnboardingGuard>
+                  <Stack
+                    screenOptions={{
+                      headerShown: false,
+                      contentStyle: { backgroundColor: COLORS.mainBackground },
+                    }}
+                  >
+                    <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                    <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                    <Stack.Screen name="seller" options={{ headerShown: false }} />
+                    <Stack.Screen name="stream/[id]" />
+                    <Stack.Screen name="product/[id]" />
+                    <Stack.Screen name="user/[id]" options={{ presentation: 'card' }} />
+                    <Stack.Screen name="social" options={{ headerShown: false }} />
+                    <Stack.Screen
+                      name="menu"
+                      options={{ presentation: 'transparentModal', animation: 'fade' }}
+                    />
+                    <Stack.Screen name="update-password" options={{ headerShown: false }} />
+                  </Stack>
+                </OnboardingGuard>
+              </AuthGuard>
+            </ToastProvider>
+          </QueryClientProvider>
+        </StripeProvider>
+
+      </GestureHandlerRootView>
     </ErrorBoundary>
   );
 }

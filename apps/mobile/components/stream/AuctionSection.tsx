@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { COLORS } from "../../constants/colors";
 import { formatBidAmount, getQuickBidOptions } from "../../lib/bidding/utils";
+import BiddingControls from "./bidding-gesture";
 
 const SWIPE_THRESHOLD = 80;
 const SWIPE_DISTANCE = 120;
@@ -28,6 +29,7 @@ interface Auction {
   mode?: "normal" | "sudden_death";
   product?: {
     images?: string[];
+    condition: string;
   };
 }
 
@@ -278,17 +280,11 @@ export default function AuctionSection({
   const isSuddenDeath = auction.mode === "sudden_death";
   const bidCount = Number(auction.bidCount ?? 0);
   const productImage = auction.product?.images?.[0];
+  const productCondition = auction.product?.condition
 
   return (
     <View style={styles.container}>
       <View style={styles.infoCard}>
-        <View style={styles.metaRow}>
-          <View style={styles.liveBadge}>
-            <View style={styles.liveDot} />
-            <Text style={styles.liveBadgeText}>LIVE AUCTION</Text>
-          </View>
-          {endsAtToUse && <AuctionTimerCompact endsAt={endsAtToUse} />}
-        </View>
 
         <View style={styles.itemRow}>
           <View style={styles.itemPreview}>
@@ -307,243 +303,16 @@ export default function AuctionSection({
             <Text style={styles.itemTitle} numberOfLines={1}>
               {auction.title || "Live item"}
             </Text>
-            <Text style={styles.bidCountText}>{bidCount} bids</Text>
-          </View>
-
-          {/* <View style={styles.priceSection}> */}
-          {/*   <Text style={styles.currentBidLabel}>Current</Text> */}
-          {/*   <Text style={styles.currentBidAmount}> */}
-          {/*     {formatBidAmount(displayBid)} */}
-          {/*   </Text> */}
-          {/* </View> */}
-        </View>
-
-        {/* <View style={styles.minimumBidRow}> */}
-        {/*   <Text style={styles.minimumBidText}> */}
-        {/*     Next bid {formatBidAmount(safeMinimumBid)} */}
-        {/*   </Text> */}
-        {/*   <Text style={styles.incrementText}> */}
-        {/*     +{formatBidAmount(safeBidIncrement).replace("$", "")} increment */}
-        {/*   </Text> */}
-        {/* </View> */}
-
-        <View style={styles.infoFooter}>
-          {auction.shippingCost !== undefined && (
-            <Text style={styles.shippingText}>
-              Shipping {formatBidAmount(auction.shippingCost)}
-            </Text>
-          )}
-          {isSuddenDeath ? (
-            <View style={styles.suddenDeathBadge}>
-              <Text style={styles.suddenDeathText}>SUDDEN DEATH</Text>
-            </View>
-          ) : null}
-        </View>
-
-        {timerExtended ? (
-          <View style={styles.timerExtendedBanner}>
-            <Text style={styles.timerExtendedText}>Timer extended +10 seconds</Text>
-          </View>
-        ) : null}
-      </View>
-
-      <View style={styles.bidButtonWrapper}>
-        <Animated.View
-          style={[
-            styles.bidButtonContainer,
-            {
-              transform: [{ scale: scaleAnim }],
-            },
-          ]}
-          {...(canBid && !isPlacingBid ? panResponder.panHandlers : {})}
-        >
-          <TouchableOpacity
-            style={[
-              styles.mainBidButton,
-              (!canBid || isPlacingBid) && styles.mainBidButtonDisabled,
-            ]}
-            onPress={handleTapBid}
-            disabled={!canBid || isPlacingBid}
-            activeOpacity={0.8}
-          >
-            <Animated.View
-              style={[
-                styles.swipeIndicator,
-                {
-                  transform: [
-                    {
-                      translateX: swipeAnim.interpolate({
-                        inputRange: [0, SWIPE_DISTANCE],
-                        outputRange: [-20, 60],
-                      }),
-                    },
-                  ],
-                  opacity: swipeAnim.interpolate({
-                    inputRange: [0, SWIPE_THRESHOLD],
-                    outputRange: [1, 0],
-                  }),
-                },
-              ]}
-            >
-              <Text style={styles.swipeArrow}>→</Text>
-            </Animated.View>
-
-            <View style={styles.bidButtonContent}>
-              {isPlacingBid ? (
-                <Text style={styles.bidButtonText}>BIDDING...</Text>
-              ) : showPreview && previewAmount ? (
-                <Text style={styles.bidButtonTextPreview}>
-                  {formatBidAmount(previewAmount)}
-                </Text>
-              ) : (
-                <>
-                  <Text style={styles.bidButtonText}>
-                    BID {formatBidAmount(safeMinimumBid)}
-                  </Text>
-                  <Text style={styles.swipeHint}>Swipe right to confirm or tap to bid</Text>
-                </>
-              )}
-            </View>
-
-            <Animated.View
-              style={[
-                styles.swipeOverlay,
-                {
-                  opacity: swipeAnim.interpolate({
-                    inputRange: [0, SWIPE_THRESHOLD],
-                    outputRange: [0, 0.5],
-                  }),
-                },
-              ]}
-            />
-          </TouchableOpacity>
-        </Animated.View>
-      </View>
-
-      {!canBid && cannotBidReason && (
-        <Text style={styles.cannotBidText}>{cannotBidReason}</Text>
-      )}
-
-      <View style={styles.quickBidsContainer}>
-        {quickOptions.map((increment) => (
-          <TouchableOpacity
-            key={increment}
-            style={[
-              styles.quickBidButton,
-              (!canBid || isPlacingBid) && styles.quickBidButtonDisabled,
-            ]}
-            onPress={() => handleQuickBid(increment)}
-            disabled={!canBid || isPlacingBid}
-          >
-            <Text style={styles.quickBidText}>
-              +{formatBidAmount(increment)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <TouchableOpacity
-        style={styles.customBidButton}
-        onPress={handleOpenCustom}
-        disabled={!canBid || isPlacingBid}
-      >
-        <Text style={styles.customBidText}>Custom / Max Bid</Text>
-      </TouchableOpacity>
-
-      <Modal
-        visible={showCustomBid}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowCustomBid(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {isMaxBid ? "Set Max Bid" : "Enter Custom Bid"}
-            </Text>
-
-            <Text style={styles.modalSubtitle}>
-              Current: {formatBidAmount(displayBid)} | Min:{" "}
-              {formatBidAmount(safeMinimumBid)}
-            </Text>
-
-            <TextInput
-              style={styles.amountInput}
-              placeholder="Enter amount"
-              keyboardType="decimal-pad"
-              value={customAmount}
-              onChangeText={setCustomAmount}
-              autoFocus
-            />
-
-            <View style={styles.quickAmountButtons}>
-              {[
-                safeMinimumBid,
-                safeMinimumBid + safeBidIncrement,
-                safeMinimumBid + safeBidIncrement * 2,
-              ].map((amt) => (
-                <TouchableOpacity
-                  key={amt}
-                  style={styles.quickAmountButton}
-                  onPress={() => setCustomAmount(amt.toString())}
-                >
-                  <Text style={styles.quickAmountText}>
-                    {formatBidAmount(amt)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <TouchableOpacity
-              style={styles.maxBidToggle}
-              onPress={() => setIsMaxBid(!isMaxBid)}
-            >
-              <View
-                style={[styles.checkbox, isMaxBid && styles.checkboxChecked]}
-              >
-                {isMaxBid && <Text style={styles.checkmark}>✓</Text>}
-              </View>
-              <View style={styles.maxBidInfo}>
-                <Text style={styles.maxBidLabel}>Max Bid</Text>
-                <Text style={styles.maxBidDescription}>
-                  Auto-bid up to this amount when outbid
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => {
-                  setShowCustomBid(false);
-                  setCustomAmount("");
-                  setIsMaxBid(false);
-                }}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.confirmButton,
-                  (!customAmount ||
-                    parseFloat(customAmount) < safeMinimumBid) &&
-                  styles.confirmButtonDisabled,
-                ]}
-                onPress={handleCustomBid}
-                disabled={
-                  !customAmount || parseFloat(customAmount) < safeMinimumBid
-                }
-              >
-                <Text style={styles.confirmButtonText}>
-                  {isMaxBid ? "Set Max Bid" : "Place Bid"}
-                </Text>
-              </TouchableOpacity>
+            <View className="flex-1 flex-col">
+              <Text className="text-white text-xl font-extrabold text-right">${currentBid}</Text>
+              {endsAtToUse && <AuctionTimerCompact endsAt={endsAtToUse} />}
             </View>
           </View>
         </View>
-      </Modal>
-    </View>
+        <BiddingControls currentBid={currentBid} />
+
+      </View>
+    </View >
   );
 }
 
@@ -552,12 +321,12 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   infoCard: {
-    backgroundColor: COLORS.overlayStrong,
+    backgroundColor: "transparent",
     borderRadius: 16,
-    padding: 16,
+    padding: 6,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: COLORS.darkBorder,
+    borderColor: "transparent",
   },
   metaRow: {
     flexDirection: "row",
@@ -591,7 +360,7 @@ const styles = StyleSheet.create({
   itemRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    gap: 10,
   },
   itemPreview: {
     width: 56,
@@ -616,7 +385,8 @@ const styles = StyleSheet.create({
   },
   itemMeta: {
     flex: 1,
-    marginHorizontal: 10,
+    flexDirection: "row",
+    marginHorizontal: 0,
   },
   bidCountText: {
     color: COLORS.textSecondary,
@@ -703,21 +473,18 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   timerContainer: {
-    backgroundColor: COLORS.overlayMedium,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: COLORS.darkBorder,
+    paddingHorizontal: 0,
+    paddingVertical: 4,
   },
   timerUrgent: {
     backgroundColor: "rgba(239, 68, 68, 0.2)",
     borderColor: COLORS.errorRed,
   },
   timerText: {
-    color: COLORS.textPrimary,
+    color: "white",
     fontSize: 18,
     fontWeight: "700",
+    textAlign: "right",
     fontVariant: ["tabular-nums"],
   },
   timerTextUrgent: {

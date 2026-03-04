@@ -349,24 +349,6 @@ export default function ViewerStreamViewStream({
       />
 
       {/* Auction Section - Shows overlay and bid buttons */}
-      <View style={[styles.auctionContainer, { top: auctionTop }]}>
-        <View style={styles.auctionInner}>
-          <AuctionSection
-            auction={auctionForUi}
-            currentBid={currentBidForUi}
-            minimumBid={minimumBidForUi}
-            bidIncrement={bidIncrementForUi}
-            isPlacingBid={isPlacingBidForUi}
-            canBid={canBidForUi}
-            cannotBidReason={cannotBidReasonForUi}
-            timerExtended={timerExtended}
-            newEndsAt={newEndsAt}
-            onPlaceBid={placeBidForUi}
-            onPlaceCustomBid={placeCustomBidForUi}
-            onPlaceMaxBid={placeMaxBidForUi}
-          />
-        </View>
-      </View>
 
       {/* Floating Reactions */}
       {renderReactions()}
@@ -425,7 +407,24 @@ export default function ViewerStreamViewStream({
           </View>
         </View>
 
-        {/* Reaction Button */}
+        <View style={[styles.auctionContainer]}>
+          <View style={styles.auctionInner}>
+            <AuctionSection
+              auction={auctionForUi}
+              currentBid={currentBidForUi}
+              minimumBid={minimumBidForUi}
+              bidIncrement={bidIncrementForUi}
+              isPlacingBid={isPlacingBidForUi}
+              canBid={canBidForUi}
+              cannotBidReason={cannotBidReasonForUi}
+              timerExtended={timerExtended}
+              newEndsAt={newEndsAt}
+              onPlaceBid={placeBidForUi}
+              onPlaceCustomBid={placeCustomBidForUi}
+              onPlaceMaxBid={placeMaxBidForUi}
+            />
+          </View>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -464,15 +463,10 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   auctionContainer: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    zIndex: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 0,
   },
   auctionInner: {
     width: "100%",
-    maxWidth: 520,
     alignSelf: "center",
   },
   topBar: {
@@ -566,7 +560,7 @@ const styles = StyleSheet.create({
   mainContent: {
     flex: 1,
     justifyContent: "flex-end",
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     zIndex: 12,
   },
   chatPanel: {
@@ -575,12 +569,12 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     borderColor: COLORS.darkBorder,
     overflow: "hidden",
-    marginBottom: 5,
+    marginBottom: 4,
   },
   chatContainer: {
     height: 210,
     flexDirection: "row",
-    paddingHorizontal: 10,
+    paddingHorizontal: 0,
   },
   actionsRow: {
     justifyContent: "flex-end",

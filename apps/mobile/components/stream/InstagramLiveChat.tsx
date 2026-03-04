@@ -195,14 +195,14 @@ export const InstagramLiveChatUI: React.FC<InstagramLiveChatUIProps> = ({
               testID="stream-chat-input"
             />
             <TouchableOpacity
-            onPress={handleSend}
-            style={[styles.sendButton, (!inputText.trim() || sending) && styles.sendButtonDisabled]}
-            disabled={!inputText.trim() || sending}
-            testID="stream-chat-send"
-          >
-            <Ionicons name="send" size={20} color={inputText.trim() ? COLORS.primaryGold : COLORS.textMuted} />
-          </TouchableOpacity>
-        </View>
+              onPress={handleSend}
+              style={[styles.sendButton, (!inputText.trim() || sending) && styles.sendButtonDisabled]}
+              disabled={!inputText.trim() || sending}
+              testID="stream-chat-send"
+            >
+              <Ionicons name="send" size={20} color={inputText.trim() ? COLORS.primaryGold : COLORS.textMuted} />
+            </TouchableOpacity>
+          </View>
         </View>
       )}
     </KeyboardAvoidingView>
@@ -243,6 +243,7 @@ const styles = StyleSheet.create({
   messagesContent: {
     paddingTop: 20,
     paddingBottom: 10,
+    color: "white",
   },
   gradientOverlay: {
     position: 'absolute',
@@ -274,7 +275,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   messageText: {
-    color: COLORS.textPrimary,
+    color: "white",
     fontSize: 14,
     lineHeight: 18,
   },
@@ -284,14 +285,16 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.darkBorderLight,
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "white",
     borderRadius: 25,
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
   input: {
     flex: 1,
-    color: COLORS.textPrimary,
+    color: "white",
     fontSize: 15,
     paddingVertical: 0,
     maxHeight: 60,
